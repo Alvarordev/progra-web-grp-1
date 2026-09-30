@@ -8,7 +8,7 @@ function Header({estado}) {
                     <div className={styles.avatar}>
                         C
                     </div>
-                    <div className={styles.lefSideText}>
+                    <div className={styles.leftSideText}>
                         <p className={styles.title}>Congreso Académico Estudiantil</p>
                         <p className={styles.description}>Universidad de Lima - Edición 2026</p>
                     </div>

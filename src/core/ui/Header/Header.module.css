@@ -13,6 +13,7 @@
     align-items: center;
     justify-content: space-between;
     margin: 0 auto;
+    padding: 0 var(--space-4);
 }
 
 .leftSide {
@@ -48,6 +49,7 @@
 .description {
     font-size: var(--font-size-label);
     text-transform: uppercase;
+    margin: 0;
 }
 
 .rightSide {
@@ -82,4 +84,14 @@
     height: 6px;
     width: 6px;
     background-color: var(--color-primary);
+}
+
+@media (max-width: 600px) {
+    .container {
+        gap: var(--space-3);
+    }
+
+    .rightSide > p {
+        display: none;
+    }
 }
