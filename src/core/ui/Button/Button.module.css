@@ -1,0 +1,101 @@
+.button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.small {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-help);
+}
+
+.medium {
+  padding: var(--space-2) var(--space-4);
+}
+
+.large {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-6);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.secondary {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+.tertiary {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.tertiary:hover:not(:disabled) {
+  background: var(--color-primary-soft);
+}
+
+.destructive {
+  background: var(--color-danger);
+  color: var(--color-surface);
+}
+
+.destructive:hover:not(:disabled) {
+  background: #922722;
+}
+
+.button:disabled {
+  border-color: var(--color-border);
+  background: #efedeb;
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.5s;
+  }
+}
