@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
+import History1Page from '../features/history-1/History1Page.jsx'
 
 const router = createBrowserRouter([
   {
@@ -9,6 +10,10 @@ const router = createBrowserRouter([
   {
     path: '/ejemplo',
     element: <ExamplePage />,
+  },
+  {
+    path: '/history-1',
+    element: <History1Page />,
   },
 ])
 
