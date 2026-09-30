@@ -1,0 +1,53 @@
+:root {
+  /* Colores del sistema de diseño del congreso */
+  --color-primary: #7a2231;
+  --color-primary-dark: #5c1925;
+  --color-primary-soft: #f6e9ec;
+  --color-accent: #a67c2e;
+  --color-bg: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-border: #e4dfda;
+  --color-text: #1f1a1b;
+  --color-text-muted: #6f6663;
+  --color-success: #1e7f4d;
+  --color-warning: #b7791f;
+  --color-danger: #b4322b;
+  --color-info: #3b6fa8;
+
+  /* Fondos suaves para comunicar estados sin depender solo del color */
+  --color-success-soft: #e8f4ee;
+  --color-warning-soft: #fbf3e4;
+  --color-danger-soft: #fbeaea;
+  --color-info-soft: #edf3f9;
+
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-body: Inter, Arial, sans-serif;
+
+  /* Espaciado en múltiplos de 4 px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-small: 2px;
+  --content-width: 1200px;
+
+  --font-size-label: 12px;
+  --line-height-label: 16px;
+  --font-size-help: 13px;
+  --line-height-help: 18px;
+  --font-size-body: 15px;
+  --line-height-body: 22px;
+  --font-size-subtitle: 16px;
+  --line-height-subtitle: 24px;
+  --font-size-section-title: 20px;
+  --line-height-section-title: 28px;
+  --font-size-page-title: 28px;
+  --line-height-page-title: 32px;
+}
