@@ -1,6 +1,6 @@
-import { createBrowserRouter, Navigate } from 'react-router';
-import ExamplePage from '../ejemplo/ExamplePage.jsx';
-import ReviewerInbox from '../History-5/ReviewerInbox.jsx';
+import { createBrowserRouter, Navigate } from 'react-router'
+import ExamplePage from '../ejemplo/ExamplePage.jsx'
+import History1Page from '../features/history-1/History1Page.jsx'
 
 const router = createBrowserRouter([
   {
@@ -12,9 +12,9 @@ const router = createBrowserRouter([
     element: <ExamplePage />,
   },
   {
-    path: '/mi-bandeja',
-    element: <ReviewerInbox />,
-  }
-]);
+    path: '/history-1',
+    element: <History1Page />,
+  },
+])
 
 export default router;
