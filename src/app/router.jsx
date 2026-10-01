@@ -5,7 +5,7 @@ import History1Page from '../features/history-1/History1Page.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate replace to="/ejemplo" />,
+    element: <Navigate replace to="/mi-bandeja" />,
   },
   {
     path: '/ejemplo',
@@ -17,4 +17,4 @@ const router = createBrowserRouter([
   },
 ])
 
-export default router
+export default router;
