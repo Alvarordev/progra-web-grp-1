@@ -6,14 +6,14 @@ import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate replace to="/ejemplo" />,
+    element: <Navigate replace to="/login" />,
   },
   {
     path: '/ejemplo',
     element: <ExamplePage />,
   },
   {
-    path: '/history-1',
+    path: '/login',
     element: <History1Page />,
   },
   {
