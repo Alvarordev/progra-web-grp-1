@@ -1,0 +1,112 @@
+.footer {
+  background: #211d1c;
+  color: #f8f6f4;
+}
+
+.footerContent {
+  width: min(100% - var(--space-8), var(--content-width));
+  margin: 0 auto;
+}
+
+.footerMain {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.8fr) repeat(3, minmax(130px, 1fr));
+  gap: var(--space-8);
+  padding: var(--space-8) 0;
+}
+
+.organization h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-surface);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-subtitle);
+  font-weight: 600;
+  line-height: var(--line-height-subtitle);
+}
+
+.organization p,
+.footerGroup a {
+  color: rgb(248 246 244 / 76%);
+  font-size: var(--font-size-label);
+  line-height: 20px;
+}
+
+.organization p {
+  max-width: 290px;
+  margin: 0;
+}
+
+.footerGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.footerGroup h3 {
+  margin: 0 0 var(--space-1);
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  text-transform: uppercase;
+}
+
+.footerGroup a,
+.legal a {
+  text-decoration: none;
+}
+
+.footerGroup a:hover,
+.legal a:hover {
+  color: var(--color-surface);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border-top: 1px solid rgb(255 255 255 / 14%);
+  color: rgb(248 246 244 / 60%);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.legal > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.legal a {
+  color: inherit;
+}
+
+@media (max-width: 800px) {
+  .footerContent {
+    width: min(100% - var(--space-6), var(--content-width));
+  }
+
+  .footerMain {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .organization {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .legal {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--space-3) 0;
+  }
+}

@@ -1,0 +1,143 @@
+.card {
+  display: flex;
+  min-width: 0;
+  min-height: 180px;
+  flex-direction: column;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
+  background: var(--color-surface);
+}
+
+.pendiente {
+  border-top-color: var(--color-warning);
+}
+
+.vencida {
+  border-top-color: var(--color-danger);
+}
+
+.entregada {
+  border-top-color: var(--color-success);
+}
+
+.cardHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.code {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  letter-spacing: 0.04em;
+}
+
+.badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-small);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  white-space: nowrap;
+}
+
+.badge-pendiente {
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
+  color: #855612;
+}
+
+.badge-vencida {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.badge-entregada {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-subtitle);
+}
+
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: auto;
+}
+
+.metadata span {
+  padding: 2px var(--space-2);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.metadata span + span {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.date {
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.date-pendiente {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.date-vencida {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.date-entregada {
+  color: var(--color-text-muted);
+}
+
+.actionLink {
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  font-size: var(--font-size-help);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actionLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .cardFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
