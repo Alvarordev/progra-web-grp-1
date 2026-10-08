@@ -1,0 +1,91 @@
+.tableViewport {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+  vertical-align: middle;
+}
+
+.table thead th {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  text-transform: uppercase;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.axisName {
+  width: 24%;
+  font-weight: 600;
+}
+
+.description {
+  width: 34%;
+  color: var(--color-text-muted);
+}
+
+.owner {
+  width: 18%;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.workCount {
+  width: 9%;
+  font-weight: 600;
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.actions button {
+  min-height: 28px;
+  padding: var(--space-1);
+}
+
+.deleteAction {
+  color: var(--color-danger);
+}
+
+.visuallyHidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 700px) {
+  .table th,
+  .table td {
+    padding: var(--space-2);
+  }
+}
