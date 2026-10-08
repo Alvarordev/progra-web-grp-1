@@ -5,6 +5,7 @@ import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage
 import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
+import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -32,9 +33,9 @@ const router = createBrowserRouter([
     element: <ReviewerInboxPage />,
   },
   {
-    path: '/form-evaluacion',
-    element: <EvaluationPage />,
-  },
+  path: '/evaluacion/:codigo',
+  element: <EvaluationPage />,
+  }
 ])
 
 export default router;
