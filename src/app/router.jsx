@@ -33,9 +33,9 @@ const router = createBrowserRouter([
     element: <ReviewerInboxPage />,
   },
   {
-  path: '/evaluacion/:codigo',
-  element: <EvaluationPage />,
-  }
+    path: '/evaluacion/:codigo',
+    element: <EvaluationPage />,
+  },
 ])
 
 export default router;

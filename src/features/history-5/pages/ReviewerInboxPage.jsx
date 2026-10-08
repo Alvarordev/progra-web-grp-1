@@ -3,7 +3,6 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import ReviewAssignmentCard from '../components/ReviewAssignmentCard/ReviewAssignmentCard.jsx'
-import { getSubmittedReviews } from '../utils/reviewStorage.js'
 import styles from './ReviewerInboxPage.module.css'
 
 const initialAssignments = [
@@ -72,32 +71,6 @@ const filters = [
   { id: 'vencidas', label: 'Vencidas', warning: true },
 ]
 
-const recommendationLabels = {
-  aceptar: 'aceptar',
-  observaciones: 'aceptar con observaciones',
-  rechazar: 'rechazar',
-}
-
-function loadAssignments(submittedReviews) {
-  return initialAssignments.map((assignment) => {
-    const review = submittedReviews[assignment.codigo]
-
-    if (!review) return assignment
-
-    const sentDate = new Intl.DateTimeFormat('es-PE').format(
-      new Date(review.submittedAt),
-    )
-    const recommendation = recommendationLabels[review.recommendation] ?? 'enviada'
-
-    return {
-      ...assignment,
-      estado: 'Entregada',
-      tipoEstado: 'entregada',
-      fecha: `Enviada el ${sentDate} · ${recommendation}`,
-    }
-  })
-}
-
 function matchesFilter(assignment, filterId) {
   if (filterId === 'todas') return true
   if (filterId === 'pendientes') return assignment.tipoEstado !== 'entregada'
@@ -106,7 +79,7 @@ function matchesFilter(assignment, filterId) {
 }
 
 function ReviewerInboxPage() {
-  const [assignments] = useState(() => loadAssignments(getSubmittedReviews()))
+  const assignments = initialAssignments
   const [selectedFilter, setSelectedFilter] = useState('todas')
   const pendingCount = assignments.filter(
     (assignment) => assignment.tipoEstado !== 'entregada',

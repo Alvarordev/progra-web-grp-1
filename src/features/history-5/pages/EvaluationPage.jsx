@@ -4,7 +4,6 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
-import { getSubmittedReview, saveSubmittedReview } from '../utils/reviewStorage.js'
 import styles from './EvaluationPage.module.css'
 
 const works = {
@@ -90,8 +89,7 @@ function EvaluationPage() {
   const { codigo } = useParams()
   const [searchParams] = useSearchParams()
   const readOnlyMode = searchParams.get('modo') === 'lectura'
-  const savedReview = getSubmittedReview(codigo)
-  const existingReview = savedReview ?? (readOnlyMode
+  const existingReview = (readOnlyMode
     ? readOnlyReviewExamples[codigo] ?? {
         criterios: initialCriteria.map((criterion) => ({
           ...criterion,
@@ -167,15 +165,6 @@ function EvaluationPage() {
       return
     }
 
-    const review = {
-      criteria,
-      recommendation,
-      authorComment,
-      committeeComment,
-      submittedAt: new Date().toISOString(),
-    }
-
-    saveSubmittedReview(codigo, review)
     setSubmitted(true)
     setErrors([])
     setNotice('Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.')
