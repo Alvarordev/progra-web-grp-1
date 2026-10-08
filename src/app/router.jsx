@@ -1,6 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
-import History1Page from '../features/history-1/History1Page.jsx'
+import History1Page from '../features/history-1/pages/History1Page.jsx'
 import LoginPage from '../features/history-1/pages/LoginPage.jsx'
 import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
 import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
