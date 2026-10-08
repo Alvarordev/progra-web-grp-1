@@ -21,6 +21,10 @@ const router = createBrowserRouter([
     path: '/bandeja-revision',
     element: <ReviewerInboxPage />,
   },
+  {
+    path: '/form-evaluacion',
+    element: <EvaluationPage />,
+  },
 ])
 
 export default router;

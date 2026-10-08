@@ -116,6 +116,59 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
+.emp{
+  display: flex;
+  color: var(--color-text-muted);
+  white-space: pointer;
+}
+.emptyState {
+  display: flex;
+  min-height: 365px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+.emptyState h2 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-section-title);
+}
+
+.emptyState p {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.emptyAction {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: var(--font-size-help);
+  font-weight: 600;
+}
+
+.emptyAction:hover {
+  background: var(--color-primary-soft);
+}
+
 
 @media (max-width: 900px) {
   .headingRow {
