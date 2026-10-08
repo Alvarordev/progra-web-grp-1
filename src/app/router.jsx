@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
 import History1Page from '../features/history-1/History1Page.jsx'
+import LoginPage from '../features/history-1/pages/LoginPage.jsx'
+import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
 import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
 import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
@@ -18,6 +20,14 @@ const router = createBrowserRouter([
   {
     path: '/history-1',
     element: <History1Page />,
+  },
+  {
+    path: '/iniciar-sesion',
+    element: <LoginPage />,
+  },
+  {
+    path: '/registro',
+    element: <RegistrationPage />,
   },
   {
     path: '/configuracion',
