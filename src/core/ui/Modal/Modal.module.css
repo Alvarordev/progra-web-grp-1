@@ -1,0 +1,60 @@
+.backdrop {
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  overflow-y: auto;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(31 26 27 / 55%);
+  inset: 0;
+}
+
+.dialog {
+  width: min(100%, 560px);
+  max-height: calc(100vh - var(--space-8));
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-subtitle);
+}
+
+.closeButton {
+  min-width: 32px;
+  min-height: 32px;
+  padding: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .backdrop {
+    align-items: end;
+    padding: var(--space-2);
+  }
+
+  .dialog {
+    max-height: calc(100vh - var(--space-4));
+  }
+
+  .header {
+    padding: var(--space-3) var(--space-4);
+  }
+}

@@ -21,7 +21,10 @@ function CommitteeNavigation({
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del comité" className={styles.navigation}>
           {navigationItems.map((elemento) => {
-            const esRutaActiva = elemento.to === rutaActiva
+            const esConfiguracion = elemento.to === '/configuracion'
+            const esRutaActiva =
+              elemento.to === rutaActiva ||
+              (esConfiguracion && rutaActiva.startsWith('/configuracion/'))
 
             return (
               <NavLink
@@ -29,7 +32,7 @@ function CommitteeNavigation({
                 className={({ isActive: estaActiva }) =>
                   `${styles.link} ${estaActiva ? styles.active : ''}`
                 }
-                end
+                end={!esConfiguracion}
                 key={elemento.to}
                 to={elemento.to}
               >
