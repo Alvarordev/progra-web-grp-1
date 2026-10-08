@@ -79,8 +79,39 @@
   text-underline-offset: 3px;
 }
 
-.navDerecha button {
-  min-width: max-content;
+.navLinkActive {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 13px;
+}
+
+.navSecondaryAction,
+.navPrimaryAction {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-small);
+  color: var(--color-primary);
+  font-size: var(--font-size-help);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navPrimaryAction {
+  background: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.navSecondaryAction:hover,
+.navSecondaryAction:focus-visible {
+  background: var(--color-primary-soft);
+}
+
+.navPrimaryAction:hover,
+.navPrimaryAction:focus-visible {
+  background: var(--color-primary-dark);
 }
 
 .heroPrincipal {
@@ -131,8 +162,16 @@
 }
 
 .botonPrincipal {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
   border-color: var(--color-accent) !important;
   background: var(--color-accent) !important;
+  color: var(--color-surface);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .botonPrincipal:hover:not(:disabled) {
@@ -140,9 +179,16 @@
 }
 
 .botonSecundario {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
   border-color: var(--color-surface) !important;
   background: transparent !important;
   color: var(--color-surface) !important;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .botonSecundario:hover:not(:disabled) {
@@ -336,8 +382,10 @@
     width: 100%;
   }
 
-  .navDerecha button {
+  .navSecondaryAction,
+  .navPrimaryAction {
     flex: 1;
+    text-align: center;
   }
 
   .topicsHeader,

@@ -1,0 +1,212 @@
+.main {
+  min-height: 700px;
+  padding: var(--space-8) var(--space-4) var(--space-12);
+}
+
+.formCard {
+  display: grid;
+  grid-template-columns: minmax(0, 2.15fr) minmax(260px, 1fr);
+  gap: var(--space-8);
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+.formCard > div {
+  padding: var(--space-6);
+  border-top: 2px solid var(--color-primary);
+  background: var(--color-surface);
+}
+
+.formCard {
+  font-family: var(--font-body);
+}
+
+.formCard h1 {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-page-title);
+}
+
+.intro,
+.fieldGroup span {
+  color: var(--color-text-muted);
+}
+
+.formCard form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.fieldGroup {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+
+.fieldGroup label,
+.roleField legend {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fieldGroup input,
+.fieldGroup select {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+}
+
+.fieldGroup select {
+  cursor: pointer;
+}
+
+.fieldGroup span {
+  font-size: var(--font-size-help);
+}
+
+.roleField,
+.consent,
+.actions,
+.success {
+  grid-column: 1 / -1;
+}
+
+.roleField {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.roleField legend {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-1);
+}
+
+.roleField label {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 64px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.roleField label:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.roleField input {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  appearance: none;
+  place-content: center;
+}
+
+.roleField input::before {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-text-muted);
+  border-radius: 50%;
+  background: var(--color-surface);
+  content: '';
+}
+
+.roleField input:checked::before {
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--color-primary);
+  background: var(--color-surface);
+}
+
+.roleCopy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.roleField label:has(input:checked) strong {
+  color: var(--color-primary);
+}
+
+.roleField small {
+  color: var(--color-text-muted);
+}
+
+.consent {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.cancel {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notice {
+  align-self: start;
+  padding: var(--space-5);
+  border-left: 2px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.notice h2 {
+  font-size: var(--font-size-subtitle);
+}
+
+.success {
+  margin: 0;
+  color: var(--color-success);
+}
+
+@media (max-width: 780px) {
+  .formCard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .formCard form,
+  .roleField {
+    grid-template-columns: 1fr;
+  }
+
+  .roleField legend {
+    grid-column: auto;
+  }
+
+  .formCard > div {
+    padding: var(--space-4);
+  }
+}
