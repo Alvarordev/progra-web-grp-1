@@ -1,10 +1,11 @@
-import { Link } from 'react-router'
+
 import Button from '../../../../core/ui/Button/Button.jsx'
 import styles from './ReviewAssignmentCard.module.css'
+import { Link, useNavigate } from 'react-router'
 
 function ReviewAssignmentCard({ asignacion }) {
   const estaPendiente = asignacion.tipoEstado !== 'entregada'
-
+  const navigate = useNavigate()
   return (
     <article
       className={`${styles.card} ${styles[asignacion.tipoEstado]}`}
@@ -31,11 +32,11 @@ function ReviewAssignmentCard({ asignacion }) {
           {asignacion.fecha}
         </span>
         {estaPendiente ? (
-          <Button size="small" variant="primary" type="button">
+          <Button size="small" variant="primary" type="button" onClick={() => navigate(`/evaluacion/${asignacion.codigo}`)}>
             {asignacion.accion}
           </Button>
         ) : (
-          <Link className={styles.actionLink} to={`/evaluacion/${asignacion.codigo}`}>
+          <Link className={styles.actionLink} to={`/evaluacion/${asignacion.codigo}?modo=lectura`}>
             Ver evaluación
           </Link>
         )}
