@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
+import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
 import History1Page from '../features/history-1/pages/History1Page.jsx'
 import LoginPage from '../features/history-1/pages/LoginPage.jsx'
 import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
@@ -7,6 +8,7 @@ import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage
 import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
+import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,10 @@ const router = createBrowserRouter([
     element: <RegistrationPage />,
   },
   {
+    path: '/autor',
+    element: <AuthorHomePage />,
+  },
+  {
     path: '/configuracion',
     element: <EditionSettingsPage />,
   },
@@ -44,6 +50,10 @@ const router = createBrowserRouter([
   {
     path: '/bandeja-revision',
     element: <ReviewerInboxPage />,
+  },
+  {
+    path: '/evaluacion/:codigo',
+    element: <EvaluationPage />,
   },
 ])
 

@@ -33,6 +33,15 @@
   color: var(--color-text-muted);
 }
 
+.errorSummary {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--font-size-help);
+}
+
 .formCard form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -65,6 +74,15 @@
   background: var(--color-surface);
 }
 
+.fieldGroup input.invalid,
+.fieldGroup select.invalid {
+  border-color: var(--color-danger);
+}
+
+.fieldGroup input.valid {
+  border-color: var(--color-success);
+}
+
 .fieldGroup select {
   cursor: pointer;
 }
@@ -73,8 +91,15 @@
   font-size: var(--font-size-help);
 }
 
+.fieldGroup .fieldError {
+  color: var(--color-danger);
+}
+
+.fieldGroup .validHint {
+  color: var(--color-success);
+}
+
 .roleField,
-.consent,
 .actions,
 .success {
   grid-column: 1 / -1;
@@ -149,12 +174,6 @@
   color: var(--color-text-muted);
 }
 
-.consent {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-}
-
 .actions {
   display: flex;
   justify-content: flex-end;
@@ -176,13 +195,44 @@
 .notice {
   align-self: start;
   padding: var(--space-5);
-  border-left: 2px solid var(--color-primary);
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .notice h2 {
-  font-size: var(--font-size-subtitle);
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.requirements {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-help);
+}
+
+.requirements li {
+  display: flex;
+  gap: var(--space-1);
+  align-items: baseline;
+}
+
+.requirements li span {
+  font-weight: 700;
+}
+
+.requirementMet {
+  color: var(--color-success);
+}
+
+.requirementError {
+  color: var(--color-danger);
 }
 
 .success {

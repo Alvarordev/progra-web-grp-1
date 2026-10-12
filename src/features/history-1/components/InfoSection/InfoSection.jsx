@@ -8,12 +8,14 @@ function InfoSection({ id, titulo, filas, className = '' }) {
       id={id}
     >
       <h2 id={`${id}-title`}>{titulo}</h2>
-      {filas.map(([label, value]) => (
-        <div className={styles.row} key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
-        </div>
-      ))}
+      <div className={styles.rows}>
+        {filas.map(([label, value]) => (
+          <div className={styles.row} key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }
