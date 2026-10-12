@@ -7,6 +7,10 @@ import {
   validateEditionStatus,
 } from './states/editionState.js'
 import { validateSession } from './states/sessionState.js'
+import {
+  initialParticipant,
+  validateParticipant,
+} from './states/participantState.js'
 
 const adapter = createLocalStorageAdapter()
 
@@ -30,4 +34,11 @@ export const sessionRepository = createStateRepository({
   name: 'session',
   defaultValue: null,
   validate: validateSession,
+})
+
+export const participantRepository = createStateRepository({
+  adapter,
+  name: 'participant',
+  defaultValue: initialParticipant,
+  validate: validateParticipant,
 })

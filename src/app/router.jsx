@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
+import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
 import History1Page from '../features/history-1/pages/History1Page.jsx'
 import LoginPage from '../features/history-1/pages/LoginPage.jsx'
 import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
   {
     path: '/registro',
     element: <RegistrationPage />,
+  },
+  {
+    path: '/autor',
+    element: <AuthorHomePage />,
   },
   {
     path: '/configuracion',
