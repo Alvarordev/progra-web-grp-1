@@ -7,12 +7,34 @@ import {
   validateEditionStatus,
 } from './states/editionState.js'
 import { validateSession } from './states/sessionState.js'
-import {
-  initialParticipant,
-  validateParticipant,
-} from './states/participantState.js'
+import { initialParticipant, validateParticipant } from './states/participantState.js'
+import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
+import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
+import { initialSchedule, validateSchedule } from './states/scheduleState.js'
+import { initialCriteria, validateCriteria } from './states/criteriaState.js'
+import { validateReviews } from './states/reviewsState.js'
 
 const adapter = createLocalStorageAdapter()
+
+export const reviewsRepository = createStateRepository({
+  adapter, name: 'reviews', defaultValue: {}, validate: validateReviews,
+})
+
+export const workTypesRepository = createStateRepository({
+  adapter, name: 'work-types', defaultValue: initialWorkTypes, validate: validateWorkTypes,
+})
+
+export const thematicAxesRepository = createStateRepository({
+  adapter, name: 'thematic-axes', defaultValue: thematicAxes, validate: validateThematicAxes,
+})
+
+export const scheduleRepository = createStateRepository({
+  adapter, name: 'schedule', defaultValue: initialSchedule, validate: validateSchedule,
+})
+
+export const criteriaRepository = createStateRepository({
+  adapter, name: 'criteria', defaultValue: initialCriteria, validate: validateCriteria,
+})
 
 // Punto de composición: aquí se sustituirán los repositorios por los de la API.
 export const editionRepository = createStateRepository({

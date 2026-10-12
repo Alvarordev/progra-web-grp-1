@@ -28,9 +28,34 @@ modales, mensajes, errores ni otros estados transitorios de la interfaz.
 
 `EditionSettingsPage` muestra una integración completa. Los datos generales se
 guardan con «Guardar cambios» y el estado con «Cambiar estado de la edición».
-Cambiar el estado no guarda las ediciones pendientes del formulario. Los ejes,
-tipos de trabajo y evaluaciones todavía conservan su comportamiento en memoria;
-pueden integrarse siguiendo el mismo patrón.
+Cambiar el estado no guarda las ediciones pendientes del formulario.
+
+La configuración cuenta con repositorios de ejes, tipos de trabajo, cronograma
+y criterios. Ejes y tipos se guardan al confirmar su modal. Fechas y criterios
+se guardan con su botón principal; las modificaciones pendientes de criterios
+no se guardan al cancelar un modal o abandonar la pantalla. Una lista guardada
+vacía se conserva como tal y no se reemplaza por los datos de ejemplo.
+
+`useStoredState` evita repetir la carga y el guardado en cada pantalla. Devuelve
+`value`, `loading`, `saving`, `error` y `save(value)`; no guarda automáticamente
+al escribir. Los formularios conservan su borrador local hasta guardar.
+
+El cronograma usa cadenas `AAAA-MM-DDTHH:mm` en horario de Lima y exige recepción
+anterior a revisión y revisión anterior a publicación. Los criterios pueden
+guardarse con una suma pendiente; cerrar la recepción y pasar a «En revisión»
+exige una suma de 100. El cierre requiere aceptar la casilla y escribir `CERRAR`.
+Por ahora se guarda el estado: los efectos sobre envíos se conectarán cuando
+exista esa historia.
+
+Las evaluaciones se guardan en `reviewsRepository`, identificadas por usuario
+y código de trabajo. Sin login se utiliza el revisor `demo-reviewer`. El borrador
+admite campos incompletos; el envío requiere puntajes enteros de 0 a 20,
+comentarios obligatorios, recomendación y pesos que sumen 100. Una evaluación
+enviada se recupera en modo lectura y actualiza la bandeja. Se conservan los
+ejemplos de revisiones entregadas del mockup para la demostración.
+Al recuperar un borrador se utilizan los criterios actuales, conservando los
+puntajes y comentarios de los identificadores que sigan presentes. Una
+evaluación enviada conserva su copia de los criterios y pesos usados al enviar.
 
 ## Sesión de demostración
 

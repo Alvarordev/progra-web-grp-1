@@ -1,7 +1,7 @@
 import Button from '../../../../core/ui/Button/Button.jsx'
 import styles from './WorkTypesTable.module.css'
 
-function WorkTypesTable({ alEditar, alEliminar, tiposTrabajo }) {
+function WorkTypesTable({ alEditar, alEliminar, tiposTrabajo, deshabilitado = false }) {
   return (
     <div
       aria-label="Lista de tipos de trabajo"
@@ -47,6 +47,7 @@ function WorkTypesTable({ alEditar, alEliminar, tiposTrabajo }) {
                 <div className={styles.actions}>
                   <Button
                     aria-label={`Editar ${tipoTrabajo.nombre}`}
+                    disabled={deshabilitado}
                     onClick={() => alEditar(tipoTrabajo)}
                     size="small"
                     type="button"
@@ -57,6 +58,7 @@ function WorkTypesTable({ alEditar, alEliminar, tiposTrabajo }) {
                   <span aria-hidden="true">·</span>
                   <Button
                     aria-label={`Eliminar ${tipoTrabajo.nombre}`}
+                    disabled={deshabilitado}
                     className={styles.deleteAction}
                     onClick={() => alEliminar(tipoTrabajo.id)}
                     size="small"

@@ -7,6 +7,8 @@ import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
 import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
 import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
+import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
+import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 
@@ -46,6 +48,14 @@ const router = createBrowserRouter([
   {
     path: '/configuracion/tipos-trabajo',
     element: <WorkTypesPage />,
+  },
+  {
+    path: '/configuracion/fechas',
+    element: <SchedulePage />,
+  },
+  {
+    path: '/configuracion/criterios',
+    element: <CriteriaPage />,
   },
   {
     path: '/bandeja-revision',
