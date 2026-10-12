@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import useStoredState from '../../../core/utils/useStoredState.js'
+import { reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
+import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
@@ -71,6 +74,13 @@ const filters = [
   { id: 'vencidas', label: 'Vencidas', warning: true },
 ]
 
+const initialReviews = {}
+const recommendationLabels = {
+  aceptar: 'aceptar',
+  observaciones: 'aceptar con observaciones',
+  rechazar: 'rechazar',
+}
+
 function matchesFilter(assignment, filterId) {
   if (filterId === 'todas') return true
   if (filterId === 'pendientes') return assignment.tipoEstado !== 'entregada'
@@ -79,7 +89,15 @@ function matchesFilter(assignment, filterId) {
 }
 
 function ReviewerInboxPage() {
-  const assignments = initialAssignments
+  const reviewsState = useStoredState(reviewsRepository, initialReviews)
+  const sessionState = useStoredState(sessionRepository, null)
+  const reviewerId = sessionState.value?.userId ?? 'demo-reviewer'
+  const assignments = initialAssignments.map((item) => {
+    const review = reviewsState.value[getReviewKey(reviewerId, item.codigo)]
+    return review?.status === 'submitted'
+      ? { ...item, estado: 'Entregada', tipoEstado: 'entregada', accion: undefined, fecha: `Enviada el ${new Date(review.updatedAt).toLocaleDateString('es-PE')} · ${recommendationLabels[review.recommendation]}` }
+      : item
+  })
   const [selectedFilter, setSelectedFilter] = useState('todas')
   const pendingCount = assignments.filter(
     (assignment) => assignment.tipoEstado !== 'entregada',
@@ -116,6 +134,8 @@ function ReviewerInboxPage() {
 
       <main className={styles.main}>
         <div className={styles.content}>
+          {(reviewsState.loading || sessionState.loading) && <p role="status">Cargando revisiones…</p>}
+          {(reviewsState.error || sessionState.error) && <p role="alert">{reviewsState.error || sessionState.error}</p>}
           {noHayAsignaciones ? (
             <>
               <div className={styles.emptyHeading}>
