@@ -78,6 +78,12 @@ autoriza operaciones. El validador admite únicamente `userId`, `name` y `role`;
 no guardar contraseñas ni tokens en este estado. Cuando exista el backend,
 la autenticación y los permisos se comprobarán en el servidor.
 
+La ficha del participante se guarda separada de la sesión con
+`participantRepository`. Incluye `userId`, `names`, `surnames`, `name`, `email`,
+`institution` y `role`; tampoco contiene la contraseña. La pantalla debe
+guardar primero la ficha y la identidad, y navegar al área del participante
+solo después de que ambas operaciones terminen correctamente.
+
 ## Agregar otro estado
 
 1. Definir su valor inicial y validador en `states/`, con nombres en inglés.

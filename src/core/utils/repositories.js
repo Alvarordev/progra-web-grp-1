@@ -7,6 +7,7 @@ import {
   validateEditionStatus,
 } from './states/editionState.js'
 import { validateSession } from './states/sessionState.js'
+import { initialParticipant, validateParticipant } from './states/participantState.js'
 import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
 import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
@@ -55,4 +56,11 @@ export const sessionRepository = createStateRepository({
   name: 'session',
   defaultValue: null,
   validate: validateSession,
+})
+
+export const participantRepository = createStateRepository({
+  adapter,
+  name: 'participant',
+  defaultValue: initialParticipant,
+  validate: validateParticipant,
 })
