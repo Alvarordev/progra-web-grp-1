@@ -1,0 +1,51 @@
+import { createBrowserRouter } from 'react-router'
+import ExamplePage from '../ejemplo/ExamplePage.jsx'
+import History1Page from '../features/history-1/History1Page.jsx'
+import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
+import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
+import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
+import CoauthorsPage from '../features/history-3/pages/CoauthorsPage.jsx'
+import NewWorkPage from '../features/history-3/pages/NewWorkPage.jsx'
+import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
+import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <History1Page />,
+  },
+  {
+    path: '/ejemplo',
+    element: <ExamplePage />,
+  },
+  {
+    path: '/configuracion',
+    element: <EditionSettingsPage />,
+  },
+  {
+    path: '/configuracion/ejes-tematicos',
+    element: <ThematicAxesPage />,
+  },
+  {
+    path: '/configuracion/tipos-trabajo',
+    element: <WorkTypesPage />,
+  },
+  {
+    path: '/nuevo-trabajo',
+    element: <NewWorkPage />,
+  },
+  {
+    path: '/nuevo-trabajo/coautores',
+    element: <CoauthorsPage />,
+  },
+  {
+    path: '/bandeja-revision',
+    element: <ReviewerInboxPage />,
+  },
+  {
+    path: '/evaluacion/:codigo',
+    element: <EvaluationPage />,
+  },
+])
+
+export default router;

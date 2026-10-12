@@ -1,0 +1,54 @@
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  text-transform: uppercase;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.hasError input,
+.hasError select,
+.hasError textarea {
+  border-color: var(--color-danger);
+}
+
+.help,
+.error {
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.help {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+  font-weight: 600;
+}
