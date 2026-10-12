@@ -29,7 +29,7 @@ function createFormValues(tipoTrabajo) {
   }
 }
 
-function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
+function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = false, errorGuardado = '' }) {
   const [formValues, setFormValues] = useState(() =>
     createFormValues(tipoTrabajo),
   )
@@ -49,6 +49,7 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (guardando) return
 
     const erroresFormulario = {}
     const extensionNumerica = Number.parseFloat(
@@ -68,7 +69,7 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
       erroresFormulario.formatoEsperado = 'Seleccione el formato esperado.'
     }
 
-    const maxCoautores = Number.parseInt(formValues.maxCoautores, 10)
+    const maxCoautores = Number(formValues.maxCoautores)
     if (
       formValues.admiteCoautores &&
       (!Number.isInteger(maxCoautores) || maxCoautores <= 0)
@@ -106,6 +107,7 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
   return (
     <Modal alCerrar={alCerrar} titulo={title}>
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
+        <fieldset className={styles.fields} disabled={guardando}>
         <div className={styles.field}>
           <label htmlFor="work-type-name">Nombre *</label>
           <input
@@ -200,11 +202,13 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
           </div>
         )}
 
+        </fieldset>
+        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
         <footer className={styles.footer}>
-          <Button onClick={alCerrar} type="button" variant="secondary">
+          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
             Cancelar
           </Button>
-          <Button type="submit" variant="primary">
+          <Button loading={guardando} type="submit" variant="primary">
             Guardar tipo
           </Button>
         </footer>
