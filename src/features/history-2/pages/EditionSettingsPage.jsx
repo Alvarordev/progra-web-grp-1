@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { editionRepository, editionStatusRepository } from '../../../core/utils/repositories.js'
+import { initialEdition, initialEditionStatus } from '../../../core/utils/states/editionState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
@@ -16,18 +18,36 @@ const configurationSummary = [
   },
 ]
 
-const initialEdition = {
-  editionName: 'VIII Congreso Académico Estudiantil',
-  editionYear: '2026',
-  editionVenue: 'Auditorio Central, Universidad de Lima — Santiago de Surco',
-  editionDescription:
-    'Encuentro anual de investigación estudiantil. Se reciben artículos completos, resúmenes extendidos, pósteres y casos de estudio en seis ejes temáticos.',
-}
-
 function EditionSettingsPage() {
   const [edition, setEdition] = useState(initialEdition)
-  const [estado, setEstado] = useState('Recepción abierta')
+  const [estado, setEstado] = useState(initialEditionStatus)
   const [feedback, setFeedback] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let active = true
+
+    async function loadSettings() {
+      const results = await Promise.allSettled([
+        editionRepository.get(),
+        editionStatusRepository.get(),
+      ])
+
+      if (!active) return
+
+      const [editionResult, statusResult] = results
+      if (editionResult.status === 'fulfilled') setEdition(editionResult.value)
+      if (statusResult.status === 'fulfilled') setEstado(statusResult.value)
+
+      const failure = results.find((result) => result.status === 'rejected')
+      if (failure) setFeedback(failure.reason.message)
+      setLoading(false)
+    }
+
+    loadSettings()
+    return () => { active = false }
+  }, [])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -35,16 +55,34 @@ function EditionSettingsPage() {
     setFeedback('')
   }
 
-  function handleSave(event) {
+  async function handleSave(event) {
     event.preventDefault()
-    setFeedback('Cambios aplicados temporalmente. No se guardarán al recargar.')
+    if (loading || saving) return
+    setSaving(true)
+    try {
+      await editionRepository.save(edition)
+      setFeedback('Cambios guardados en este navegador.')
+    } catch (error) {
+      setFeedback(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function handleToggleStatus() {
+  async function handleToggleStatus() {
+    if (loading || saving) return
     const nuevoEstado =
       estado === 'Recepción abierta' ? 'En preparación' : 'Recepción abierta'
-    setEstado(nuevoEstado)
-    setFeedback(`Estado cambiado temporalmente a «${nuevoEstado}».`)
+    setSaving(true)
+    try {
+      await editionStatusRepository.save(nuevoEstado)
+      setEstado(nuevoEstado)
+      setFeedback(`Estado guardado como «${nuevoEstado}».`)
+    } catch (error) {
+      setFeedback(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -60,19 +98,20 @@ function EditionSettingsPage() {
           <div className={styles.actions}>
             <Button
               onClick={handleToggleStatus}
+              disabled={loading || saving}
               type="button"
               variant="secondary"
             >
               Cambiar estado de la edición
             </Button>
-            <Button form="edition-settings-form" type="submit" variant="primary">
+            <Button disabled={loading || saving} form="edition-settings-form" type="submit" variant="primary">
               Guardar cambios
             </Button>
           </div>
         </div>
 
         <p aria-live="polite" className={styles.feedback}>
-          {feedback}
+          {loading ? 'Cargando configuración…' : feedback}
         </p>
 
         <ConfigurationTabs />
@@ -98,6 +137,7 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-name">Nombre de la edición</label>
                 <input
                   id="edition-name"
+                  disabled={loading || saving}
                   name="editionName"
                   onChange={handleChange}
                   value={edition.editionName}
@@ -107,6 +147,7 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-year">Año</label>
                 <input
                   id="edition-year"
+                  disabled={loading || saving}
                   name="editionYear"
                   onChange={handleChange}
                   value={edition.editionYear}
@@ -116,6 +157,7 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-venue">Sede</label>
                 <input
                   id="edition-venue"
+                  disabled={loading || saving}
                   name="editionVenue"
                   onChange={handleChange}
                   value={edition.editionVenue}
@@ -125,6 +167,7 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-description">Descripción pública</label>
                 <textarea
                   id="edition-description"
+                  disabled={loading || saving}
                   name="editionDescription"
                   onChange={handleChange}
                   rows={4}
