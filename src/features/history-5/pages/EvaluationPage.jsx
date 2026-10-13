@@ -4,11 +4,14 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
+import { calculateWeightedAverage, formatTenth, isValidScore } from '../utils/scoring.js'
+import { getRecommendationLabel, recommendationOptions } from '../utils/recommendations.js'
 import styles from './EvaluationPage.module.css'
 
 const works = {
   'TRB-2026-042': {
     title: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
+    fechaLimite: '15/10/2026',
     eje: 'Inteligencia artificial y datos',
     tipo: 'Artículo completo',
     resumen:
@@ -16,6 +19,7 @@ const works = {
   },
   'TRB-2026-053': {
     title: 'Bienestar emocional y rendimiento académico en primeros ciclos',
+    fechaLimite: '09/10/2026',
     eje: 'Salud y sociedad',
     tipo: 'Póster',
     resumen:
@@ -23,6 +27,7 @@ const works = {
   },
   'TRB-2026-031': {
     title: 'Refactorización guiada por métricas de deuda técnica',
+    fechaLimite: '18/10/2026',
     eje: 'Ingeniería de software',
     tipo: 'Artículo completo',
     resumen:
@@ -61,28 +66,34 @@ const initialCriteria = [
   },
 ]
 
-const recommendations = [
-  { value: 'aceptar', label: 'Aceptar' },
-  { value: 'observaciones', label: 'Aceptar con observaciones' },
-  { value: 'rechazar', label: 'Rechazar' },
-]
-
 const readOnlyReviewExamples = {
   'TRB-2026-031': {
-    criterios: initialCriteria.map((criterion) => ({
-      ...criterion,
-      puntaje: criterion.id === 'relevancia' ? '17' : criterion.puntaje,
-      comentario:
-        criterion.id === 'relevancia'
-          ? 'Aplicable a los cursos de proyectos de la carrera.'
-          : criterion.comentario,
-    })),
+    enviadaEl: '2026-10-06T11:05:00',
+    criterios: [
+      { id: 'originalidad', nombre: 'Originalidad', peso: 25, puntaje: '16', comentario: 'La propuesta adapta métricas conocidas a un contexto universitario.' },
+      { id: 'rigor', nombre: 'Rigor metodológico', peso: 30, puntaje: '15', comentario: 'El tamaño de la muestra de repositorios debería justificarse.' },
+      { id: 'claridad', nombre: 'Claridad de la exposición', peso: 20, puntaje: '18', comentario: 'Buena estructura y tablas legibles.' },
+      { id: 'relevancia', nombre: 'Relevancia y aporte', peso: 25, puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
+    ],
     recomendacion: 'observaciones',
     comentarioAutor:
       'El trabajo es sólido en su exposición. Recomiendo justificar la selección de repositorios y añadir una comparación con una línea base sin refactorización.',
     comentarioComite:
       'Puede aceptarse si los autores atienden la observación metodológica antes de la versión final.',
   },
+}
+
+function formatSentAt(sentAt) {
+  return {
+    fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    hora: sentAt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }),
+  }
+}
+
+function buildSentNotice(sentAt) {
+  if (!sentAt) return 'Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.'
+  const { fecha, hora } = formatSentAt(sentAt)
+  return `Evaluación enviada el ${fecha} a las ${hora}. Ya no admite cambios; si necesita corregirla, solicite al comité.`
 }
 
 function EvaluationPage() {
@@ -111,20 +122,15 @@ function EvaluationPage() {
   const [recommendation, setRecommendation] = useState(() => existingReview?.recommendation ?? existingReview?.recomendacion ?? '')
   const [authorComment, setAuthorComment] = useState(() => existingReview?.authorComment ?? existingReview?.comentarioAutor ?? '')
   const [committeeComment, setCommitteeComment] = useState(() => existingReview?.committeeComment ?? existingReview?.comentarioComite ?? '')
+  const initialSentAt = existingReview?.enviadaEl ? new Date(existingReview.enviadaEl) : null
   const [submitted, setSubmitted] = useState(Boolean(existingReview))
-  const [notice, setNotice] = useState('')
+  const [sentAt, setSentAt] = useState(initialSentAt)
+  const [notice, setNotice] = useState(() => (existingReview ? buildSentNotice(initialSentAt) : ''))
   const [errors, setErrors] = useState([])
 
-  const scoredCriteria = criteria.filter((criterion) => criterion.puntaje !== '')
-  const scoredWeight = scoredCriteria.reduce(
-    (total, criterion) => total + criterion.peso,
-    0,
-  )
-  const weightedTotal = scoredCriteria.reduce(
-    (total, criterion) => total + Number(criterion.puntaje) * criterion.peso,
-    0,
-  )
-  const average = scoredWeight ? (weightedTotal / scoredWeight).toFixed(1) : '—'
+  const scoredCriteria = criteria.filter((criterion) => isValidScore(criterion.puntaje))
+  const average = formatTenth(calculateWeightedAverage(criteria))
+  const recommendationLabel = getRecommendationLabel(recommendation)
 
   function updateCriterion(id, field, value) {
     setCriteria((currentCriteria) =>
@@ -145,12 +151,12 @@ function EvaluationPage() {
     event.preventDefault()
 
     const missingCriteria = criteria
-      .filter((criterion) => criterion.puntaje === '' || !criterion.comentario.trim())
+      .filter((criterion) => !isValidScore(criterion.puntaje) || !criterion.comentario.trim())
       .map((criterion) => criterion.nombre)
     const validationErrors = []
 
     if (missingCriteria.length > 0) {
-      validationErrors.push(`Completa el puntaje y comentario de: ${missingCriteria.join(', ')}.`)
+      validationErrors.push(`Completa el puntaje (de 0 a 20) y comentario de: ${missingCriteria.join(', ')}.`)
     }
     if (!recommendation) {
       validationErrors.push('Selecciona una recomendación.')
@@ -165,9 +171,12 @@ function EvaluationPage() {
       return
     }
 
+    const now = new Date()
+
+    setSentAt(now)
     setSubmitted(true)
     setErrors([])
-    setNotice('Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.')
+    setNotice(buildSentNotice(now))
   }
 
   return (
@@ -217,6 +226,11 @@ function EvaluationPage() {
                 <span>{trabajo.eje}</span>
                 <span>{trabajo.tipo}</span>
                 {submitted && <span className={styles.readOnlyTag}>Solo lectura</span>}
+                {submitted && recommendationLabel && (
+                  <span className={styles.recommendationTag}>
+                    Recomendación: {recommendationLabel.toLowerCase()}
+                  </span>
+                )}
               </div>
               <h1 id="work-title">{trabajo.title}</h1>
               <p>{trabajo.resumen}</p>
@@ -254,18 +268,27 @@ function EvaluationPage() {
                     <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
                       Puntaje para {criterion.nombre}, de 0 a 20
                     </label>
-                    <input
-                      id={`score-${criterion.id}`}
-                      className={styles.scoreInput}
-                      type="number"
-                      min="0"
-                      max="20"
-                      step="1"
-                      value={criterion.puntaje}
-                      disabled={submitted}
-                      onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
-                      aria-label={`Puntaje para ${criterion.nombre}`}
-                    />
+                    <div className={styles.scoreField}>
+                      <input
+                        id={`score-${criterion.id}`}
+                        className={styles.scoreInput}
+                        type="number"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={criterion.puntaje}
+                        disabled={submitted}
+                        aria-invalid={criterion.puntaje !== '' && !isValidScore(criterion.puntaje)}
+                        aria-describedby={`score-error-${criterion.id}`}
+                        onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
+                        aria-label={`Puntaje para ${criterion.nombre}`}
+                      />
+                      {criterion.puntaje !== '' && !isValidScore(criterion.puntaje) && (
+                        <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
+                          Ingrese un puntaje entre 0 y 20.
+                        </small>
+                      )}
+                    </div>
                     <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
                       Comentario para {criterion.nombre}
                     </label>
@@ -290,7 +313,7 @@ function EvaluationPage() {
               <aside className={styles.sidePanel}>
                 <fieldset className={styles.recommendationPanel} disabled={submitted}>
                   <legend>Recomendación *</legend>
-                  {recommendations.map((option) => (
+                  {recommendationOptions.map((option) => (
                     <label
                       className={`${styles.recommendationOption} ${recommendation === option.value ? styles.selectedRecommendation : ''}`}
                       key={option.value}
@@ -309,6 +332,18 @@ function EvaluationPage() {
                     </label>
                   ))}
                 </fieldset>
+                {submitted && (
+                  <dl className={styles.deliveryPanel} aria-label="Datos de la entrega">
+                    <div>
+                      <dt>Enviada</dt>
+                      <dd>{sentAt ? `${formatSentAt(sentAt).fecha} · ${formatSentAt(sentAt).hora}` : '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Fecha límite</dt>
+                      <dd>{trabajo.fechaLimite ?? '—'}</dd>
+                    </div>
+                  </dl>
+                )}
                 <p className={styles.confidentialNote}>
                   Los comentarios al autor se publican con el dictamen. Las observaciones al comité son confidenciales.
                 </p>
