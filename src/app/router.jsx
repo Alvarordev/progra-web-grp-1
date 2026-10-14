@@ -1,16 +1,14 @@
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
-import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
-import History1Page from '../features/history-1/pages/History1Page.jsx'
-import LoginPage from '../features/history-1/pages/LoginPage.jsx'
-import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
+import History1Page from '../features/history-1/History1Page.jsx'
 import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
 import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
-import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
-import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
-import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
+import MyPresentationPage from '../features/history-6/pages/MyPresentationPage.jsx'
+import PublicProgramPage from '../features/history-6/pages/PublicProgramPage.jsx'
+import SessionAssignmentPage from '../features/history-6/pages/SessionAssignmentPage.jsx'
+import SessionBuilderPage from '../features/history-6/pages/SessionBuilderPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -20,22 +18,6 @@ const router = createBrowserRouter([
   {
     path: '/ejemplo',
     element: <ExamplePage />,
-  },
-  {
-    path: '/history-1',
-    element: <History1Page />,
-  },
-  {
-    path: '/iniciar-sesion',
-    element: <LoginPage />,
-  },
-  {
-    path: '/registro',
-    element: <RegistrationPage />,
-  },
-  {
-    path: '/autor',
-    element: <AuthorHomePage />,
   },
   {
     path: '/configuracion',
@@ -50,21 +32,25 @@ const router = createBrowserRouter([
     element: <WorkTypesPage />,
   },
   {
-    path: '/configuracion/fechas',
-    element: <SchedulePage />,
-  },
-  {
-    path: '/configuracion/criterios',
-    element: <CriteriaPage />,
-  },
-  {
     path: '/bandeja-revision',
     element: <ReviewerInboxPage />,
   },
   {
-    path: '/evaluacion/:codigo',
-    element: <EvaluationPage />,
+    path: '/programa',
+    element: <SessionBuilderPage />,
+  },
+  {
+    path: '/programa/asignar-trabajos',
+    element: <SessionAssignmentPage />,
+  },
+  {
+    path: '/programa-publico',
+    element: <PublicProgramPage />,
+  },
+  {
+    path: '/mi-presentacion',
+    element: <MyPresentationPage />,
   },
 ])
 
-export default router;
+export default router

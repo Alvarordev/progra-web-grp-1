@@ -29,7 +29,7 @@ function createFormValues(tipoTrabajo) {
   }
 }
 
-function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = false, errorGuardado = '' }) {
+function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo }) {
   const [formValues, setFormValues] = useState(() =>
     createFormValues(tipoTrabajo),
   )
@@ -49,7 +49,6 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = fal
 
   function handleSubmit(event) {
     event.preventDefault()
-    if (guardando) return
 
     const erroresFormulario = {}
     const extensionNumerica = Number.parseFloat(
@@ -69,7 +68,7 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = fal
       erroresFormulario.formatoEsperado = 'Seleccione el formato esperado.'
     }
 
-    const maxCoautores = Number(formValues.maxCoautores)
+    const maxCoautores = Number.parseInt(formValues.maxCoautores, 10)
     if (
       formValues.admiteCoautores &&
       (!Number.isInteger(maxCoautores) || maxCoautores <= 0)
@@ -107,7 +106,6 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = fal
   return (
     <Modal alCerrar={alCerrar} titulo={title}>
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
-        <fieldset className={styles.fields} disabled={guardando}>
         <div className={styles.field}>
           <label htmlFor="work-type-name">Nombre *</label>
           <input
@@ -202,13 +200,11 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = fal
           </div>
         )}
 
-        </fieldset>
-        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
         <footer className={styles.footer}>
-          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
+          <Button onClick={alCerrar} type="button" variant="secondary">
             Cancelar
           </Button>
-          <Button loading={guardando} type="submit" variant="primary">
+          <Button type="submit" variant="primary">
             Guardar tipo
           </Button>
         </footer>

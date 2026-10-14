@@ -12,6 +12,8 @@ const navigationItems = [
   { label: 'Usuarios', to: '/usuarios' },
 ]
 
+const sectionsWithSubroutes = ['/configuracion', '/programa']
+
 function CommitteeNavigation({
   rutaActiva = '/configuracion',
   usuario,
@@ -21,10 +23,10 @@ function CommitteeNavigation({
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del comité" className={styles.navigation}>
           {navigationItems.map((elemento) => {
-            const esConfiguracion = elemento.to === '/configuracion'
+            const tieneSubrutas = sectionsWithSubroutes.includes(elemento.to)
             const esRutaActiva =
               elemento.to === rutaActiva ||
-              (esConfiguracion && rutaActiva.startsWith('/configuracion/'))
+              (tieneSubrutas && rutaActiva.startsWith(`${elemento.to}/`))
 
             return (
               <NavLink
@@ -32,7 +34,7 @@ function CommitteeNavigation({
                 className={({ isActive: estaActiva }) =>
                   `${styles.link} ${estaActiva ? styles.active : ''}`
                 }
-                end={!esConfiguracion}
+                end={!tieneSubrutas}
                 key={elemento.to}
                 to={elemento.to}
               >
