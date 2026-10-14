@@ -70,6 +70,10 @@ const router = createBrowserRouter([
     path: '/trabajos-recibidos/:codigo/consolidado',
     element: <ConsolidatedReviewPage />,
   },
+  {
+    path: '/trabajos-recibidos/:codigo/decision',
+    element: <ConsolidatedReviewPage mostrarDecision />,
+  },
 ])
 
 export default router;
