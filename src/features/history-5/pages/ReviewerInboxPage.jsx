@@ -1,4 +1,8 @@
 import { useState } from 'react'
+import useStoredState from '../../../core/utils/useStoredState.js'
+import { reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
+import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
+import { getRecommendationLabel } from '../utils/recommendations.js'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
@@ -79,7 +83,20 @@ function matchesFilter(assignment, filterId) {
 }
 
 function ReviewerInboxPage() {
-  const assignments = initialAssignments
+  const reviewsState = useStoredState(reviewsRepository, {})
+  const sessionState = useStoredState(sessionRepository, null)
+  const reviewerId = sessionState.value?.userId ?? 'demo-reviewer'
+  const assignments = initialAssignments.map((item) => {
+    const review = reviewsState.value[getReviewKey(reviewerId, item.codigo)]
+    if (review?.status !== 'submitted') return item
+    return {
+      ...item,
+      estado: 'Entregada',
+      tipoEstado: 'entregada',
+      accion: undefined,
+      fecha: `Enviada el ${new Date(review.updatedAt).toLocaleDateString('es-PE')} · ${getRecommendationLabel(review.recommendation).toLowerCase()}`,
+    }
+  })
   const [selectedFilter, setSelectedFilter] = useState('todas')
   const pendingCount = assignments.filter(
     (assignment) => assignment.tipoEstado !== 'entregada',

@@ -1,7 +1,7 @@
 import Button from '../../../../core/ui/Button/Button.jsx'
 import styles from './ThematicAxesTable.module.css'
 
-function ThematicAxesTable({ alEditar, alEliminar, ejes }) {
+function ThematicAxesTable({ alEditar, alEliminar, ejes, deshabilitado = false }) {
   return (
     <div
       aria-label="Lista de ejes temáticos"
@@ -35,6 +35,7 @@ function ThematicAxesTable({ alEditar, alEliminar, ejes }) {
                 <div className={styles.actions}>
                   <Button
                     aria-label={`Editar ${eje.nombre}`}
+                    disabled={deshabilitado}
                     onClick={() => alEditar(eje)}
                     size="small"
                     type="button"
@@ -45,6 +46,7 @@ function ThematicAxesTable({ alEditar, alEliminar, ejes }) {
                   <span aria-hidden="true">·</span>
                   <Button
                     aria-label={`Eliminar ${eje.nombre}`}
+                    disabled={deshabilitado}
                     className={styles.deleteAction}
                     onClick={() => alEliminar(eje)}
                     size="small"
