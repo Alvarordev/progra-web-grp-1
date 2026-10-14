@@ -3,15 +3,16 @@ import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import { formatTenth } from '../../utils/scoring.js'
 import styles from './DecisionModal.module.css'
 
-// Solo muestra la interfaz del 5.4. Los botones todavía no tienen acciones.
-function DecisionModal({ codigo, resumen, filas }) {
+// Solo muestra la interfaz del 5.4. Los botones todavía no tienen acciones;
+// la X solo cierra el recuadro.
+function DecisionModal({ alCerrar, codigo, resumen, filas }) {
   const opciones = [
     { value: 'aceptar', label: 'Aceptar', descripcion: 'Pasa al programa del congreso.' },
     { value: 'rechazar', label: 'Rechazar', descripcion: 'No participa en esta edición.' },
   ]
 
   return (
-    <Modal alCerrar={() => {}} titulo="Decisión final del comité">
+    <Modal alCerrar={alCerrar} titulo="Decisión final del comité">
       <p className={styles.subtitulo}>
         {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
       </p>

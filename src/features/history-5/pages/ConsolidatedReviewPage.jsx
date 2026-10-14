@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
@@ -21,6 +22,7 @@ const committeeUser = {
 
 function ConsolidatedReviewPage({ mostrarDecision = false }) {
   const { codigo } = useParams()
+  const [decisionAbierta, setDecisionAbierta] = useState(mostrarDecision)
   const trabajo = assignmentsByWork[codigo]
   const reviewsState = useStoredState(reviewsRepository, {})
   const criteriaState = useStoredState(criteriaRepository, [])
@@ -71,7 +73,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                   <Button variant="secondary" type="button">
                     Ver documento
                   </Button>
-                  <Button variant="primary" type="button">
+                  <Button variant="primary" type="button" onClick={() => setDecisionAbierta(true)}>
                     Registrar decisión final
                   </Button>
                 </div>
@@ -93,8 +95,9 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 <ReviewerCommentsPanel revisiones={consolidado.filas} />
               </section>
 
-              {mostrarDecision && (
+              {decisionAbierta && (
                 <DecisionModal
+                  alCerrar={() => setDecisionAbierta(false)}
                   codigo={codigo}
                   resumen={consolidado.resumen}
                   filas={consolidado.filas}
