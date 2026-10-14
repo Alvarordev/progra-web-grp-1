@@ -13,6 +13,14 @@ import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.j
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
 import { initialCriteria, validateCriteria } from './states/criteriaState.js'
 import { validateReviews } from './states/reviewsState.js'
+import {
+  initialWorks,
+  initialReviewers,
+  initialPendingReviews,
+  validateWorks,
+  validateReviewers,
+  validatePendingReviews,
+} from './states/worksAssignmentState.js'
 
 const adapter = createLocalStorageAdapter()
 
@@ -63,4 +71,25 @@ export const participantRepository = createStateRepository({
   name: 'participant',
   defaultValue: initialParticipant,
   validate: validateParticipant,
+})
+
+export const worksRepository = createStateRepository({
+  adapter,
+  name: 'works',
+  defaultValue: initialWorks,
+  validate: validateWorks,
+})
+
+export const reviewersRepository = createStateRepository({
+  adapter,
+  name: 'reviewers',
+  defaultValue: initialReviewers,
+  validate: validateReviewers,
+})
+
+export const pendingReviewsRepository = createStateRepository({
+  adapter,
+  name: 'pending-reviews',
+  defaultValue: initialPendingReviews,
+  validate: validatePendingReviews,
 })

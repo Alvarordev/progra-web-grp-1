@@ -11,6 +11,9 @@ import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
 import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
+import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
+import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
+import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -64,6 +67,18 @@ const router = createBrowserRouter([
   {
     path: '/evaluacion/:codigo',
     element: <EvaluationPage />,
+  },
+  {
+    path: '/trabajos-recibidos',
+    element: <ReceivedWorksPage />,
+  },
+  {
+    path: '/revisores',
+    element: <ReviewersListPage />,
+  },
+  {
+    path: '/seguimiento',
+    element: <ReviewsTrackingPage />,
   },
 ])
 
