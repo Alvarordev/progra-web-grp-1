@@ -1,3 +1,4 @@
+import { initialWorks, initialReviewers, initialPendingReviews, validateWorks, validateReviewers, validatePendingReviews } from './states/worksAssignmentState.js'
 import { createLocalStorageAdapter } from './persistence/localStorageAdapter.js'
 import createStateRepository from './persistence/createStateRepository.js'
 import createSessionRepository from './persistence/createSessionRepository.js'
@@ -94,4 +95,16 @@ export const participantRepository = createStateRepository({
   name: 'participant',
   defaultValue: initialParticipant,
   validate: validateParticipant,
+})
+
+export const worksRepository = createStateRepository({
+  adapter, name: 'works', defaultValue: initialWorks, validate: validateWorks,
+})
+
+export const reviewersRepository = createStateRepository({
+  adapter, name: 'reviewers', defaultValue: initialReviewers, validate: validateReviewers,
+})
+
+export const pendingReviewsRepository = createStateRepository({
+  adapter, name: 'pending-reviews', defaultValue: initialPendingReviews, validate: validatePendingReviews,
 })

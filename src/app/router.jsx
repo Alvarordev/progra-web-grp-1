@@ -1,3 +1,6 @@
+import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
+import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
+import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
 import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
 import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
@@ -107,6 +110,18 @@ const router = createBrowserRouter([
   {
     path: '/trabajos-recibidos/:codigo/consolidado',
     element: <ConsolidatedReviewPage />,
+  },
+  {
+    path: '/trabajos-recibidos',
+    element: <ReceivedWorksPage />,
+  },
+  {
+    path: '/revisores',
+    element: <ReviewersListPage />,
+  },
+  {
+    path: '/seguimiento',
+    element: <ReviewsTrackingPage />,
   },
   {
     path: '*',
