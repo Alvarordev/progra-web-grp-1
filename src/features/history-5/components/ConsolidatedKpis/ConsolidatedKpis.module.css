@@ -1,0 +1,37 @@
+.kpis {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: var(--space-4);
+}
+
+.kpi {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-accent);
+  background: var(--color-surface);
+}
+
+.label {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.kpi strong {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.kpi small {
+  font-size: var(--font-size-label);
+  color: var(--color-text-muted);
+}

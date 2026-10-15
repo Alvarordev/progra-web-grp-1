@@ -18,6 +18,7 @@ import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
 import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
+import ConsolidatedReviewPage from '../features/history-5/pages/ConsolidatedReviewPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -94,6 +95,10 @@ const router = createBrowserRouter([
     loader: createAccessLoader(['reviewer', 'both'], 'La evaluación de trabajos es exclusiva del rol revisor.', true),
     errorElement: <RoleAccessError />,
     children: [{ path: '/evaluacion/:codigo', element: <EvaluationPage /> }],
+  },
+  {
+    path: '/trabajos-recibidos/:codigo/consolidado',
+    element: <ConsolidatedReviewPage />,
   },
   {
     path: '*',

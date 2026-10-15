@@ -6,12 +6,15 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
+import { calculateWeightedAverage, formatTenth, isValidScore } from '../utils/scoring.js'
+import { getRecommendationLabel, recommendationOptions } from '../utils/recommendations.js'
 import styles from './EvaluationPage.module.css'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 
 const works = {
   'TRB-2026-042': {
+    fechaLimite: '15/10/2026',
     title: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
     eje: 'Inteligencia artificial y datos',
     tipo: 'Artículo completo',
@@ -19,6 +22,7 @@ const works = {
       'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros de cinco cohortes.',
   },
   'TRB-2026-053': {
+    fechaLimite: '09/10/2026',
     title: 'Bienestar emocional y rendimiento académico en primeros ciclos',
     eje: 'Salud y sociedad',
     tipo: 'Póster',
@@ -26,6 +30,7 @@ const works = {
       'Estudio sobre la relación entre bienestar emocional, adaptación universitaria y rendimiento académico en estudiantes de primeros ciclos.',
   },
   'TRB-2026-031': {
+    fechaLimite: '18/10/2026',
     title: 'Refactorización guiada por métricas de deuda técnica',
     eje: 'Ingeniería de software',
     tipo: 'Artículo completo',
@@ -65,28 +70,34 @@ const initialCriteria = [
   },
 ]
 
-const recommendations = [
-  { value: 'aceptar', label: 'Aceptar' },
-  { value: 'observaciones', label: 'Aceptar con observaciones' },
-  { value: 'rechazar', label: 'Rechazar' },
-]
-
 const readOnlyReviewExamples = {
   'TRB-2026-031': {
-    criterios: initialCriteria.map((criterion) => ({
-      ...criterion,
-      puntaje: criterion.id === 'relevancia' ? '17' : criterion.puntaje,
-      comentario:
-        criterion.id === 'relevancia'
-          ? 'Aplicable a los cursos de proyectos de la carrera.'
-          : criterion.comentario,
-    })),
+    enviadaEl: '2026-10-06T11:05:00',
+    criterios: [
+      { id: 'originalidad', nombre: 'Originalidad', peso: 25, puntaje: '16', comentario: 'La propuesta adapta métricas conocidas a un contexto universitario.' },
+      { id: 'rigor', nombre: 'Rigor metodológico', peso: 30, puntaje: '15', comentario: 'El tamaño de la muestra de repositorios debería justificarse.' },
+      { id: 'claridad', nombre: 'Claridad de la exposición', peso: 20, puntaje: '18', comentario: 'Buena estructura y tablas legibles.' },
+      { id: 'relevancia', nombre: 'Relevancia y aporte', peso: 25, puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
+    ],
     recomendacion: 'observaciones',
     comentarioAutor:
       'El trabajo es sólido en su exposición. Recomiendo justificar la selección de repositorios y añadir una comparación con una línea base sin refactorización.',
     comentarioComite:
       'Puede aceptarse si los autores atienden la observación metodológica antes de la versión final.',
   },
+}
+
+function formatSentAt(sentAt) {
+  return {
+    fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    hora: sentAt.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }),
+  }
+}
+
+function buildSentNotice(sentAt) {
+  if (!sentAt) return 'Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.'
+  const { fecha, hora } = formatSentAt(sentAt)
+  return `Evaluación enviada el ${fecha} a las ${hora}. Ya no admite cambios; si necesita corregirla, solicite al comité.`
 }
 
 function EvaluationScreen({ codigo }) {
@@ -116,6 +127,7 @@ function EvaluationScreen({ codigo }) {
   const [authorComment, setAuthorComment] = useState(() => existingReview?.authorComment ?? existingReview?.comentarioAutor ?? '')
   const [committeeComment, setCommitteeComment] = useState(() => existingReview?.committeeComment ?? existingReview?.comentarioComite ?? '')
   const [submitted, setSubmitted] = useState(Boolean(existingReview))
+  const [sentAt, setSentAt] = useState(null)
   const [notice, setNotice] = useState('')
   const [errors, setErrors] = useState([])
   const [loading, setLoading] = useState(true)
@@ -145,7 +157,9 @@ function EvaluationScreen({ codigo }) {
         setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? '')
         setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
         setSubmitted(saved ? saved.status === 'submitted' : Boolean(existingReview))
-        setNotice(saved?.status === 'draft' ? 'Borrador recuperado de este navegador.' : '')
+        const deliveryDate = saved?.status === 'submitted' ? new Date(saved.updatedAt) : review?.enviadaEl ? new Date(review.enviadaEl) : null
+        setSentAt(deliveryDate)
+        setNotice(saved?.status === 'draft' ? 'Borrador recuperado de este navegador.' : review && saved?.status !== 'draft' ? buildSentNotice(deliveryDate) : '')
         setErrors([])
       } catch (error) {
         if (active) setLoadError(error.message)
@@ -157,16 +171,9 @@ function EvaluationScreen({ codigo }) {
     return () => { active = false }
   }, [codigo, existingReview])
 
-  const scoredCriteria = criteria.filter((criterion) => criterion.puntaje !== '')
-  const scoredWeight = scoredCriteria.reduce(
-    (total, criterion) => total + criterion.peso,
-    0,
-  )
-  const weightedTotal = scoredCriteria.reduce(
-    (total, criterion) => total + Number(criterion.puntaje) * criterion.peso,
-    0,
-  )
-  const average = scoredWeight ? (weightedTotal / scoredWeight).toFixed(1) : '—'
+  const scoredCriteria = criteria.filter((criterion) => isValidScore(criterion.puntaje))
+  const average = formatTenth(calculateWeightedAverage(criteria))
+  const recommendationLabel = getRecommendationLabel(recommendation)
 
   function updateCriterion(id, field, value) {
     setCriteria((currentCriteria) =>
@@ -188,13 +195,15 @@ function EvaluationScreen({ codigo }) {
         setErrors(['Esta evaluación ya fue enviada y no admite cambios. Recargue la página.'])
         return
       }
+      const now = new Date()
       await reviewsRepository.save({
         ...reviews,
-        [key]: { criteria, recommendation, authorComment, committeeComment, status, updatedAt: new Date().toISOString() },
+        [key]: { criteria, recommendation, authorComment, committeeComment, status, updatedAt: now.toISOString() },
       })
       setSubmitted(status === 'submitted')
+      setSentAt(status === 'submitted' ? now : null)
       setErrors([])
-      setNotice(status === 'draft' ? 'Borrador guardado en este navegador.' : 'Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.')
+      setNotice(status === 'draft' ? 'Borrador guardado en este navegador.' : buildSentNotice(now))
     } catch (error) {
       setErrors([error.message])
       setNotice('')
@@ -214,7 +223,7 @@ function EvaluationScreen({ codigo }) {
       .filter((criterion) => criterion.puntaje === '' || !criterion.comentario.trim())
       .map((criterion) => criterion.nombre)
     const validationErrors = []
-    if (criteria.some((item) => item.puntaje !== '' && (!Number.isInteger(Number(item.puntaje)) || Number(item.puntaje) < 0 || Number(item.puntaje) > 20))) {
+    if (criteria.some((item) => item.puntaje !== '' && !isValidScore(item.puntaje))) {
       validationErrors.push('Los puntajes deben ser enteros entre 0 y 20.')
     }
     if (criteria.reduce((sum, item) => sum + item.peso, 0) !== 100) {
@@ -285,6 +294,11 @@ function EvaluationScreen({ codigo }) {
                 <span>{trabajo.eje}</span>
                 <span>{trabajo.tipo}</span>
                 {submitted && <span className={styles.readOnlyTag}>Solo lectura</span>}
+                {submitted && recommendationLabel && (
+                  <span className={styles.recommendationTag}>
+                    Recomendación: {recommendationLabel.toLowerCase()}
+                  </span>
+                )}
               </div>
               <h1 id="work-title">{trabajo.title}</h1>
               <p>{trabajo.resumen}</p>
@@ -323,18 +337,27 @@ function EvaluationScreen({ codigo }) {
                     <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
                       Puntaje para {criterion.nombre}, de 0 a 20
                     </label>
-                    <input
-                      id={`score-${criterion.id}`}
-                      className={styles.scoreInput}
-                      type="number"
-                      min="0"
-                      max="20"
-                      step="1"
-                      value={criterion.puntaje}
-                      disabled={submitted}
-                      onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
-                      aria-label={`Puntaje para ${criterion.nombre}`}
-                    />
+                    <div className={styles.scoreField}>
+                      <input
+                        id={`score-${criterion.id}`}
+                        className={styles.scoreInput}
+                        type="number"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value={criterion.puntaje}
+                        disabled={submitted}
+                        aria-invalid={criterion.puntaje !== '' && !isValidScore(criterion.puntaje)}
+                        aria-describedby={`score-error-${criterion.id}`}
+                        onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
+                        aria-label={`Puntaje para ${criterion.nombre}`}
+                      />
+                      {criterion.puntaje !== '' && !isValidScore(criterion.puntaje) && (
+                        <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
+                          Ingrese un puntaje entre 0 y 20.
+                        </small>
+                      )}
+                    </div>
                     <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
                       Comentario para {criterion.nombre}
                     </label>
@@ -359,7 +382,7 @@ function EvaluationScreen({ codigo }) {
               <aside className={styles.sidePanel}>
                 <fieldset className={styles.recommendationPanel} disabled={submitted}>
                   <legend>Recomendación *</legend>
-                  {recommendations.map((option) => (
+                  {recommendationOptions.map((option) => (
                     <label
                       className={`${styles.recommendationOption} ${recommendation === option.value ? styles.selectedRecommendation : ''}`}
                       key={option.value}
@@ -378,6 +401,18 @@ function EvaluationScreen({ codigo }) {
                     </label>
                   ))}
                 </fieldset>
+                {submitted && (
+                  <dl className={styles.deliveryPanel} aria-label="Datos de la entrega">
+                    <div>
+                      <dt>Enviada</dt>
+                      <dd>{sentAt ? `${formatSentAt(sentAt).fecha} · ${formatSentAt(sentAt).hora}` : '—'}</dd>
+                    </div>
+                    <div>
+                      <dt>Fecha límite</dt>
+                      <dd>{trabajo.fechaLimite ?? '—'}</dd>
+                    </div>
+                  </dl>
+                )}
                 <p className={styles.confidentialNote}>
                   Los comentarios al autor se publican con el dictamen. Las observaciones al comité son confidenciales.
                 </p>
