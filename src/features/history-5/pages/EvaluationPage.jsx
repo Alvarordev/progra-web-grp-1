@@ -85,6 +85,13 @@ const readOnlyReviewExamples = {
   },
 }
 
+// Comentarios de criterio que aparecen al abrir una evaluación nueva (según el mockup).
+const comentariosIniciales = {
+  originality: 'Aporte claro frente a trabajos previos del área.',
+  rigor: 'Falta validación cruzada y control del desbalance de clases.',
+  clarity: 'Redacción ordenada; mejorar la leyenda de la figura 3.',
+}
+
 function formatSentAt(sentAt) {
   return {
     fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -146,7 +153,11 @@ function EvaluationScreen({ codigo }) {
         const review = saved ?? existingReview
         const currentCriteria = configuredCriteria.map((item) => {
           const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
-          return { ...item, puntaje: previous?.puntaje ?? '', comentario: previous?.comentario ?? '' }
+          return {
+            ...item,
+            puntaje: previous?.puntaje ?? '',
+            comentario: previous?.comentario ?? comentariosIniciales[item.id] ?? '',
+          }
         })
         const savedSubmitted = saved?.status === 'submitted'
         const savedSentAt = savedSubmitted
