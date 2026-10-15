@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import Button from '../core/ui/Button/Button.jsx'
 import styles from './ExamplePage.module.css'
+import Header from '../core/ui/Header/Header.jsx'
 
 const designColors = [
   { name: 'Primary', token: '--color-primary', value: '#7A2231' },
@@ -28,18 +29,7 @@ const workStatuses = [
 function ExamplePage() {
   return (
     <div className={styles.page}>
-      <header className={styles.masthead}>
-        <div className={styles.brand}>
-          <span aria-hidden="true" className={styles.brandMark}>
-            C
-          </span>
-          <span>
-            <strong>Congreso Académico Estudiantil</strong>
-            <small>Universidad de Lima · Edición 2026</small>
-          </span>
-        </div>
-        <span className={styles.mastheadNote}>Guía de implementación</span>
-      </header>
+      <Header estado={"Recepcion abierta"}/>
 
       <main className={styles.content}>
         <section aria-labelledby="page-title" className={styles.intro}>

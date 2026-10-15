@@ -1,11 +1,24 @@
-import { createBrowserRouter, Navigate } from 'react-router'
+import { createBrowserRouter } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
-import History1Page from '../features/history-1/History1Page.jsx'
+import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
+import History1Page from '../features/history-1/pages/History1Page.jsx'
+import LoginPage from '../features/history-1/pages/LoginPage.jsx'
+import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
+import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
+import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
+import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
+import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
+import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
+import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
+import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
+import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
+import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
+import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate replace to="/ejemplo" />,
+    element: <History1Page />,
   },
   {
     path: '/ejemplo',
@@ -15,6 +28,58 @@ const router = createBrowserRouter([
     path: '/history-1',
     element: <History1Page />,
   },
+  {
+    path: '/iniciar-sesion',
+    element: <LoginPage />,
+  },
+  {
+    path: '/registro',
+    element: <RegistrationPage />,
+  },
+  {
+    path: '/autor',
+    element: <AuthorHomePage />,
+  },
+  {
+    path: '/configuracion',
+    element: <EditionSettingsPage />,
+  },
+  {
+    path: '/configuracion/ejes-tematicos',
+    element: <ThematicAxesPage />,
+  },
+  {
+    path: '/configuracion/tipos-trabajo',
+    element: <WorkTypesPage />,
+  },
+  {
+    path: '/configuracion/fechas',
+    element: <SchedulePage />,
+  },
+  {
+    path: '/configuracion/criterios',
+    element: <CriteriaPage />,
+  },
+  {
+    path: '/bandeja-revision',
+    element: <ReviewerInboxPage />,
+  },
+  {
+    path: '/evaluacion/:codigo',
+    element: <EvaluationPage />,
+  },
+  {
+    path: '/trabajos-recibidos',
+    element: <ReceivedWorksPage />,
+  },
+  {
+    path: '/revisores',
+    element: <ReviewersListPage />,
+  },
+  {
+    path: '/seguimiento',
+    element: <ReviewsTrackingPage />,
+  },
 ])
 
-export default router
+export default router;

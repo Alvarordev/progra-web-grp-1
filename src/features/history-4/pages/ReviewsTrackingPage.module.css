@@ -1,0 +1,228 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg, #fbfaf8);
+}
+
+.mainContent {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 60px 24px;
+  flex: 1;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-family: var(--font-family-serif, 'Source Serif 4', serif);
+  font-size: 28px;
+  line-height: 32px;
+  margin: 0 0 4px 0;
+  color: var(--color-primary, #7a2231);
+}
+
+.subtitle {
+  font-family: var(--font-family-sans, 'Inter', sans-serif);
+  font-size: 15px;
+  color: var(--color-text-muted, #6f6663);
+  margin: 0;
+}
+
+.notificationBanner {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background-color: #e8f5e9;
+  border: 1px solid var(--color-success, #1e7f4d);
+  color: var(--color-success, #1e7f4d);
+  border-radius: 2px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.overdueAlertBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background-color: #fdf2f2;
+  border: 1px solid var(--color-danger, #b4322b);
+  border-radius: 2px;
+  margin-bottom: 20px;
+  color: var(--color-danger, #b4322b);
+  font-size: 14px;
+}
+
+.alertLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alertIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: var(--color-danger, #b4322b);
+  color: #fff;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.alertToggleBtn {
+  background-color: var(--color-danger, #b4322b);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alertToggleBtn:hover {
+  background-color: #922822;
+}
+
+.tableWrapper {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: 2px;
+  overflow-x: auto;
+}
+
+.trackingTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.trackingTable th {
+  background-color: var(--color-bg, #fbfaf8);
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted, #6f6663);
+  border-bottom: 1px solid var(--color-border, #e4dfda);
+  letter-spacing: 0.05em;
+}
+
+.trackingTable td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border, #e4dfda);
+  vertical-align: middle;
+}
+
+.rowOverdue {
+  background-color: #fffdfd;
+}
+
+.codeCell {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--color-text, #1f1a1b);
+}
+
+.titleCell strong {
+  color: var(--color-text, #1f1a1b);
+  font-size: 14px;
+}
+
+.reviewerCell {
+  color: var(--color-text, #1f1a1b);
+}
+
+.dateCell {
+  color: var(--color-text-muted, #6f6663);
+}
+
+.badgeOverdue {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: #fde8e8;
+  color: var(--color-danger, #b4322b);
+  border: 1px solid var(--color-danger, #b4322b);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badgePending {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: #fef8ee;
+  color: var(--color-warning, #b7791f);
+  border: 1px solid var(--color-warning, #b7791f);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.reassignBtn {
+  background: none;
+  border: 1px solid var(--color-danger, #b4322b);
+  color: var(--color-danger, #b4322b);
+  padding: 4px 12px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.reassignBtn:hover {
+  background-color: #fde8e8;
+}
+
+.remindBtn {
+  background: none;
+  border: 1px solid var(--color-border, #e4dfda);
+  color: var(--color-primary, #7a2231);
+  padding: 4px 12px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.remindBtn:hover {
+  background-color: var(--color-primary-soft, #f6e9ec);
+}
+
+.bottomStatsRow {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: 2px;
+}
+
+.bottomStat {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 14px;
+}
+
+.bottomStatLabel {
+  color: var(--color-text-muted, #6f6663);
+}
+
+.bottomStatValue {
+  color: var(--color-text, #1f1a1b);
+}
+
+.statDanger strong {
+  color: var(--color-danger, #b4322b);
+}
