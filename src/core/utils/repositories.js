@@ -13,6 +13,8 @@ import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.j
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
 import { initialCriteria, validateCriteria } from './states/criteriaState.js'
 import { validateReviews } from './states/reviewsState.js'
+import { initialUsers, validateUsers } from './states/usersState.js'
+
 
 const adapter = createLocalStorageAdapter()
 
@@ -63,4 +65,8 @@ export const participantRepository = createStateRepository({
   name: 'participant',
   defaultValue: initialParticipant,
   validate: validateParticipant,
+})
+
+export const usersRepository = createStateRepository({
+  adapter, name: 'users', defaultValue: initialUsers, validate: validateUsers,
 })
