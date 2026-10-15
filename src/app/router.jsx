@@ -1,3 +1,6 @@
+import MetricsPage from '../features/history-7/pages/MetricsPage.jsx'
+import ReviewerCompliancePage from '../features/history-7/pages/ReviewerCompliancePage.jsx'
+import UsersPage from '../features/history-7/pages/UsersPage.jsx'
 import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
 import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
 import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
@@ -122,6 +125,18 @@ const router = createBrowserRouter([
   {
     path: '/seguimiento',
     element: <ReviewsTrackingPage />,
+  },
+  {
+    path: '/tablero',
+    element: <MetricsPage />,
+  },
+  {
+    path: '/tablero/cumplimiento',
+    element: <ReviewerCompliancePage />,
+  },
+  {
+    path: '/usuarios',
+    element: <UsersPage />,
   },
   {
     path: '*',
