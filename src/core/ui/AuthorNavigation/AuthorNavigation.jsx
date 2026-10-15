@@ -10,16 +10,18 @@ const navigationItems = [
   { label: 'Mi cuenta', to: '/autor/cuenta' },
 ]
 
-function AuthorNavigation({ rutaActiva = '/autor', usuario }) {
+function AuthorNavigation({ rutaActiva = '/autor', rutaInicio = '/autor', usuario }) {
+  const items = navigationItems.map(item => item.to === '/autor' ? { ...item, to: rutaInicio } : item)
+
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del autor" className={styles.navigation}>
-          {navigationItems.map((elemento) => (
+          {items.map((elemento) => (
             <NavLink
               aria-current={elemento.to === rutaActiva ? 'page' : undefined}
               className={({ isActive: estaActiva }) =>
-                `${styles.link} ${estaActiva ? styles.active : ''}`
+                `${styles.link} ${estaActiva || elemento.to === rutaActiva ? styles.active : ''}`
               }
               end
               key={elemento.to}
@@ -29,7 +31,7 @@ function AuthorNavigation({ rutaActiva = '/autor', usuario }) {
             </NavLink>
           ))}
         </nav>
-        <UserProfile {...usuario} />
+        <UserProfile {...usuario} permitirCerrarSesion />
       </div>
     </div>
   )

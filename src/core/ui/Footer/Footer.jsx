@@ -6,7 +6,7 @@ const footerGroups = [
     title: 'El congreso',
     links: [
       { label: 'Bases y requisitos', to: '/bases' },
-      { label: 'Ejes temáticos', to: '/ejes-tematicos' },
+      { label: 'Ejes temáticos', to: '/bases#rules-axes' },
       { label: 'Programa', to: '/programa' },
     ],
   },

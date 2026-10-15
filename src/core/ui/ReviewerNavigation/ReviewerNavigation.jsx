@@ -17,7 +17,7 @@ function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
             <NavLink
               aria-current={elemento.to === rutaActiva ? 'page' : undefined}
               className={({ isActive: estaActiva }) =>
-                `${styles.link} ${estaActiva ? styles.active : ''}`
+                `${styles.link} ${estaActiva || elemento.to === rutaActiva ? styles.active : ''}`
               }
               end
               key={elemento.to}
@@ -27,7 +27,7 @@ function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
             </NavLink>
           ))}
         </nav>
-        <UserProfile {...usuario} />
+        <UserProfile {...usuario} permitirCerrarSesion />
       </div>
     </div>
   )

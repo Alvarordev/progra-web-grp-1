@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 
 // Carga una vez por repositorio; solo persiste cuando se llama a save.
-export default function useStoredState(repository, initialValue) {
+export default function useStoredState(repository, initialValue, enabled = true) {
   const [value, setValue] = useState(initialValue)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!enabled) return
     let active = true
     repository.get().then((data) => {
       if (active) setValue(data)
@@ -17,7 +18,7 @@ export default function useStoredState(repository, initialValue) {
       if (active) setLoading(false)
     })
     return () => { active = false }
-  }, [repository])
+  }, [repository, enabled])
 
   async function save(nextValue) {
     setSaving(true)
