@@ -28,13 +28,38 @@ modales, mensajes, errores ni otros estados transitorios de la interfaz.
 
 `EditionSettingsPage` muestra una integración completa. Los datos generales se
 guardan con «Guardar cambios» y el estado con «Cambiar estado de la edición».
-Cambiar el estado no guarda las ediciones pendientes del formulario. Los ejes,
-tipos de trabajo y evaluaciones todavía conservan su comportamiento en memoria;
-pueden integrarse siguiendo el mismo patrón.
+Cambiar el estado no guarda las ediciones pendientes del formulario.
+
+La configuración cuenta con repositorios de ejes, tipos de trabajo, cronograma
+y criterios. Ejes y tipos se guardan al confirmar su modal. Fechas y criterios
+se guardan con su botón principal; las modificaciones pendientes de criterios
+no se guardan al cancelar un modal o abandonar la pantalla. Una lista guardada
+vacía se conserva como tal y no se reemplaza por los datos de ejemplo.
+
+`useStoredState` evita repetir la carga y el guardado en cada pantalla. Devuelve
+`value`, `loading`, `saving`, `error` y `save(value)`; no guarda automáticamente
+al escribir. Los formularios conservan su borrador local hasta guardar.
+
+El cronograma usa cadenas `AAAA-MM-DDTHH:mm` en horario de Lima y exige recepción
+anterior a revisión y revisión anterior a publicación. Los criterios pueden
+guardarse con una suma pendiente; cerrar la recepción y pasar a «En revisión»
+exige una suma de 100. El cierre requiere aceptar la casilla y escribir `CERRAR`.
+Por ahora se guarda el estado: los efectos sobre envíos se conectarán cuando
+exista esa historia.
+
+Las evaluaciones se guardan en `reviewsRepository`, identificadas por usuario
+y código de trabajo. Sin login se utiliza el revisor `demo-reviewer`. El borrador
+admite campos incompletos; el envío requiere puntajes enteros de 0 a 20,
+comentarios obligatorios, recomendación y pesos que sumen 100. Una evaluación
+enviada se recupera en modo lectura y actualiza la bandeja. Se conservan los
+ejemplos de revisiones entregadas del mockup para la demostración.
+Al recuperar un borrador se utilizan los criterios actuales, conservando los
+puntajes y comentarios de los identificadores que sigan presentes. Una
+evaluación enviada conserva su copia de los criterios y pesos usados al enviar.
 
 ## Sesión de demostración
 
-El repositorio de sesión está preparado para el futuro formulario de login:
+El registro y el inicio de sesión utilizan una identidad local de demostración:
 
 ```js
 import { sessionRepository } from './repositories.js'
@@ -53,11 +78,147 @@ autoriza operaciones. El validador admite únicamente `userId`, `name` y `role`;
 no guardar contraseñas ni tokens en este estado. Cuando exista el backend,
 la autenticación y los permisos se comprobarán en el servidor.
 
-La ficha del participante se guarda separada de la sesión con
-`participantRepository`. Incluye `userId`, `names`, `surnames`, `name`, `email`,
-`institution` y `role`; tampoco contiene la contraseña. La pantalla debe
-guardar primero la ficha y la identidad, y navegar al área del participante
-solo después de que ambas operaciones terminen correctamente.
+`participantsRepository` (`congress:participants`) conserva varias fichas,
+identificadas por `userId` y correo único. Cada una incluye `userId`, `names`,
+`surnames`, `name`, `email`, `institution` y `role`, sin la contraseña. Las fichas
+nuevas incluyen además `degree`, `studentCode` y `acceptedTerms`. Autor y Ambos
+exigen carrera y código numérico; Revisor oculta esos controles y guarda cadenas
+vacías. Todos los roles deben aceptar las bases y el tratamiento de datos.
+Estos campos son una ampliación compatible del formato: las fichas antiguas
+pueden seguir sin ellos, sin inventar datos ni una aceptación previa. Los
+requisitos adicionales se comprueban al crear una cuenta nueva.
+`participantRepository` conserva una copia de la ficha activa para compatibilidad.
+
+`getParticipantAccounts()` realiza una migración explícita y aditiva: incorpora
+la ficha antigua si aún no figura en la colección. No cambia su versión ni borra
+datos. Si ya existe esa cuenta, prevalece la colección. Antes de cambiar de
+cuenta, registro y login ejecutan esta lectura, preservando la ficha anterior.
+
+`registerParticipant()` admite `@ulima.edu.pe` y `@aloe.ulima.edu.pe`, rechaza
+correos duplicados y guarda una credencial derivada por cuenta.
+`authenticateParticipant()` requiere tanto ficha como credencial coincidente;
+`startAccountSession()` guarda la ficha activa y la identidad después de verificar.
+Las fichas antiguas sin credencial deben establecerla mediante recuperación.
+Solo se navega al terminar las escrituras: autor a `/autor`, revisor a
+`/mi-cuenta` (Historia 1.5), ambos a `/autor` con enlace a la cuenta de revisor.
+### Recordarme en este equipo
+
+`startAccountSession(participant, remember)` inicia la identidad mediante
+`sessionRepository.start(value, remember)`. Si `remember` es `true`, utiliza
+`localStorage`; si es `false` (incluido el registro), utiliza `sessionStorage`
+de la pestaña. En ambos casos se conserva el formato versionado y la clave
+`congress:session`, en el almacenamiento correspondiente. Al elegir una modalidad
+se elimina la identidad de la otra; si falla una escritura intermedia, se intenta
+restaurar la sesión anterior y se informa del error.
+
+`get()` prioriza la sesión de pestaña y recupera también las sesiones persistentes
+antiguas sin borrarlas ni cambiar su versión. `save(value)` conserva la modalidad
+activa, de modo que editar el perfil no convierte una sesión temporal en permanente.
+`remove()` elimina solo `congress:session` de ambos almacenamientos. Cuentas,
+perfiles, credenciales y datos del congreso se conservan al cerrar sesión.
+
+`sessionPreferencesRepository` guarda únicamente `{ remember: boolean }` en
+`congress:session-preferences` para recuperar la elección del control del login.
+La preferencia se confirma después de un inicio de sesión correcto, no al fallar
+las credenciales. La sesión de pestaña desaparece al cerrar esa pestaña; las
+cuentas y las credenciales permanecen disponibles para volver a entrar.
+
+### Aviso de registro
+
+`RegistrationNotice` muestra la confirmación solo si la navegación posterior al
+registro incluye `accountCreated`. Consume esa señal mediante un reemplazo del
+estado de navegación, sin persistir mensajes. La notificación desaparece a los
+cinco segundos con una transición final; respeta `prefers-reduced-motion` y limpia
+el temporizador al salir. No aparece al iniciar sesión, recargar o volver al inicio.
+
+La portada (`/` y `/history-1`) recupera la cuenta mediante `getActiveAccount()`.
+Con una sesión muestra la navegación y el perfil del rol activo, incluidos
+«Mi cuenta» y «Cerrar sesión», y evita ofrecer otro inicio de sesión desde su
+acción principal. Sin sesión conserva la navegación pública. Visitar «Inicio»
+solo consulta la identidad: no elimina ni reemplaza la sesión guardada.
+
+## Bases públicas (1.1)
+
+`/bases` pertenece a Historia 1. Consulta, sin editar, los repositorios de edición,
+estado, ejes, tipos de trabajo, cronograma y criterios. Muestra requisitos de
+participación, límites por tipo, fechas y pesos configurados. Si los criterios
+todavía no suman 100 %, informa de que están en preparación; no modifica la
+configuración para ocultar la inconsistencia.
+
+«Ver bases completas», «Bases del congreso», «Bases y requisitos» y el enlace de
+aceptación del registro llevan a esta página. El acceso a ejes desde el pie lleva
+a `/bases#rules-axes`. La descarga de la portada continúa entregando exclusivamente
+`Tema6_Mockups_f.pdf`, según el requisito del entregable.
+
+## Mi cuenta y actividad
+
+`AccountPage` reproduce la vista 1.5 y su variante de autor. `/mi-cuenta` y
+`/autor/cuenta` muestran la cuenta del participante activo. Los autores tienen
+datos personales y cambio de contraseña; `reviewer` y `both` ven además líneas
+de interés y actividad. La variante de autor no carga ejes ni evaluaciones.
+`reviewerProfilesRepository` conserva por compatibilidad su nombre y guarda
+los datos personales de ambas variantes y los
+identificadores de las líneas de interés por usuario en
+`congress:reviewer-profiles`. La pantalla exige una sesión local con ficha de
+participante; sin sesión vuelve al login.
+La identidad de ejemplo `demo-reviewer` se conserva como referencia para los
+consumidores existentes de la bandeja; no inicia una sesión en Mi cuenta.
+Con una ficha registrada se usan sus datos. El correo es de
+solo lectura. La selección se construye con `thematicAxesRepository`, incluyendo
+los nombres y el total de ejes vigentes, y se persiste con «Guardar cambios».
+Los ejes eliminados no se cuentan y se retiran de la selección al guardar.
+
+`reviewerAssignments.js` centraliza las seis asignaciones de Luis del mockup 5.1,
+también presentes en los resúmenes 1.5 y 4.3. Son datos de demostración, no
+asignaciones creadas por un comité. Un revisor recién registrado tiene cero
+asignaciones. Tanto la bandeja como «Mi actividad» combinan esta misma lista con
+las evaluaciones de `reviewsRepository` del usuario actual. Inicialmente Luis
+tiene seis asignadas, cuatro entregadas y dos pendientes; las vencidas también
+son pendientes. Un borrador no cuenta como entrega y enviar una evaluación
+incrementa las entregadas sin incrementar las asignadas. Las líneas de interés
+no crean ni eliminan asignaciones existentes.
+
+Para la selección inicial se sigue 1.5 (IA y datos, Ingeniería de software e
+Innovación), aunque el listado ilustrativo 4.3 muestra solo dos líneas para Luis.
+Las vistas 4.2 y 4.3 son las que consumirán estas preferencias al implementar la
+asignación del comité. «Cambiar contraseña» comprueba la contraseña local actual
+y utiliza el mismo repositorio de credenciales que la recuperación y el login;
+si todavía no existe una credencial, ofrece acceder a la recuperación.
+
+## Acceso denegado y página no encontrada (1.6)
+
+Las comprobaciones se declaran en `src/app/router.jsx` con loaders de
+`src/app/access.js`. Sin sesión se redirige al login. Una sesión con rol
+incompatible muestra `AccessDeniedPage`, conservando su nombre y navegación,
+sin eliminar ni sustituir su identidad. La bandeja y las evaluaciones requieren
+rol `reviewer` o `both`; evaluar requiere además que el código pertenezca a sus
+asignaciones. El inicio del autor permite `author` o `both`. Mi cuenta admite
+ambos perfiles. Los fallos al leer la persistencia tienen su propio mensaje,
+sin presentarse como una falta de permisos.
+
+La ruta comodín muestra `NotFoundPage` (404) con la navegación del participante
+activo o la pública. Los errores reutilizan `AccessMessage` y el sistema visual.
+El retorno del 403 de autor lleva a `/autor`, ya que «Mis trabajos» pertenece a
+Historia 3. «Ver el programa» conserva el destino `/programa` previsto para
+Historia 6, cuya pantalla aún no está registrada en este router.
+
+## Contraseñas locales de demostración
+
+La recuperación actualiza `demoCredentialsRepository` (`congress:demo-credentials`)
+por correo normalizado. Se guardan una sal aleatoria y una derivación
+PBKDF2-SHA-256 de 210 000 iteraciones, sin la contraseña original. Este estado
+está separado de la ficha y de la sesión, y no constituye autenticación real.
+El inicio de sesión verifica esta derivación contra la ficha del mismo correo
+en la colección de participantes y recupera su identidad y rol. Una derivación
+aislada, sin ficha registrada, no inicia una sesión. Registro, recuperación y
+cambio de contraseña utilizan el mismo repositorio de credenciales.
+
+El formulario exige 8 caracteres, una mayúscula, un número y confirmación
+coincidente. Solo redirige tras completar `await save(...)`; un fallo conserva el
+formulario y muestra el error. Los cambios se conservan al recargar en el mismo
+navegador. `await demoCredentialsRepository.remove()` elimina únicamente las
+credenciales de demostración. La sustitución por una API trasladará la
+recuperación y la verificación al backend.
 
 ## Agregar otro estado
 

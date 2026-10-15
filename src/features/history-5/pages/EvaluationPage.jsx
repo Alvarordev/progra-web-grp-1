@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { criteriaRepository, reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
+import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
 import { Link, useParams, useSearchParams } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import styles from './EvaluationPage.module.css'
+import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
+import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 
 const works = {
   'TRB-2026-042': {
@@ -85,11 +89,11 @@ const readOnlyReviewExamples = {
   },
 }
 
-function EvaluationPage() {
-  const { codigo } = useParams()
+function EvaluationScreen({ codigo }) {
+  const profileState = useReviewerProfile()
   const [searchParams] = useSearchParams()
   const readOnlyMode = searchParams.get('modo') === 'lectura'
-  const existingReview = (readOnlyMode
+  const existingReview = useMemo(() => (readOnlyMode
     ? readOnlyReviewExamples[codigo] ?? {
         criterios: initialCriteria.map((criterion) => ({
           ...criterion,
@@ -100,7 +104,7 @@ function EvaluationPage() {
         comentarioAutor: 'Evaluación enviada y disponible en modo de lectura.',
         comentarioComite: '',
       }
-    : undefined)
+    : undefined), [readOnlyMode, codigo])
   const trabajo = works[codigo] ?? {
     title: 'Trabajo académico asignado',
     eje: 'Eje temático',
@@ -114,6 +118,44 @@ function EvaluationPage() {
   const [submitted, setSubmitted] = useState(Boolean(existingReview))
   const [notice, setNotice] = useState('')
   const [errors, setErrors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [reviewerId, setReviewerId] = useState('demo-reviewer')
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    async function loadReview() {
+      try {
+        const [reviews, session, configuredCriteria] = await Promise.all([
+          reviewsRepository.get(), sessionRepository.get(), criteriaRepository.get(),
+        ])
+        if (!active) return
+        const userId = session?.userId ?? 'demo-reviewer'
+        const saved = reviews[getReviewKey(userId, codigo)]
+        const review = saved ?? existingReview
+        const currentCriteria = configuredCriteria.map((item) => {
+          const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
+          return { ...item, puntaje: previous?.puntaje ?? '', comentario: previous?.comentario ?? '' }
+        })
+        setReviewerId(userId)
+        setLoadError('')
+        setCriteria(saved?.status === 'draft' ? currentCriteria : review?.criteria ?? review?.criterios ?? currentCriteria)
+        setRecommendation(review?.recommendation ?? review?.recomendacion ?? '')
+        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? '')
+        setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
+        setSubmitted(saved ? saved.status === 'submitted' : Boolean(existingReview))
+        setNotice(saved?.status === 'draft' ? 'Borrador recuperado de este navegador.' : '')
+        setErrors([])
+      } catch (error) {
+        if (active) setLoadError(error.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadReview()
+    return () => { active = false }
+  }, [codigo, existingReview])
 
   const scoredCriteria = criteria.filter((criterion) => criterion.puntaje !== '')
   const scoredWeight = scoredCriteria.reduce(
@@ -136,9 +178,33 @@ function EvaluationPage() {
     setNotice('')
   }
 
+  async function persistReview(status) {
+    if (loading || saving || submitted || loadError) return
+    setSaving(true)
+    try {
+      const reviews = await reviewsRepository.get()
+      const key = getReviewKey(reviewerId, codigo)
+      if (reviews[key]?.status === 'submitted') {
+        setErrors(['Esta evaluación ya fue enviada y no admite cambios. Recargue la página.'])
+        return
+      }
+      await reviewsRepository.save({
+        ...reviews,
+        [key]: { criteria, recommendation, authorComment, committeeComment, status, updatedAt: new Date().toISOString() },
+      })
+      setSubmitted(status === 'submitted')
+      setErrors([])
+      setNotice(status === 'draft' ? 'Borrador guardado en este navegador.' : 'Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.')
+    } catch (error) {
+      setErrors([error.message])
+      setNotice('')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   function saveDraft() {
-    setNotice('Borrador guardado en esta sesión.')
-    setErrors([])
+    persistReview('draft')
   }
 
   function sendRecommendation(event) {
@@ -148,6 +214,12 @@ function EvaluationPage() {
       .filter((criterion) => criterion.puntaje === '' || !criterion.comentario.trim())
       .map((criterion) => criterion.nombre)
     const validationErrors = []
+    if (criteria.some((item) => item.puntaje !== '' && (!Number.isInteger(Number(item.puntaje)) || Number(item.puntaje) < 0 || Number(item.puntaje) > 20))) {
+      validationErrors.push('Los puntajes deben ser enteros entre 0 y 20.')
+    }
+    if (criteria.reduce((sum, item) => sum + item.peso, 0) !== 100) {
+      validationErrors.push('El comité debe configurar criterios cuyos pesos sumen 100 antes de enviar la evaluación.')
+    }
 
     if (missingCriteria.length > 0) {
       validationErrors.push(`Completa el puntaje y comentario de: ${missingCriteria.join(', ')}.`)
@@ -165,9 +237,7 @@ function EvaluationPage() {
       return
     }
 
-    setSubmitted(true)
-    setErrors([])
-    setNotice('Evaluación enviada. Ya no admite cambios; si necesita corregirla, solicite al comité.')
+    persistReview('submitted')
   }
 
   return (
@@ -175,15 +245,13 @@ function EvaluationPage() {
       <Header estado="En revisión" />
       <ReviewerNavigation
         rutaActiva="/bandeja-revision"
-        usuario={{
-          iniciales: 'LR',
-          nombre: 'Mg. Luis Ramírez Cárdenas',
-          rol: 'Rol: Revisor',
-        }}
+        usuario={getReviewerUser(profileState.profile)}
       />
 
       <main className={styles.main}>
         <div className={styles.content}>
+          {loading && <p role="status">Cargando evaluación…</p>}
+          {loadError && <p role="alert">{loadError}</p>}
           <nav aria-label="Ruta de navegación" className={styles.breadcrumb}>
             <Link to="/bandeja-revision">Mi bandeja</Link>
             <span aria-hidden="true">›</span>
@@ -235,6 +303,7 @@ function EvaluationPage() {
           </section>
 
           <form onSubmit={sendRecommendation}>
+            <fieldset className={styles.formFields} disabled={loading || saving || Boolean(loadError)}>
             <div className={styles.evaluationLayout}>
               <section className={styles.criteriaPanel} aria-labelledby="criteria-title">
                 <h2 id="criteria-title" className={styles.visuallyHidden}>
@@ -345,15 +414,16 @@ function EvaluationPage() {
               <div className={styles.formFooter}>
                 <p>Puede guardar un borrador y continuar la evaluación más tarde.</p>
                 <div className={styles.formActions}>
-                  <Button variant="secondary" type="button" onClick={saveDraft}>
+                  <Button disabled={loading || saving || Boolean(loadError)} variant="secondary" type="button" onClick={saveDraft}>
                     Guardar borrador
                   </Button>
-                  <Button variant="primary" type="submit">
+                  <Button disabled={loading || Boolean(loadError)} loading={saving} variant="primary" type="submit">
                     Enviar recomendación
                   </Button>
                 </div>
               </div>
             )}
+            </fieldset>
           </form>
         </div>
       </main>
@@ -361,6 +431,12 @@ function EvaluationPage() {
       <Footer />
     </div>
   )
+}
+
+function EvaluationPage() {
+  const { codigo } = useParams()
+  const [searchParams] = useSearchParams()
+  return <EvaluationScreen codigo={codigo} key={`${codigo}-${searchParams.get('modo') ?? ''}`} />
 }
 
 export default EvaluationPage

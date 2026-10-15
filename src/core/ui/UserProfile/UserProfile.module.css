@@ -3,6 +3,14 @@
   min-width: 0;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.error {
+  width: 100%;
+  color: var(--color-danger);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
 }
 
 .identity {

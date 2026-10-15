@@ -10,9 +10,11 @@ export const initialEditionStatus = 'Recepción abierta'
 
 export function validateEdition(value) {
   return value !== null && typeof value === 'object' &&
-    Object.keys(initialEdition).every((field) => typeof value[field] === 'string')
+    Object.keys(initialEdition).every((field) => typeof value[field] === 'string') &&
+    Boolean(value.editionName.trim()) && Boolean(value.editionVenue.trim()) &&
+    /^\d{4}$/.test(value.editionYear) && value.editionDescription.length <= 400
 }
 
 export function validateEditionStatus(value) {
-  return ['Recepción abierta', 'En preparación'].includes(value)
+  return ['Recepción abierta', 'En preparación', 'En revisión'].includes(value)
 }
