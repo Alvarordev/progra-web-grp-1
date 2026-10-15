@@ -16,6 +16,8 @@ import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
 import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
 import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
 import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
+import NewWorkPage from '../features/history-3/pages/NewWorkPage.jsx'
+import CoauthorsPage from '../features/history-3/pages/CoauthorsPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 import ConsolidatedReviewPage from '../features/history-5/pages/ConsolidatedReviewPage.jsx'
@@ -53,7 +55,13 @@ const router = createBrowserRouter([
     element: <RoleAccess />,
     loader: createAccessLoader(['author', 'both'], 'El área del autor es exclusiva de participantes con rol autor.'),
     errorElement: <RoleAccessError />,
-    children: [{ path: '/autor', element: <AuthorHomePage /> }],
+    children: [
+      { path: '/autor', element: <AuthorHomePage /> },
+      { path: '/autor/nuevo-trabajo', element: <NewWorkPage /> },
+      { path: '/autor/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
+      { path: '/nuevo-trabajo', element: <NewWorkPage /> },
+      { path: '/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
+    ],
   },
   {
     path: '/configuracion',

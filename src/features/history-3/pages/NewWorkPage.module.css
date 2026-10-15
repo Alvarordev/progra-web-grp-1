@@ -1,0 +1,222 @@
+.pageHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+}
+
+.pageHeading h1 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-page-title);
+}
+
+.pageHeading p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.sideColumn {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.panel {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.panel h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-section-title);
+  line-height: var(--line-height-section-title);
+}
+
+.panel p {
+  margin: 0 0 var(--space-2);
+}
+
+.panel .label,
+.label {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--line-height-label);
+  text-transform: uppercase;
+}
+
+.helperText {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.code {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.success {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.steps {
+  display: flex;
+  gap: var(--space-6);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  border-bottom: 1px solid var(--color-border);
+  list-style: none;
+}
+
+.steps li {
+  padding: var(--space-2) 0;
+  border-bottom: 3px solid transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-help);
+}
+
+.steps li[aria-current='step'] {
+  border-bottom-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.errorSummary {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+}
+
+.errorSummary ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-5);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  padding: 0;
+  list-style: none;
+}
+
+.keywords li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-help);
+}
+
+.keywords button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.warningPanel {
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.summaryList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+
+.summaryList dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.summaryList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.checklist {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  color: var(--color-success);
+  list-style: none;
+}
+
+.checklist .pending {
+  color: #855612;
+}
+
+@media (max-width: 900px) {
+  .pageHeading {
+    flex-direction: column;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .form,
+  .summaryList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .steps {
+    gap: var(--space-4);
+    overflow-x: auto;
+  }
+}
