@@ -1,72 +1,34 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
-import {
-  participantRepository,
-  sessionRepository,
-} from '../../../core/utils/repositories.js'
+import { getAccountHome, registerParticipant, startAccountSession } from '../../../core/utils/accounts.js'
+import { requiresAcademicDetails } from '../../../core/utils/states/participantState.js'
+import { initialRegistrationForm, validateRegistrationForm, getRegistrationPasswordRequirements, getRegistrationParticipant } from '../utils/registrationForm.js'
 import PublicNavigation from '../components/PublicNavigation/PublicNavigation.jsx'
+import AcademicFields from '../components/AcademicFields/AcademicFields.jsx'
 import styles from './RegistrationPage.module.css'
 
-const initialForm = {
-  names: 'Rosa María',
-  surnames: 'Quispe Ttito',
-  email: 'rosa.quispe@aloe.ulima.edu.pe',
-  institution: 'Universidad de Lima',
-  password: 'Segura2026',
-  confirmPassword: 'Segura2026',
-  role: 'author',
-}
-
-const fieldNames = Object.keys(initialForm)
-
-function validateForm(form) {
-  const errors = {}
-
-  if (!form.names.trim()) errors.names = 'Este campo es obligatorio.'
-  if (!form.surnames.trim()) errors.surnames = 'Este campo es obligatorio.'
-  if (!/^[^\s@]+@aloe\.ulima\.edu\.pe$/i.test(form.email)) {
-    errors.email = 'Use un correo institucional válido (@aloe.ulima.edu.pe).'
-  }
-  if (!form.institution) errors.institution = 'Seleccione una institución.'
-  if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/\d/.test(form.password)) {
-    errors.password = 'Mínimo 8 caracteres, con una mayúscula y un número.'
-  }
-  if (form.password !== form.confirmPassword) {
-    errors.confirmPassword = 'Las contraseñas no coinciden.'
-  }
-  if (!form.role) errors.role = 'Seleccione un rol.'
-
-  return errors
-}
-
-function getPasswordRequirements(form) {
-  return [
-    { label: 'Mínimo 8 caracteres', valid: form.password.length >= 8 },
-    { label: 'Al menos una mayúscula', valid: /[A-Z]/.test(form.password) },
-    { label: 'Al menos un número', valid: /\d/.test(form.password) },
-    {
-      label: 'La confirmación debe coincidir',
-      valid: Boolean(form.confirmPassword) && form.password === form.confirmPassword,
-    },
-  ]
-}
+const fieldNames = Object.keys(initialRegistrationForm)
 
 function RegistrationPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState(initialRegistrationForm)
   const [touched, setTouched] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  const errors = validateForm(form)
-  const passwordRequirements = getPasswordRequirements(form)
+  const errors = validateRegistrationForm(form)
+  const passwordRequirements = getRegistrationPasswordRequirements(form)
 
   function handleChange(event) {
     const { checked, name, type, value } = event.target
     const nextValue = type === 'checkbox' ? checked : value
 
-    setForm((currentForm) => ({ ...currentForm, [name]: nextValue }))
+    setForm(currentForm => ({
+      ...currentForm,
+      [name]: nextValue,
+      ...(name === 'role' && value === 'reviewer' ? { degree: '', studentCode: '' } : {}),
+    }))
     setSaveError('')
   }
 
@@ -84,28 +46,15 @@ function RegistrationPage() {
 
     if (Object.keys(errors).length > 0) return
 
-    const names = form.names.trim()
-    const surnames = form.surnames.trim()
-    const email = form.email.trim().toLowerCase()
-    const name = `${names} ${surnames}`
-    const userId = `participant:${email}`
-    const participant = {
-      userId,
-      names,
-      surnames,
-      name,
-      email,
-      institution: form.institution,
-      role: form.role,
-    }
+    const participant = getRegistrationParticipant(form)
 
     setSaving(true)
     setSaveError('')
 
     try {
-      await participantRepository.save(participant)
-      await sessionRepository.save({ userId, name, role: form.role })
-      navigate('/autor')
+      await registerParticipant(participant, form.password)
+      await startAccountSession(participant)
+      navigate(getAccountHome(form.role), { state: { accountCreated: true } })
     } catch (error) {
       setSaveError(error.message)
     } finally {
@@ -253,6 +202,14 @@ function RegistrationPage() {
                 />
                 {shouldShowError('confirmPassword') && <span className={styles.fieldError} id="confirm-password-error">{errors.confirmPassword}</span>}
               </div>
+              {requiresAcademicDetails(form.role) && <AcademicFields
+                alCambiar={handleChange}
+                alSalir={handleBlur}
+                bloqueado={saving}
+                campos={form}
+                conErrores={shouldShowError}
+                errores={errors}
+              />}
               <fieldset className={styles.roleField}>
                 <legend>Deseo participar como *</legend>
                 <label>
@@ -269,21 +226,48 @@ function RegistrationPage() {
                 </label>
               </fieldset>
               <div className={styles.actions}>
+                <div className={styles.agreement}>
+                  <label>
+                    <input
+                      aria-describedby={shouldShowError('acceptedTerms') ? 'terms-error' : undefined}
+                      aria-invalid={shouldShowError('acceptedTerms') || undefined}
+                      checked={form.acceptedTerms}
+                      disabled={saving}
+                      name="acceptedTerms"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      required
+                      type="checkbox"
+                    />
+                    <span>Acepto las <Link rel="noreferrer" target="_blank" to="/bases">bases del congreso y el tratamiento de mis datos</Link>. *</span>
+                  </label>
+                  {shouldShowError('acceptedTerms') && <span className={styles.fieldError} id="terms-error">{errors.acceptedTerms}</span>}
+                </div>
                 <Link className={styles.cancel} to="/">Cancelar</Link>
                 <Button disabled={saving} loading={saving} type="submit">Crear mi cuenta</Button>
               </div>
             </form>
           </div>
           <aside className={styles.notice}>
-            <h2>Requisitos de la contraseña</h2>
-            <ul className={styles.requirements}>
-              {passwordRequirements.map((requirement) => (
-                <li className={requirement.valid ? styles.requirementMet : styles.requirementError} key={requirement.label}>
-                  <span aria-hidden="true">{requirement.valid ? '✓' : '×'}</span>
-                  {requirement.label}
-                </li>
-              ))}
-            </ul>
+            {submitted || Object.values(touched).some(Boolean) ? (
+              <>
+                <h2>Requisitos de la contraseña</h2>
+                <ul className={styles.requirements}>
+                  {passwordRequirements.map((requirement) => (
+                    <li className={requirement.valid ? styles.requirementMet : styles.requirementError} key={requirement.label}>
+                      <span aria-hidden="true">{requirement.valid ? '✓' : '×'}</span>
+                      {requirement.label}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h2>Antes de registrarse</h2>
+                <p>La recepción de trabajos cierra el 30/09/2026 a las 23:59. Después de esa fecha no será posible editar los envíos.</p>
+                <p>Si participa como revisor, deberá declarar sus líneas de interés para recibir asignaciones sin conflicto.</p>
+              </>
+            )}
           </aside>
         </section>
       </main>

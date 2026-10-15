@@ -7,6 +7,8 @@ import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import styles from './EvaluationPage.module.css'
+import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
+import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 
 const works = {
   'TRB-2026-042': {
@@ -88,6 +90,7 @@ const readOnlyReviewExamples = {
 }
 
 function EvaluationScreen({ codigo }) {
+  const profileState = useReviewerProfile()
   const [searchParams] = useSearchParams()
   const readOnlyMode = searchParams.get('modo') === 'lectura'
   const existingReview = useMemo(() => (readOnlyMode
@@ -242,11 +245,7 @@ function EvaluationScreen({ codigo }) {
       <Header estado="En revisión" />
       <ReviewerNavigation
         rutaActiva="/bandeja-revision"
-        usuario={{
-          iniciales: 'LR',
-          nombre: 'Mg. Luis Ramírez Cárdenas',
-          rol: 'Rol: Revisor',
-        }}
+        usuario={getReviewerUser(profileState.profile)}
       />
 
       <main className={styles.main}>
