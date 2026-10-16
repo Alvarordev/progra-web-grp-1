@@ -16,6 +16,7 @@ import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.j
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
 import { initialCriteria, validateCriteria } from './states/criteriaState.js'
 import { validateReviews } from './states/reviewsState.js'
+import { validateDecisions } from './states/decisionsState.js'
 import { validateDemoCredentials } from './states/demoCredentialsState.js'
 import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
@@ -40,6 +41,10 @@ export const demoCredentialsRepository = createStateRepository({
 
 export const reviewsRepository = createStateRepository({
   adapter, name: 'reviews', defaultValue: {}, validate: validateReviews,
+})
+
+export const decisionsRepository = createStateRepository({
+  adapter, name: 'decisions', defaultValue: {}, validate: validateDecisions,
 })
 
 export const workTypesRepository = createStateRepository({
