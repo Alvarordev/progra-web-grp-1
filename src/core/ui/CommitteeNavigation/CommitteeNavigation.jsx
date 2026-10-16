@@ -41,7 +41,7 @@ function CommitteeNavigation({
             )
           })}
         </nav>
-        <UserProfile {...usuario} />
+        <UserProfile {...usuario} permitirCerrarSesion={Boolean(usuario)} />
       </div>
     </div>
   )

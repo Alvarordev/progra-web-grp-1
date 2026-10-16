@@ -2,7 +2,9 @@ import { Link } from 'react-router'
 import styles from './HeroSection.module.css'
 
 function HeroSection({ rol }) {
-  const action = rol === 'reviewer'
+  const action = rol === 'committee'
+    ? { to: '/configuracion', label: 'Ir a la configuración del congreso' }
+    : rol === 'reviewer'
     ? { to: '/mi-cuenta', label: 'Ir a mi cuenta' }
     : rol === 'author' || rol === 'both'
       ? { to: '/autor', label: 'Ir a mi área de autor' }
