@@ -40,9 +40,11 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
     ? `Precargado con los comentarios al autor de ${cantidadTexto}. Puede editarlo antes de publicar.`
     : 'Pendiente: el texto se precarga cuando los revisores envíen sus comentarios.'
 
-  const [decision, setDecision] = useState(decisionGuardada?.decision ?? '')
+  // Sin decisión guardada, la maqueta muestra Aceptar marcado; el comité puede cambiarlo.
+  const decisionInicial = decisionGuardada?.decision || 'aceptar'
+  const [decision, setDecision] = useState(decisionInicial)
   const [feedback, setFeedback] = useState(
-    decisionGuardada?.feedback ?? construirTexto(decisionGuardada?.decision ?? '', enviados),
+    decisionGuardada?.feedback ?? construirTexto(decisionInicial, enviados),
   )
   // Mientras el texto no se edite a mano, cambia según la decisión elegida.
   const [textoAutomatico, setTextoAutomatico] = useState(!decisionGuardada)
@@ -87,7 +89,7 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
   }
 
   return (
-    <Modal alCerrar={alCerrar} titulo="Decisión final del comité">
+    <Modal alCerrar={alCerrar} claseTitulo={styles.titulo} titulo="Decisión final del comité">
       <p className={styles.subtitulo}>
         {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
       </p>
@@ -99,7 +101,7 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
       )}
 
       <fieldset className={styles.fieldset} disabled={publicada || guardando}>
-        <legend>Decisión *</legend>
+        <legend className={styles.legendOculta}>Decisión *</legend>
         <div className={styles.opciones}>
           {opciones.map((opcion) => (
             <label

@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import Button from '../Button/Button.jsx'
 import styles from './Modal.module.css'
 
-function Modal({ alCerrar, children, titulo }) {
+function Modal({ alCerrar, children, claseTitulo = '', titulo }) {
   const dialogId = useId()
   const dialogRef = useRef(null)
   const closeHandlerRef = useRef(alCerrar)
@@ -86,7 +86,7 @@ function Modal({ alCerrar, children, titulo }) {
         tabIndex="-1"
       >
         <header className={styles.header}>
-          <h2 className={styles.title} id={dialogId}>
+          <h2 className={[styles.title, claseTitulo].filter(Boolean).join(' ')} id={dialogId}>
             {titulo}
           </h2>
           <Button

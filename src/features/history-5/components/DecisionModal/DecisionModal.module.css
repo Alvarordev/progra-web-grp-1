@@ -1,3 +1,7 @@
+.titulo {
+  font-family: var(--font-heading);
+}
+
 .subtitulo {
   margin: 0 0 var(--space-4);
   color: var(--color-text-muted);
@@ -11,13 +15,17 @@
   border: 0;
 }
 
-.fieldset legend {
-  margin-bottom: var(--space-2);
-  font-size: var(--font-size-label);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+/* La maqueta no muestra la etiqueta de la decisión; se oculta, pero queda para lectores de pantalla. */
+.legendOculta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .opciones {
@@ -67,7 +75,9 @@
   border-radius: var(--radius-small);
   background: var(--color-surface);
   color: var(--color-text);
-  font: inherit;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   padding: var(--space-2);
 }
 
