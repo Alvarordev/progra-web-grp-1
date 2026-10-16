@@ -20,7 +20,7 @@ function ConsolidatedKpis({ resumen }) {
     },
     {
       etiqueta: 'Recomiendan aceptar',
-      valor: sinEnvios ? '—' : `${resumen.recomiendanAceptar} de ${resumen.entregadas}`,
+      valor: sinEnvios ? '—' : `${resumen.recomiendanAceptar} de ${resumen.totalRevisiones}`,
       detalle: `${resumen.conObservaciones} con observaciones`,
     },
     {
