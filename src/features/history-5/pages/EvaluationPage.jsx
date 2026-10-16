@@ -87,6 +87,21 @@ const readOnlyReviewExamples = {
   },
 }
 
+// Puntajes y comentarios de la maqueta. Aparecen al abrir la evaluación por primera vez;
+// el revisor puede cambiarlos.
+const valoresIniciales = {
+  originality: { puntaje: '17', comentario: 'Aporte claro frente a trabajos previos del área.' },
+  rigor: { puntaje: '15', comentario: 'Falta validación cruzada y control del desbalance de clases.' },
+  clarity: { puntaje: '18', comentario: 'Redacción ordenada; mejorar la leyenda de la figura 3.' },
+  relevance: { puntaje: '17', comentario: '' },
+}
+
+// Recomendación y comentario al autor de la maqueta, precargados como los puntajes.
+const formularioInicial = {
+  recomendacion: 'observaciones',
+  comentarioAutor: 'Reforzar la validación del modelo y detallar el tratamiento de datos faltantes.',
+}
+
 function formatSentAt(sentAt) {
   return {
     fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -148,13 +163,17 @@ function EvaluationScreen({ codigo }) {
         const review = saved ?? existingReview
         const currentCriteria = configuredCriteria.map((item) => {
           const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
-          return { ...item, puntaje: previous?.puntaje ?? '', comentario: previous?.comentario ?? '' }
+          return {
+            ...item,
+            puntaje: previous?.puntaje ?? valoresIniciales[item.id]?.puntaje ?? '',
+            comentario: previous?.comentario ?? valoresIniciales[item.id]?.comentario ?? '',
+          }
         })
         setReviewerId(userId)
         setLoadError('')
         setCriteria(saved?.status === 'draft' ? currentCriteria : review?.criteria ?? review?.criterios ?? currentCriteria)
-        setRecommendation(review?.recommendation ?? review?.recomendacion ?? '')
-        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? '')
+        setRecommendation(review?.recommendation ?? review?.recomendacion ?? formularioInicial.recomendacion)
+        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? formularioInicial.comentarioAutor)
         setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
         setSubmitted(saved ? saved.status === 'submitted' : Boolean(existingReview))
         const deliveryDate = saved?.status === 'submitted' ? new Date(saved.updatedAt) : review?.enviadaEl ? new Date(review.enviadaEl) : null
