@@ -71,6 +71,11 @@ function UsersTable({ alBloquear, alEditar, alReactivar, usuarios }) {
                 >
                   Editar
                 </Button>
+                {usuario.rol !== 'Comité' && (
+                  <span aria-hidden="true" className={styles.separator}>
+                    ·
+                  </span>
+                )}
                 {usuario.rol !== 'Comité' &&
                   (usuario.bloqueado ? (
                     <Button

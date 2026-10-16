@@ -67,21 +67,21 @@ function UsersPage() {
   const selectFilters = [
     {
       label: 'Rol',
-      allLabel: 'Todos',
+      allLabel: 'todos',
       value: roleFilter,
       onChange: setRoleFilter,
       options: roles.map((role) => ({ value: role, label: role })),
     },
     {
       label: 'Institución',
-      allLabel: 'Todas',
+      allLabel: 'todas',
       value: institutionFilter,
       onChange: setInstitutionFilter,
       options: institutions.map((name) => ({ value: name, label: name })),
     },
     {
       label: 'Estado',
-      allLabel: 'Todos',
+      allLabel: 'todos',
       value: statusFilter,
       onChange: setStatusFilter,
       options: statusOptions,
@@ -189,34 +189,33 @@ function UsersPage() {
         role="search"
       >
         {selectFilters.map((filter) => (
-          <div className={styles.field} key={filter.label}>
-            <label htmlFor={`${idPrefix}-${filter.label}`}>{filter.label}</label>
-            <select
-              id={`${idPrefix}-${filter.label}`}
-              onChange={(event) =>
-                changeFilter(filter.onChange, event.target.value)
-              }
-              value={filter.value}
-            >
-              <option value="">{filter.allLabel}</option>
-              {filter.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            aria-label={filter.label}
+            className={styles.select}
+            id={`${idPrefix}-${filter.label}`}
+            key={filter.label}
+            onChange={(event) =>
+              changeFilter(filter.onChange, event.target.value)
+            }
+            value={filter.value}
+          >
+            <option value="">{`${filter.label}: ${filter.allLabel}`}</option>
+            {filter.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {`${filter.label}: ${option.label}`}
+              </option>
+            ))}
+          </select>
         ))}
-        <div className={`${styles.field} ${styles.search}`}>
-          <label htmlFor={`${idPrefix}-search`}>Buscar</label>
-          <input
-            id={`${idPrefix}-search`}
-            onChange={(event) => changeFilter(setSearch, event.target.value)}
-            placeholder="Nombre o correo…"
-            type="search"
-            value={search}
-          />
-        </div>
+        <input
+          aria-label="Buscar usuario por nombre o correo"
+          className={styles.search}
+          id={`${idPrefix}-search`}
+          onChange={(event) => changeFilter(setSearch, event.target.value)}
+          placeholder="Buscar por nombre o correo…"
+          type="search"
+          value={search}
+        />
       </form>
 
       <UsersTable
