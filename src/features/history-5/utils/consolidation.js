@@ -37,11 +37,19 @@ function submittedRow(revisor, review, criteria) {
   }
 }
 
+// Un revisor puede enviar con más de una identidad: sin sesión (demo-reviewer)
+// o con su cuenta de revisor. Se usa la revisión enviada desde cualquiera de ellas.
+function findSubmittedReview(revisor, codigo, reviews) {
+  return (revisor.ids ?? [revisor.id])
+    .map((id) => reviews[getReviewKey(id, codigo)])
+    .find((review) => review?.status === 'submitted')
+}
+
 // Solo cuentan las revisiones enviadas. Un revisor sin envío aparece como pendiente.
 export function buildConsolidation({ codigo, revisores, reviews, criteria }) {
   const filas = revisores.map((revisor) => {
-    // Una revisión guardada en el navegador tiene prioridad sobre la de demostración.
-    const review = reviews[getReviewKey(revisor.id, codigo)] ?? revisor.revisionDemo
+    // Una revisión enviada en el navegador tiene prioridad sobre la de demostración.
+    const review = findSubmittedReview(revisor, codigo, reviews) ?? revisor.revisionDemo
     return review?.status === 'submitted'
       ? submittedRow(revisor, review, criteria)
       : pendingRow(revisor, criteria)
