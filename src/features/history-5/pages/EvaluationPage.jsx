@@ -85,11 +85,13 @@ const readOnlyReviewExamples = {
   },
 }
 
-// Comentarios de criterio que aparecen al abrir una evaluación nueva (según el mockup).
-const comentariosIniciales = {
-  originality: 'Aporte claro frente a trabajos previos del área.',
-  rigor: 'Falta validación cruzada y control del desbalance de clases.',
-  clarity: 'Redacción ordenada; mejorar la leyenda de la figura 3.',
+// Puntajes y comentarios de la maqueta. Aparecen al abrir la evaluación por primera vez;
+// el revisor puede cambiarlos.
+const valoresIniciales = {
+  originality: { puntaje: '17', comentario: 'Aporte claro frente a trabajos previos del área.' },
+  rigor: { puntaje: '15', comentario: 'Falta validación cruzada y control del desbalance de clases.' },
+  clarity: { puntaje: '18', comentario: 'Redacción ordenada; mejorar la leyenda de la figura 3.' },
+  relevance: { puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
 }
 
 function formatSentAt(sentAt) {
@@ -155,8 +157,8 @@ function EvaluationScreen({ codigo }) {
           const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
           return {
             ...item,
-            puntaje: previous?.puntaje ?? '',
-            comentario: previous?.comentario ?? comentariosIniciales[item.id] ?? '',
+            puntaje: previous?.puntaje ?? valoresIniciales[item.id]?.puntaje ?? '',
+            comentario: previous?.comentario ?? valoresIniciales[item.id]?.comentario ?? '',
           }
         })
         const savedSubmitted = saved?.status === 'submitted'
