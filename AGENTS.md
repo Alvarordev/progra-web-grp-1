@@ -125,9 +125,10 @@ src/
 - Mantén el contrato asíncrono `get()`, `save(value)` y `remove()` para poder
   sustituir los repositorios locales por una API que acceda a SQL desde el
   backend, sin cambiar las llamadas de las pantallas.
-- Usa el adaptador común y la fábrica de repositorios para serialización JSON,
-  claves con prefijo `congress:`, versiones y validación. Un cambio de versión
-  requiere una migración explícita; no borres datos incompatibles automáticamente.
+- Usa `createStateRepository` para leer y escribir JSON, con claves de prefijo
+  `congress:` y validadores de cada estado. Conserva el formato existente
+  `{ version: 1, data }`; no borres datos incompatibles automáticamente ni
+  agregues capas de almacenamiento para necesidades hipotéticas.
 - Maneja carga y errores en la interfaz y confirma el guardado solo después
   de que termine `await save(...)`. No permitas cambios durante carga o guardado
   que puedan sobrescribirse.
