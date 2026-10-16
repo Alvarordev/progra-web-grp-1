@@ -24,6 +24,7 @@ import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
 import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import NewWorkPage from '../features/history-3/pages/NewWorkPage.jsx'
 import CoauthorsPage from '../features/history-3/pages/CoauthorsPage.jsx'
+import MyWorksPage from '../features/history-3/pages/MyWorksPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 import ConsolidatedReviewPage from '../features/history-5/pages/ConsolidatedReviewPage.jsx'
@@ -65,6 +66,7 @@ const router = createBrowserRouter([
       { path: '/autor', element: <AuthorHomePage /> },
       { path: '/autor/nuevo-trabajo', element: <NewWorkPage /> },
       { path: '/autor/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
+      { path: '/autor/trabajos', element: <MyWorksPage /> },
       { path: '/nuevo-trabajo', element: <NewWorkPage /> },
       { path: '/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
     ],
