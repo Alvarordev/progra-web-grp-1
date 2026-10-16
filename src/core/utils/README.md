@@ -33,9 +33,10 @@ guardan con «Guardar cambios» y el estado con «Cambiar estado de la edición�
 Cambiar el estado no guarda las ediciones pendientes del formulario.
 
 La configuración cuenta con repositorios de ejes, tipos de trabajo, cronograma
-y criterios. Ejes y tipos se guardan al confirmar su modal. Fechas y criterios
-se guardan con su botón principal; las modificaciones pendientes de criterios
-no se guardan al cancelar un modal o abandonar la pantalla. Una lista guardada
+y criterios. Ejes, tipos y criterios se guardan al confirmar su modal; sus
+eliminaciones también se guardan inmediatamente después de confirmar. Fechas
+se guardan con su botón principal. Cancelar un modal no modifica los datos
+guardados. Una lista guardada
 vacía se conserva como tal y no se reemplaza por los datos de ejemplo.
 
 `useStoredState` evita repetir la carga y el guardado en cada pantalla. Devuelve

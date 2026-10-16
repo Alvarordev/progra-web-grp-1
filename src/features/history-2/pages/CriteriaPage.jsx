@@ -11,31 +11,40 @@ import styles from './CriteriaPage.module.css'
 
 function CriteriaPage() {
   const { value, loading, saving, error, save } = useStoredState(criteriaRepository, initialCriteria)
-  const [draft, setDraft] = useState(null)
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
-  const criteria = draft ?? value
+  const criteria = value
   const total = criteria.reduce((sum, item) => sum + item.peso, 0)
 
-  function handleApply(updatedCriterion) {
+  async function handleApply(updatedCriterion) {
+    if (loading || saving) return
     const nextCriteria = modal.criterio
       ? criteria.map((item) => item.id === modal.criterio.id ? { ...item, ...updatedCriterion } : item)
       : [...criteria, { ...updatedCriterion, id: crypto.randomUUID() }]
-    setDraft(nextCriteria)
-    setModal(null)
-    setFeedback('Cambios pendientes. Pulse «Guardar criterios» para conservarlos.')
+    try {
+      await save(nextCriteria)
+      setModal(null)
+      setFeedback('Criterio guardado en este navegador.')
+    } catch {
+      setFeedback('')
+    }
   }
 
-  function handleDelete(id) {
+  async function handleDelete(id) {
+    if (loading || saving) return
     if (!window.confirm('¿Eliminar este criterio?')) return
-    setDraft(criteria.filter((item) => item.id !== id))
-    setFeedback('Cambios pendientes. Pulse «Guardar criterios» para conservarlos.')
+    try {
+      await save(criteria.filter((item) => item.id !== id))
+      setFeedback('Criterio eliminado de este navegador.')
+    } catch {
+      setFeedback('')
+    }
   }
 
   async function handleSave() {
+    if (loading || saving) return
     try {
       await save(criteria)
-      setDraft(null)
       setFeedback('Criterios guardados en este navegador.')
     } catch { setFeedback('') }
   }
@@ -58,9 +67,17 @@ function CriteriaPage() {
         {criteria.length > 0 ? (
           <CriteriaTable criterios={criteria} deshabilitado={loading || saving} alEditar={(item) => setModal({ criterio: item })} alEliminar={handleDelete} />
         ) : <p>No hay criterios configurados. Agregue el primer criterio.</p>}
-        <p className={styles.helperText}>Puede guardar una configuración pendiente. Para abrir la revisión, los pesos deben sumar 100.</p>
+        <p className={styles.helperText}>Cada criterio se guarda al confirmar su formulario. Para abrir la revisión, los pesos deben sumar 100.</p>
       </div>
-      {modal && <CriterionModal criterio={modal.criterio} alCerrar={() => setModal(null)} alGuardar={handleApply} />}
+      {modal && (
+        <CriterionModal
+          criterio={modal.criterio}
+          guardando={saving}
+          errorGuardado={error}
+          alCerrar={() => { if (!saving) setModal(null) }}
+          alGuardar={handleApply}
+        />
+      )}
     </ConfigurationPageLayout>
   )
 }
