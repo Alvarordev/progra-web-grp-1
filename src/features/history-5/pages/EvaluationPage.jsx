@@ -94,6 +94,12 @@ const valoresIniciales = {
   relevance: { puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
 }
 
+// Recomendación y comentario al autor de la maqueta, precargados como los puntajes.
+const formularioInicial = {
+  recomendacion: 'observaciones',
+  comentarioAutor: 'Reforzar la validación del modelo y detallar el tratamiento de datos faltantes.',
+}
+
 function formatSentAt(sentAt) {
   return {
     fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -168,8 +174,8 @@ function EvaluationScreen({ codigo }) {
         setReviewerId(userId)
         setLoadError('')
         setCriteria(saved?.status === 'draft' ? currentCriteria : review?.criteria ?? review?.criterios ?? currentCriteria)
-        setRecommendation(review?.recommendation ?? review?.recomendacion ?? '')
-        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? '')
+        setRecommendation(review?.recommendation ?? review?.recomendacion ?? formularioInicial.recomendacion)
+        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? formularioInicial.comentarioAutor)
         setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
         setSubmitted(saved ? savedSubmitted : Boolean(existingReview))
         setSentAt(savedSentAt)
