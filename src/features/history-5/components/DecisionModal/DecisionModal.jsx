@@ -9,23 +9,57 @@ const opciones = [
   { value: 'rechazar', label: 'Rechazar', descripcion: 'No participa en esta edición.' },
 ]
 
+// Texto sugerido con la forma de la maqueta: la decisión y las observaciones de los revisores.
+function construirTexto(decision, enviados) {
+  const frases = []
+  if (decision === 'aceptar') frases.push('El comité acepta el trabajo para presentación oral.')
+  if (decision === 'rechazar') frases.push('El comité no acepta el trabajo en esta edición.')
+  if (enviados.length) {
+    const observaciones = enviados
+      .map((fila) => fila.comentarioAutor.trim().replace(/\.$/, ''))
+      .map((texto) => texto.charAt(0).toLowerCase() + texto.slice(1))
+      .join('; ')
+    const inicio = decision === 'rechazar'
+      ? 'Las observaciones de los revisores son'
+      : 'Antes de la versión final, atienda las siguientes observaciones'
+    frases.push(`${inicio}: ${observaciones}.`)
+  }
+  return frases.join(' ')
+}
+
 // Recuadro del 5.4. Guarda un borrador o publica la decisión con alGuardar,
 // que la página escribe en el repositorio de decisiones.
 function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, resumen }) {
   const publicada = decisionGuardada?.status === 'published'
   const enviados = filas.filter((fila) => !fila.pendiente && fila.comentarioAutor)
   const pendientes = filas.filter((fila) => fila.pendiente).map((fila) => fila.revisor)
-  const textoPrecargado = enviados.map((fila) => fila.comentarioAutor).join(' ')
+  const cantidadTexto = enviados.length === filas.length
+    ? `los ${filas.length} revisores`
+    : `${enviados.length} de ${filas.length} revisores`
   const nota = enviados.length
-    ? `Precargado con los comentarios al autor de ${enviados.length} de ${filas.length} revisores. Puede editarlo antes de publicar.`
+    ? `Precargado con los comentarios al autor de ${cantidadTexto}. Puede editarlo antes de publicar.`
     : 'Pendiente: el texto se precarga cuando los revisores envíen sus comentarios.'
 
   const [decision, setDecision] = useState(decisionGuardada?.decision ?? '')
-  const [feedback, setFeedback] = useState(decisionGuardada?.feedback ?? textoPrecargado)
+  const [feedback, setFeedback] = useState(
+    decisionGuardada?.feedback ?? construirTexto(decisionGuardada?.decision ?? '', enviados),
+  )
+  // Mientras el texto no se edite a mano, cambia según la decisión elegida.
+  const [textoAutomatico, setTextoAutomatico] = useState(!decisionGuardada)
   const [confirmando, setConfirmando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errores, setErrores] = useState([])
   const [aviso, setAviso] = useState('')
+
+  function elegirDecision(valor) {
+    setDecision(valor)
+    if (textoAutomatico) setFeedback(construirTexto(valor, enviados))
+  }
+
+  function restaurarTexto() {
+    setFeedback(construirTexto(decision, enviados))
+    setTextoAutomatico(true)
+  }
 
   // Publicar exige decisión y retroalimentación; luego pide confirmar.
   function pedirPublicar() {
@@ -68,11 +102,14 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
         <legend>Decisión *</legend>
         <div className={styles.opciones}>
           {opciones.map((opcion) => (
-            <label className={styles.opcion} key={opcion.value}>
+            <label
+              className={`${styles.opcion} ${decision === opcion.value ? styles.seleccionada : ''}`}
+              key={opcion.value}
+            >
               <input
                 checked={decision === opcion.value}
                 name="decision-final"
-                onChange={() => setDecision(opcion.value)}
+                onChange={() => elegirDecision(opcion.value)}
                 type="radio"
                 value={opcion.value}
               />
@@ -86,10 +123,13 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
       </fieldset>
 
       <div className={styles.encabezadoCampo}>
-        <label htmlFor="retroalimentacion-autor">Retroalimentación al autor *</label>
+        <label className={styles.etiquetaCampo} htmlFor="retroalimentacion-autor">
+          Retroalimentación al autor *
+        </label>
         <Button
+          className={styles.enlace}
           disabled={publicada || guardando}
-          onClick={() => setFeedback(textoPrecargado)}
+          onClick={restaurarTexto}
           size="small"
           type="button"
           variant="tertiary"
@@ -100,7 +140,10 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
       <textarea
         className={styles.textarea}
         id="retroalimentacion-autor"
-        onChange={(event) => setFeedback(event.target.value)}
+        onChange={(event) => {
+          setFeedback(event.target.value)
+          setTextoAutomatico(false)
+        }}
         placeholder="Pendiente: se redacta con los comentarios de los revisores."
         readOnly={publicada || guardando}
         rows="5"
@@ -147,7 +190,13 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
       ) : (
         <div className={styles.acciones}>
           <Button onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
-          <Button disabled={guardando} onClick={() => guardar('draft')} type="button" variant="tertiary">
+          <Button
+            className={styles.enlace}
+            disabled={guardando}
+            onClick={() => guardar('draft')}
+            type="button"
+            variant="tertiary"
+          >
             Guardar sin publicar
           </Button>
           <Button disabled={guardando} onClick={pedirPublicar} type="button" variant="primary">

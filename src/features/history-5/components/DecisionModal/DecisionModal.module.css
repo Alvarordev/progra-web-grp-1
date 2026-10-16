@@ -133,6 +133,28 @@
   background: var(--color-bg);
 }
 
+.seleccionada {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.opcion input {
+  accent-color: var(--color-success);
+}
+
+.etiquetaCampo {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.enlace {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .acciones {
   display: flex;
   flex-wrap: wrap;
