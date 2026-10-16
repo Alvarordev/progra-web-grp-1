@@ -14,26 +14,26 @@ import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesStat
 
 const works = {
   'TRB-2026-042': {
-    fechaLimite: '15/10/2026',
     title: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
     eje: 'Inteligencia artificial y datos',
     tipo: 'Artículo completo',
+    fechaLimite: '15/10/2026',
     resumen:
       'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros de cinco cohortes.',
   },
   'TRB-2026-053': {
-    fechaLimite: '09/10/2026',
     title: 'Bienestar emocional y rendimiento académico en primeros ciclos',
     eje: 'Salud y sociedad',
     tipo: 'Póster',
+    fechaLimite: '09/10/2026',
     resumen:
       'Estudio sobre la relación entre bienestar emocional, adaptación universitaria y rendimiento académico en estudiantes de primeros ciclos.',
   },
   'TRB-2026-031': {
-    fechaLimite: '18/10/2026',
     title: 'Refactorización guiada por métricas de deuda técnica',
     eje: 'Ingeniería de software',
     tipo: 'Artículo completo',
+    fechaLimite: '18/10/2026',
     resumen:
       'La propuesta adapta métricas de deuda técnica al contexto universitario y evalúa su uso en proyectos de software.',
   },
@@ -229,7 +229,6 @@ function EvaluationScreen({ codigo }) {
     if (criteria.reduce((sum, item) => sum + item.peso, 0) !== 100) {
       validationErrors.push('El comité debe configurar criterios cuyos pesos sumen 100 antes de enviar la evaluación.')
     }
-
     if (missingCriteria.length > 0) {
       validationErrors.push(`Completa el puntaje y comentario de: ${missingCriteria.join(', ')}.`)
     }
@@ -312,7 +311,7 @@ function EvaluationScreen({ codigo }) {
               >
                 Abrir documento
               </Button>
-              <p>Vence el 15/10/2026 · faltan 3 días</p>
+              <p>Vence el {trabajo.fechaLimite ?? '—'}</p>
             </div>
           </section>
 
@@ -330,48 +329,52 @@ function EvaluationScreen({ codigo }) {
                   <span>Comentario del criterio</span>
                 </div>
 
-                {criteria.map((criterion) => (
-                  <div className={styles.criterionRow} key={criterion.id}>
-                    <strong>{criterion.nombre}</strong>
-                    <span className={styles.weight}>{criterion.peso} %</span>
-                    <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
-                      Puntaje para {criterion.nombre}, de 0 a 20
-                    </label>
-                    <div className={styles.scoreField}>
-                      <input
-                        id={`score-${criterion.id}`}
-                        className={styles.scoreInput}
-                        type="number"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={criterion.puntaje}
+                {criteria.map((criterion) => {
+                  const scoreInvalid = criterion.puntaje !== '' && !isValidScore(criterion.puntaje)
+
+                  return (
+                    <div className={styles.criterionRow} key={criterion.id}>
+                      <strong>{criterion.nombre}</strong>
+                      <span className={styles.weight}>{criterion.peso} %</span>
+                      <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
+                        Puntaje para {criterion.nombre}, de 0 a 20
+                      </label>
+                      <div className={styles.scoreField}>
+                        <input
+                          id={`score-${criterion.id}`}
+                          className={styles.scoreInput}
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="1"
+                          value={criterion.puntaje}
+                          disabled={submitted}
+                          aria-invalid={scoreInvalid}
+                          aria-describedby={`score-error-${criterion.id}`}
+                          onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
+                          aria-label={`Puntaje para ${criterion.nombre}`}
+                        />
+                        {scoreInvalid && (
+                          <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
+                            Ingrese un puntaje entre 0 y 20.
+                          </small>
+                        )}
+                      </div>
+                      <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
+                        Comentario para {criterion.nombre}
+                      </label>
+                      <textarea
+                        id={`comment-${criterion.id}`}
+                        className={styles.criterionComment}
+                        rows="2"
+                        placeholder="Escriba su comentario..."
+                        value={criterion.comentario}
                         disabled={submitted}
-                        aria-invalid={criterion.puntaje !== '' && !isValidScore(criterion.puntaje)}
-                        aria-describedby={`score-error-${criterion.id}`}
-                        onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
-                        aria-label={`Puntaje para ${criterion.nombre}`}
+                        onChange={(event) => updateCriterion(criterion.id, 'comentario', event.target.value)}
                       />
-                      {criterion.puntaje !== '' && !isValidScore(criterion.puntaje) && (
-                        <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
-                          Ingrese un puntaje entre 0 y 20.
-                        </small>
-                      )}
                     </div>
-                    <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
-                      Comentario para {criterion.nombre}
-                    </label>
-                    <textarea
-                      id={`comment-${criterion.id}`}
-                      className={styles.criterionComment}
-                      rows="2"
-                      placeholder="Escriba su comentario..."
-                      value={criterion.comentario}
-                      disabled={submitted}
-                      onChange={(event) => updateCriterion(criterion.id, 'comentario', event.target.value)}
-                    />
-                  </div>
-                ))}
+                  )
+                })}
 
                 <div className={styles.averageRow}>
                   <span>Promedio ponderado provisional ({scoredCriteria.length} de {criteria.length} criterios)</span>

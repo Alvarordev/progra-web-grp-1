@@ -117,6 +117,10 @@ const router = createBrowserRouter([
     element: <ConsolidatedReviewPage />,
   },
   {
+    path: '/trabajos-recibidos/:codigo/decision',
+    element: <ConsolidatedReviewPage mostrarDecision />,
+  },
+  {
     path: '/trabajos-recibidos',
     element: <ReceivedWorksPage />,
   },

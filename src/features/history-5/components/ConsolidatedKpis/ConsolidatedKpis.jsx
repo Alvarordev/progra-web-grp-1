@@ -6,11 +6,12 @@ function formatDay(fecha) {
 }
 
 function ConsolidatedKpis({ resumen }) {
+  const sinEnvios = resumen.entregadas === 0
   const indicadores = [
     {
       etiqueta: 'Puntaje promedio',
       valor: formatTenth(resumen.promedioGeneral),
-      detalle: 'de 20',
+      detalle: sinEnvios ? 'pendiente: sin evaluaciones enviadas' : 'de 20',
     },
     {
       etiqueta: 'Dispersión',
@@ -19,13 +20,13 @@ function ConsolidatedKpis({ resumen }) {
     },
     {
       etiqueta: 'Recomiendan aceptar',
-      valor: `${resumen.recomiendanAceptar} de ${resumen.totalRevisiones}`,
+      valor: sinEnvios ? '—' : `${resumen.recomiendanAceptar} de ${resumen.totalRevisiones}`,
       detalle: `${resumen.conObservaciones} con observaciones`,
     },
     {
       etiqueta: 'Última entrega',
       valor: resumen.ultimaEntrega ? formatDay(resumen.ultimaEntrega) : '—',
-      detalle: resumen.ultimaEntrega ? String(resumen.ultimaEntrega.getFullYear()) : '',
+      detalle: resumen.ultimaEntrega ? String(resumen.ultimaEntrega.getFullYear()) : 'pendiente',
     },
   ]
 

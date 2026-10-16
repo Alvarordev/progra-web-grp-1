@@ -22,20 +22,24 @@ function ConsolidatedScoreTable({ filas, criteriosPromedio, promedioGeneral }) {
           </tr>
         </thead>
         <tbody>
-          {filas.map((fila) => (
-            <tr key={fila.revisor}>
-              <th scope="row">{fila.revisor}</th>
-              {fila.criterios.map((criterio) => (
-                <td key={criterio.id}>{criterio.puntaje}</td>
-              ))}
-              <td className={styles.strong}>{formatTenth(fila.ponderado)}</td>
-              <td>
-                <span className={`${styles.badge} ${styles[fila.recomendacion]}`}>
-                  {getRecommendationLabel(fila.recomendacion)}
-                </span>
-              </td>
-            </tr>
-          ))}
+          {filas.map((fila) => {
+            const estado = fila.pendiente ? 'pendiente' : fila.recomendacion
+
+            return (
+              <tr key={fila.revisor}>
+                <th scope="row">{fila.revisor}</th>
+                {fila.criterios.map((criterio) => (
+                  <td key={criterio.id}>{fila.pendiente ? '—' : criterio.puntaje}</td>
+                ))}
+                <td className={styles.strong}>{fila.pendiente ? '—' : formatTenth(fila.ponderado)}</td>
+                <td>
+                  <span className={`${styles.badge} ${styles[estado]}`}>
+                    {fila.pendiente ? 'Pendiente' : getRecommendationLabel(fila.recomendacion)}
+                  </span>
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
         <tfoot>
           <tr>
