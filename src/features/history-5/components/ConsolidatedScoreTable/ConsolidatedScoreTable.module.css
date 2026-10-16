@@ -74,6 +74,11 @@
   color: var(--color-danger);
 }
 
+.pendiente {
+  background: var(--color-info-soft);
+  color: var(--color-info);
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;

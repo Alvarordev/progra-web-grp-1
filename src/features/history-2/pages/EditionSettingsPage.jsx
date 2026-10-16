@@ -1,33 +1,62 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { editionRepository, editionStatusRepository, thematicAxesRepository, workTypesRepository, scheduleRepository, criteriaRepository } from '../../../core/utils/repositories.js'
+import { initialEdition, initialEditionStatus } from '../../../core/utils/states/editionState.js'
+import useStoredState from '../../../core/utils/useStoredState.js'
+import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
+import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
+import { initialSchedule, formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
+import CloseReceptionModal from '../components/CloseReceptionModal/CloseReceptionModal.jsx'
 import styles from './EditionSettingsPage.module.css'
-
-const configurationSummary = [
-  { label: 'Ejes temáticos', value: '6', state: 'Listo', status: 'complete' },
-  { label: 'Tipos de trabajo', value: '4', state: 'Listo', status: 'complete' },
-  { label: 'Fechas límite', value: '3', state: 'Listo', status: 'complete' },
-  {
-    label: 'Criterios de evaluación',
-    value: '',
-    state: 'Pendiente: pesos suman 95',
-    status: 'pending',
-  },
-]
-
-const initialEdition = {
-  editionName: 'VIII Congreso Académico Estudiantil',
-  editionYear: '2026',
-  editionVenue: 'Auditorio Central, Universidad de Lima — Santiago de Surco',
-  editionDescription:
-    'Encuentro anual de investigación estudiantil. Se reciben artículos completos, resúmenes extendidos, pósteres y casos de estudio en seis ejes temáticos.',
-}
 
 function EditionSettingsPage() {
   const [edition, setEdition] = useState(initialEdition)
-  const [estado, setEstado] = useState('Recepción abierta')
+  const [estado, setEstado] = useState(initialEditionStatus)
   const [feedback, setFeedback] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [closeModal, setCloseModal] = useState(false)
+  const [closeError, setCloseError] = useState('')
+  const axesState = useStoredState(thematicAxesRepository, thematicAxes)
+  const typesState = useStoredState(workTypesRepository, initialWorkTypes)
+  const scheduleState = useStoredState(scheduleRepository, initialSchedule)
+  const criteriaState = useStoredState(criteriaRepository, initialCriteria)
+  const totalWeight = criteriaState.value.reduce((sum, item) => sum + item.peso, 0)
+  const configurationLoading = [axesState, typesState, scheduleState, criteriaState].some((item) => item.loading)
+  const configurationError = [axesState, typesState, scheduleState, criteriaState].find((item) => item.error)?.error
+  const configurationSummary = [
+    { label: 'Ejes temáticos', value: axesState.value.length, state: axesState.value.length ? 'Listo' : 'Pendiente', status: axesState.value.length ? 'complete' : 'pending' },
+    { label: 'Tipos de trabajo', value: typesState.value.length, state: typesState.value.length ? 'Listo' : 'Pendiente', status: typesState.value.length ? 'complete' : 'pending' },
+    { label: 'Fechas límite', value: 3, state: scheduleState.error ? 'Pendiente' : 'Listo', status: scheduleState.error ? 'pending' : 'complete' },
+    { label: 'Criterios de evaluación', value: criteriaState.value.length, state: totalWeight === 100 ? 'Listo: pesos suman 100' : `Pendiente: pesos suman ${totalWeight}`, status: totalWeight === 100 ? 'complete' : 'pending' },
+  ]
+
+  useEffect(() => {
+    let active = true
+
+    async function loadSettings() {
+      const results = await Promise.allSettled([
+        editionRepository.get(),
+        editionStatusRepository.get(),
+      ])
+
+      if (!active) return
+
+      const [editionResult, statusResult] = results
+      if (editionResult.status === 'fulfilled') setEdition(editionResult.value)
+      if (statusResult.status === 'fulfilled') setEstado(statusResult.value)
+
+      const failure = results.find((result) => result.status === 'rejected')
+      if (failure) setFeedback(failure.reason.message)
+      setLoading(false)
+    }
+
+    loadSettings()
+    return () => { active = false }
+  }, [])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -35,16 +64,64 @@ function EditionSettingsPage() {
     setFeedback('')
   }
 
-  function handleSave(event) {
+  async function handleSave(event) {
     event.preventDefault()
-    setFeedback('Cambios aplicados temporalmente. No se guardarán al recargar.')
+    if (loading || saving) return
+    if (!edition.editionName.trim() || !edition.editionVenue.trim() || !/^\d{4}$/.test(edition.editionYear) || edition.editionDescription.length > 400) {
+      setFeedback('Ingrese un nombre, una sede y un año de cuatro dígitos. La descripción admite hasta 400 caracteres.')
+      return
+    }
+    setSaving(true)
+    try {
+      await editionRepository.save(edition)
+      setFeedback('Cambios guardados en este navegador.')
+    } catch (error) {
+      setFeedback(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function handleToggleStatus() {
-    const nuevoEstado =
-      estado === 'Recepción abierta' ? 'En preparación' : 'Recepción abierta'
-    setEstado(nuevoEstado)
-    setFeedback(`Estado cambiado temporalmente a «${nuevoEstado}».`)
+  async function handleToggleStatus() {
+    if (loading || saving || configurationLoading || configurationError) return
+    if (!axesState.value.length || !typesState.value.length) {
+      setFeedback('Configure al menos un eje temático y un tipo de trabajo antes de abrir o cerrar la recepción.')
+      return
+    }
+    if (estado === 'Recepción abierta') {
+      if (totalWeight !== 100) {
+        setFeedback('Los criterios deben sumar 100 antes de abrir la etapa de revisión. Ajústelos en «Criterios de evaluación».')
+        return
+      }
+      setCloseError('')
+      setCloseModal(true)
+      return
+    }
+    if (estado !== 'En preparación') return
+    setSaving(true)
+    try {
+      await editionStatusRepository.save('Recepción abierta')
+      setEstado('Recepción abierta')
+      setFeedback('Recepción abierta. Estado guardado en este navegador.')
+    } catch (error) {
+      setFeedback(error.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCloseReception() {
+    setSaving(true)
+    try {
+      await editionStatusRepository.save('En revisión')
+      setEstado('En revisión')
+      setCloseModal(false)
+      setFeedback('Recepción cerrada. La edición está en revisión.')
+    } catch (error) {
+      setCloseError(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -60,19 +137,20 @@ function EditionSettingsPage() {
           <div className={styles.actions}>
             <Button
               onClick={handleToggleStatus}
+              disabled={loading || saving || configurationLoading || Boolean(configurationError) || estado === 'En revisión'}
               type="button"
               variant="secondary"
             >
-              Cambiar estado de la edición
+              {estado === 'En preparación' ? 'Abrir recepción' : estado === 'En revisión' ? 'Recepción cerrada' : 'Cambiar estado de la edición'}
             </Button>
-            <Button form="edition-settings-form" type="submit" variant="primary">
+            <Button disabled={loading || saving} form="edition-settings-form" type="submit" variant="primary">
               Guardar cambios
             </Button>
           </div>
         </div>
 
         <p aria-live="polite" className={styles.feedback}>
-          {feedback}
+          {loading || configurationLoading ? 'Cargando configuración…' : configurationError || feedback}
         </p>
 
         <ConfigurationTabs />
@@ -98,7 +176,10 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-name">Nombre de la edición</label>
                 <input
                   id="edition-name"
+                  disabled={loading || saving}
                   name="editionName"
+                  required
+                  pattern=".*\S.*"
                   onChange={handleChange}
                   value={edition.editionName}
                 />
@@ -107,7 +188,12 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-year">Año</label>
                 <input
                   id="edition-year"
+                  disabled={loading || saving}
                   name="editionYear"
+                  required
+                  pattern="[0-9]{4}"
+                  inputMode="numeric"
+                  maxLength={4}
                   onChange={handleChange}
                   value={edition.editionYear}
                 />
@@ -116,7 +202,10 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-venue">Sede</label>
                 <input
                   id="edition-venue"
+                  disabled={loading || saving}
                   name="editionVenue"
+                  required
+                  pattern=".*\S.*"
                   onChange={handleChange}
                   value={edition.editionVenue}
                 />
@@ -125,6 +214,7 @@ function EditionSettingsPage() {
                 <label htmlFor="edition-description">Descripción pública</label>
                 <textarea
                   id="edition-description"
+                  disabled={loading || saving}
                   name="editionDescription"
                   onChange={handleChange}
                   rows={4}
@@ -152,7 +242,7 @@ function EditionSettingsPage() {
                   <li className={styles.summaryRow} key={item.label}>
                     <span>{item.label}</span>
                     <span className={styles.summaryValue}>
-                      {item.value && <span>{item.value} · </span>}
+                      <span>{item.value} · </span>
                       <span className={styles[item.status]}>{item.state}</span>
                     </span>
                   </li>
@@ -167,8 +257,8 @@ function EditionSettingsPage() {
               <h2 id="reception-title">{estado}</h2>
               <p>
                 {estado === 'Recepción abierta'
-                  ? 'Cierra el 30/09/2026 a las 23:59. Mientras esté abierta, los autores pueden editar sus trabajos.'
-                  : 'La recepción está en preparación. Los autores no pueden enviar ni editar trabajos.'}
+                  ? `Cierra el ${formatScheduleDate(scheduleState.value.reception)} a las ${scheduleState.value.reception.slice(11)}. Mientras esté abierta, los autores pueden editar sus trabajos.`
+                  : estado === 'En revisión' ? 'La recepción está cerrada y la edición está en revisión.' : 'La recepción está en preparación.'}
               </p>
             </section>
 
@@ -182,10 +272,10 @@ function EditionSettingsPage() {
               <dl className={styles.activityList}>
                 <div>
                   <dt>Trabajos recibidos</dt>
-                  <dd>14</dd>
+                  <dd>{axesState.value.reduce((sum, item) => sum + item.trabajos, 0)}</dd>
                 </div>
                 <div>
-                  <dt>Revisores registrados</dt>
+                  <dt>Revisores de demostración</dt>
                   <dd>9</dd>
                 </div>
               </dl>
@@ -193,6 +283,7 @@ function EditionSettingsPage() {
           </aside>
         </div>
       </div>
+      {closeModal && <CloseReceptionModal alCerrar={() => { if (!saving) setCloseModal(false) }} alConfirmar={handleCloseReception} guardando={saving} error={closeError} />}
     </ConfigurationPageLayout>
   )
 }

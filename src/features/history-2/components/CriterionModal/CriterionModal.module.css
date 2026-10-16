@@ -1,0 +1,4 @@
+.form { composes: form from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
+.field { composes: field from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
+.footer { composes: footer from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
+.error { composes: error from '../ThematicAxisModal/ThematicAxisModal.module.css'; }

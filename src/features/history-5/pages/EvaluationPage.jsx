@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { criteriaRepository, reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
+import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
 import { Link, useParams, useSearchParams } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
@@ -11,25 +13,25 @@ import styles from './EvaluationPage.module.css'
 const works = {
   'TRB-2026-042': {
     title: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
-    fechaLimite: '15/10/2026',
     eje: 'Inteligencia artificial y datos',
     tipo: 'Artículo completo',
+    fechaLimite: '15/10/2026',
     resumen:
       'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros de cinco cohortes.',
   },
   'TRB-2026-053': {
     title: 'Bienestar emocional y rendimiento académico en primeros ciclos',
-    fechaLimite: '09/10/2026',
     eje: 'Salud y sociedad',
     tipo: 'Póster',
+    fechaLimite: '09/10/2026',
     resumen:
       'Estudio sobre la relación entre bienestar emocional, adaptación universitaria y rendimiento académico en estudiantes de primeros ciclos.',
   },
   'TRB-2026-031': {
     title: 'Refactorización guiada por métricas de deuda técnica',
-    fechaLimite: '18/10/2026',
     eje: 'Ingeniería de software',
     tipo: 'Artículo completo',
+    fechaLimite: '18/10/2026',
     resumen:
       'La propuesta adapta métricas de deuda técnica al contexto universitario y evalúa su uso en proyectos de software.',
   },
@@ -83,6 +85,21 @@ const readOnlyReviewExamples = {
   },
 }
 
+// Puntajes y comentarios de la maqueta. Aparecen al abrir la evaluación por primera vez;
+// el revisor puede cambiarlos.
+const valoresIniciales = {
+  originality: { puntaje: '17', comentario: 'Aporte claro frente a trabajos previos del área.' },
+  rigor: { puntaje: '15', comentario: 'Falta validación cruzada y control del desbalance de clases.' },
+  clarity: { puntaje: '18', comentario: 'Redacción ordenada; mejorar la leyenda de la figura 3.' },
+  relevance: { puntaje: '17', comentario: '' },
+}
+
+// Recomendación y comentario al autor de la maqueta, precargados como los puntajes.
+const formularioInicial = {
+  recomendacion: 'observaciones',
+  comentarioAutor: 'Reforzar la validación del modelo y detallar el tratamiento de datos faltantes.',
+}
+
 function formatSentAt(sentAt) {
   return {
     fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -96,11 +113,10 @@ function buildSentNotice(sentAt) {
   return `Evaluación enviada el ${fecha} a las ${hora}. Ya no admite cambios; si necesita corregirla, solicite al comité.`
 }
 
-function EvaluationPage() {
-  const { codigo } = useParams()
+function EvaluationScreen({ codigo }) {
   const [searchParams] = useSearchParams()
   const readOnlyMode = searchParams.get('modo') === 'lectura'
-  const existingReview = (readOnlyMode
+  const existingReview = useMemo(() => (readOnlyMode
     ? readOnlyReviewExamples[codigo] ?? {
         criterios: initialCriteria.map((criterion) => ({
           ...criterion,
@@ -111,7 +127,8 @@ function EvaluationPage() {
         comentarioAutor: 'Evaluación enviada y disponible en modo de lectura.',
         comentarioComite: '',
       }
-    : undefined)
+    : undefined), [readOnlyMode, codigo])
+  const existingSentAt = existingReview?.enviadaEl ? new Date(existingReview.enviadaEl) : null
   const trabajo = works[codigo] ?? {
     title: 'Trabajo académico asignado',
     eje: 'Eje temático',
@@ -122,11 +139,59 @@ function EvaluationPage() {
   const [recommendation, setRecommendation] = useState(() => existingReview?.recommendation ?? existingReview?.recomendacion ?? '')
   const [authorComment, setAuthorComment] = useState(() => existingReview?.authorComment ?? existingReview?.comentarioAutor ?? '')
   const [committeeComment, setCommitteeComment] = useState(() => existingReview?.committeeComment ?? existingReview?.comentarioComite ?? '')
-  const initialSentAt = existingReview?.enviadaEl ? new Date(existingReview.enviadaEl) : null
   const [submitted, setSubmitted] = useState(Boolean(existingReview))
-  const [sentAt, setSentAt] = useState(initialSentAt)
-  const [notice, setNotice] = useState(() => (existingReview ? buildSentNotice(initialSentAt) : ''))
+  const [sentAt, setSentAt] = useState(existingSentAt)
+  const [notice, setNotice] = useState('')
   const [errors, setErrors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [reviewerId, setReviewerId] = useState('demo-reviewer')
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    async function loadReview() {
+      try {
+        const [reviews, session, configuredCriteria] = await Promise.all([
+          reviewsRepository.get(), sessionRepository.get(), criteriaRepository.get(),
+        ])
+        if (!active) return
+        const userId = session?.userId ?? 'demo-reviewer'
+        const saved = reviews[getReviewKey(userId, codigo)]
+        const review = saved ?? existingReview
+        const currentCriteria = configuredCriteria.map((item) => {
+          const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
+          return {
+            ...item,
+            puntaje: previous?.puntaje ?? valoresIniciales[item.id]?.puntaje ?? '',
+            comentario: previous?.comentario ?? valoresIniciales[item.id]?.comentario ?? '',
+          }
+        })
+        const savedSubmitted = saved?.status === 'submitted'
+        const savedSentAt = savedSubmitted
+          ? new Date(saved.updatedAt)
+          : existingReview?.enviadaEl ? new Date(existingReview.enviadaEl) : null
+        setReviewerId(userId)
+        setLoadError('')
+        setCriteria(saved?.status === 'draft' ? currentCriteria : review?.criteria ?? review?.criterios ?? currentCriteria)
+        setRecommendation(review?.recommendation ?? review?.recomendacion ?? formularioInicial.recomendacion)
+        setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? formularioInicial.comentarioAutor)
+        setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
+        setSubmitted(saved ? savedSubmitted : Boolean(existingReview))
+        setSentAt(savedSentAt)
+        if (saved?.status === 'draft') setNotice('Borrador recuperado de este navegador.')
+        else if (savedSubmitted || (!saved && existingReview)) setNotice(buildSentNotice(savedSentAt))
+        else setNotice('')
+        setErrors([])
+      } catch (error) {
+        if (active) setLoadError(error.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    loadReview()
+    return () => { active = false }
+  }, [codigo, existingReview])
 
   const scoredCriteria = criteria.filter((criterion) => isValidScore(criterion.puntaje))
   const average = formatTenth(calculateWeightedAverage(criteria))
@@ -142,9 +207,40 @@ function EvaluationPage() {
     setNotice('')
   }
 
+  async function persistReview(status) {
+    if (loading || saving || submitted || loadError) return
+    setSaving(true)
+    try {
+      const reviews = await reviewsRepository.get()
+      const key = getReviewKey(reviewerId, codigo)
+      if (reviews[key]?.status === 'submitted') {
+        setErrors(['Esta evaluación ya fue enviada y no admite cambios. Recargue la página.'])
+        return
+      }
+      const updatedAt = new Date().toISOString()
+      await reviewsRepository.save({
+        ...reviews,
+        [key]: { criteria, recommendation, authorComment, committeeComment, status, updatedAt },
+      })
+      setSubmitted(status === 'submitted')
+      setErrors([])
+      if (status === 'submitted') {
+        const now = new Date(updatedAt)
+        setSentAt(now)
+        setNotice(buildSentNotice(now))
+      } else {
+        setNotice('Borrador guardado en este navegador.')
+      }
+    } catch (error) {
+      setErrors([error.message])
+      setNotice('')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   function saveDraft() {
-    setNotice('Borrador guardado en esta sesión.')
-    setErrors([])
+    persistReview('draft')
   }
 
   function sendRecommendation(event) {
@@ -155,6 +251,9 @@ function EvaluationPage() {
       .map((criterion) => criterion.nombre)
     const validationErrors = []
 
+    if (criteria.reduce((sum, item) => sum + item.peso, 0) !== 100) {
+      validationErrors.push('El comité debe configurar criterios cuyos pesos sumen 100 antes de enviar la evaluación.')
+    }
     if (missingCriteria.length > 0) {
       validationErrors.push(`Completa el puntaje (de 0 a 20) y comentario de: ${missingCriteria.join(', ')}.`)
     }
@@ -171,12 +270,7 @@ function EvaluationPage() {
       return
     }
 
-    const now = new Date()
-
-    setSentAt(now)
-    setSubmitted(true)
-    setErrors([])
-    setNotice(buildSentNotice(now))
+    persistReview('submitted')
   }
 
   return (
@@ -193,6 +287,8 @@ function EvaluationPage() {
 
       <main className={styles.main}>
         <div className={styles.content}>
+          {loading && <p role="status">Cargando evaluación…</p>}
+          {loadError && <p role="alert">{loadError}</p>}
           <nav aria-label="Ruta de navegación" className={styles.breadcrumb}>
             <Link to="/bandeja-revision">Mi bandeja</Link>
             <span aria-hidden="true">›</span>
@@ -244,11 +340,12 @@ function EvaluationPage() {
               >
                 Abrir documento
               </Button>
-              <p>Vence el 15/10/2026 · faltan 3 días</p>
+              <p>Vence el {trabajo.fechaLimite ?? '—'}</p>
             </div>
           </section>
 
           <form onSubmit={sendRecommendation}>
+            <fieldset className={styles.formFields} disabled={loading || saving || Boolean(loadError)}>
             <div className={styles.evaluationLayout}>
               <section className={styles.criteriaPanel} aria-labelledby="criteria-title">
                 <h2 id="criteria-title" className={styles.visuallyHidden}>
@@ -261,48 +358,52 @@ function EvaluationPage() {
                   <span>Comentario del criterio</span>
                 </div>
 
-                {criteria.map((criterion) => (
-                  <div className={styles.criterionRow} key={criterion.id}>
-                    <strong>{criterion.nombre}</strong>
-                    <span className={styles.weight}>{criterion.peso} %</span>
-                    <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
-                      Puntaje para {criterion.nombre}, de 0 a 20
-                    </label>
-                    <div className={styles.scoreField}>
-                      <input
-                        id={`score-${criterion.id}`}
-                        className={styles.scoreInput}
-                        type="number"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value={criterion.puntaje}
+                {criteria.map((criterion) => {
+                  const scoreInvalid = criterion.puntaje !== '' && !isValidScore(criterion.puntaje)
+
+                  return (
+                    <div className={styles.criterionRow} key={criterion.id}>
+                      <strong>{criterion.nombre}</strong>
+                      <span className={styles.weight}>{criterion.peso} %</span>
+                      <label className={styles.visuallyHidden} htmlFor={`score-${criterion.id}`}>
+                        Puntaje para {criterion.nombre}, de 0 a 20
+                      </label>
+                      <div className={styles.scoreField}>
+                        <input
+                          id={`score-${criterion.id}`}
+                          className={styles.scoreInput}
+                          type="number"
+                          min="0"
+                          max="20"
+                          step="1"
+                          value={criterion.puntaje}
+                          disabled={submitted}
+                          aria-invalid={scoreInvalid}
+                          aria-describedby={`score-error-${criterion.id}`}
+                          onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
+                          aria-label={`Puntaje para ${criterion.nombre}`}
+                        />
+                        {scoreInvalid && (
+                          <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
+                            Ingrese un puntaje entre 0 y 20.
+                          </small>
+                        )}
+                      </div>
+                      <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
+                        Comentario para {criterion.nombre}
+                      </label>
+                      <textarea
+                        id={`comment-${criterion.id}`}
+                        className={styles.criterionComment}
+                        rows="2"
+                        placeholder="Escriba su comentario..."
+                        value={criterion.comentario}
                         disabled={submitted}
-                        aria-invalid={criterion.puntaje !== '' && !isValidScore(criterion.puntaje)}
-                        aria-describedby={`score-error-${criterion.id}`}
-                        onChange={(event) => updateCriterion(criterion.id, 'puntaje', event.target.value)}
-                        aria-label={`Puntaje para ${criterion.nombre}`}
+                        onChange={(event) => updateCriterion(criterion.id, 'comentario', event.target.value)}
                       />
-                      {criterion.puntaje !== '' && !isValidScore(criterion.puntaje) && (
-                        <small className={styles.fieldError} id={`score-error-${criterion.id}`}>
-                          Ingrese un puntaje entre 0 y 20.
-                        </small>
-                      )}
                     </div>
-                    <label className={styles.visuallyHidden} htmlFor={`comment-${criterion.id}`}>
-                      Comentario para {criterion.nombre}
-                    </label>
-                    <textarea
-                      id={`comment-${criterion.id}`}
-                      className={styles.criterionComment}
-                      rows="2"
-                      placeholder="Escriba su comentario..."
-                      value={criterion.comentario}
-                      disabled={submitted}
-                      onChange={(event) => updateCriterion(criterion.id, 'comentario', event.target.value)}
-                    />
-                  </div>
-                ))}
+                  )
+                })}
 
                 <div className={styles.averageRow}>
                   <span>Promedio ponderado provisional ({scoredCriteria.length} de {criteria.length} criterios)</span>
@@ -380,15 +481,16 @@ function EvaluationPage() {
               <div className={styles.formFooter}>
                 <p>Puede guardar un borrador y continuar la evaluación más tarde.</p>
                 <div className={styles.formActions}>
-                  <Button variant="secondary" type="button" onClick={saveDraft}>
+                  <Button disabled={loading || saving || Boolean(loadError)} variant="secondary" type="button" onClick={saveDraft}>
                     Guardar borrador
                   </Button>
-                  <Button variant="primary" type="submit">
+                  <Button disabled={loading || Boolean(loadError)} loading={saving} variant="primary" type="submit">
                     Enviar recomendación
                   </Button>
                 </div>
               </div>
             )}
+            </fieldset>
           </form>
         </div>
       </main>
@@ -396,6 +498,12 @@ function EvaluationPage() {
       <Footer />
     </div>
   )
+}
+
+function EvaluationPage() {
+  const { codigo } = useParams()
+  const [searchParams] = useSearchParams()
+  return <EvaluationScreen codigo={codigo} key={`${codigo}-${searchParams.get('modo') ?? ''}`} />
 }
 
 export default EvaluationPage
