@@ -91,7 +91,7 @@ const valoresIniciales = {
   originality: { puntaje: '17', comentario: 'Aporte claro frente a trabajos previos del área.' },
   rigor: { puntaje: '15', comentario: 'Falta validación cruzada y control del desbalance de clases.' },
   clarity: { puntaje: '18', comentario: 'Redacción ordenada; mejorar la leyenda de la figura 3.' },
-  relevance: { puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
+  relevance: { puntaje: '17', comentario: '' },
 }
 
 // Recomendación y comentario al autor de la maqueta, precargados como los puntajes.
