@@ -106,7 +106,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
               </section>
 
               <section className={styles.block} aria-labelledby="titulo-comentarios">
-                <h2 id="titulo-comentarios">Comentarios de los revisores</h2>
+                <h2 id="titulo-comentarios">Comentarios al autor reunidos</h2>
                 <ReviewerCommentsPanel revisiones={consolidado.filas} />
               </section>
 
