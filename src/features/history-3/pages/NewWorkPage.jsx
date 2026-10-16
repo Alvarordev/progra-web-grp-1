@@ -95,16 +95,16 @@ function NewWorkPage() {
     setErrores(nuevosErrores)
 
     if (Object.keys(nuevosErrores).length === 0) {
-      navigate('/nuevo-trabajo/coautores')
+      navigate('/autor/nuevo-trabajo/coautores')
     }
   }
 
   if (borradorGuardado) {
     return (
-      <AuthorPageLayout rutaActiva="/nuevo-trabajo">
+      <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
         <p className={styles.success} role="status">
           ✓ Borrador guardado el 18/09/2026 a las 19:42. Aún no ha sido enviado al comité.{' '}
-          <Link to="/mis-trabajos">Ir a mis trabajos</Link>
+          <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
         <DeadlineNotice restante="Faltan 12 días">
           Recepción abierta. Cierra el 30/09/2026 a las 23:59.
@@ -121,7 +121,7 @@ function NewWorkPage() {
             <Button onClick={() => setBorradorGuardado(false)} variant="secondary">
               Seguir editando
             </Button>
-            <Button onClick={() => navigate('/nuevo-trabajo/coautores')} variant="primary">
+            <Button onClick={() => navigate('/autor/nuevo-trabajo/coautores')} variant="primary">
               Enviar al comité
             </Button>
           </div>
@@ -167,7 +167,7 @@ function NewWorkPage() {
   }
 
   return (
-    <AuthorPageLayout rutaActiva="/nuevo-trabajo">
+    <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
       <DeadlineNotice restante="Faltan 12 días · 04:11 h">
         Recepción abierta. Cierra el 30/09/2026 a las 23:59.
       </DeadlineNotice>

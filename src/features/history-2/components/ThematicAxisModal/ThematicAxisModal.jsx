@@ -3,7 +3,7 @@ import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import styles from './ThematicAxisModal.module.css'
 
-function ThematicAxisModal({ alCerrar, alGuardar, eje, modo }) {
+function ThematicAxisModal({ alCerrar, alGuardar, eje, modo, guardando = false, errorGuardado = '' }) {
   const [valores, setValores] = useState({
     nombre: eje?.nombre ?? '',
     descripcion: eje?.descripcion ?? '',
@@ -20,6 +20,7 @@ function ThematicAxisModal({ alCerrar, alGuardar, eje, modo }) {
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (guardando) return
 
     if (!valores.nombre.trim() || !valores.descripcion.trim() || !valores.responsable.trim()) {
       setError('Complete el nombre, la descripción y la persona responsable.')
@@ -36,6 +37,7 @@ function ThematicAxisModal({ alCerrar, alGuardar, eje, modo }) {
   return (
     <Modal alCerrar={alCerrar} titulo={titulo}>
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
+        <fieldset className={styles.fields} disabled={guardando}>
         <div className={styles.field}>
           <label htmlFor="axis-name">Nombre *</label>
           <input id="axis-name" name="nombre" onChange={handleChange} value={valores.nombre} />
@@ -49,9 +51,11 @@ function ThematicAxisModal({ alCerrar, alGuardar, eje, modo }) {
           <input id="axis-owner" name="responsable" onChange={handleChange} value={valores.responsable} />
         </div>
         {error && <p className={styles.error} role="alert">{error}</p>}
+        </fieldset>
+        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
         <footer className={styles.footer}>
-          <Button onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
-          <Button type="submit" variant="primary">Guardar eje</Button>
+          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
+          <Button loading={guardando} type="submit" variant="primary">Guardar eje</Button>
         </footer>
       </form>
     </Modal>

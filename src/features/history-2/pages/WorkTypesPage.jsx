@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import useStoredState from '../../../core/utils/useStoredState.js'
+import { workTypesRepository } from '../../../core/utils/repositories.js'
+import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
@@ -6,44 +9,10 @@ import WorkTypeModal from '../components/WorkTypeModal/WorkTypeModal.jsx'
 import WorkTypesTable from '../components/WorkTypesTable/WorkTypesTable.jsx'
 import styles from './WorkTypesPage.module.css'
 
-const initialWorkTypes = [
-  {
-    id: 'full-article',
-    nombre: 'Artículo completo',
-    extensionMaxima: '8 000 palabras',
-    formatoEsperado: 'PDF · plantilla IEEE',
-    admiteCoautores: true,
-    maxCoautores: 4,
-  },
-  {
-    id: 'extended-abstract',
-    nombre: 'Resumen extendido',
-    extensionMaxima: '2 500 palabras',
-    formatoEsperado: 'PDF',
-    admiteCoautores: true,
-    maxCoautores: 3,
-  },
-  {
-    id: 'poster',
-    nombre: 'Póster',
-    extensionMaxima: '1 lámina A1',
-    formatoEsperado: 'PDF · orientación vertical',
-    admiteCoautores: true,
-    maxCoautores: 5,
-  },
-  {
-    id: 'case-study',
-    nombre: 'Caso de estudio',
-    extensionMaxima: '5 000 palabras',
-    formatoEsperado: 'PDF',
-    admiteCoautores: false,
-    maxCoautores: null,
-  },
-]
-
 function WorkTypesPage() {
-  const [tiposTrabajo, setTiposTrabajo] = useState(initialWorkTypes)
+  const { value: tiposTrabajo, loading, saving, error, save } = useStoredState(workTypesRepository, initialWorkTypes)
   const [modal, setModal] = useState(null)
+  const [feedback, setFeedback] = useState('')
 
   function handleCreate() {
     setModal({ modo: 'create', tipoTrabajo: null })
@@ -53,54 +22,49 @@ function WorkTypesPage() {
     setModal({ modo: 'edit', tipoTrabajo })
   }
 
-  function handleDelete(id) {
-    setTiposTrabajo((tiposActuales) =>
-      tiposActuales.filter((tipoTrabajo) => tipoTrabajo.id !== id),
-    )
+  async function handleDelete(id) {
+    if (!window.confirm('¿Eliminar este tipo de trabajo?')) return
+    try {
+      await save(tiposTrabajo.filter((item) => item.id !== id))
+      setFeedback('Tipo de trabajo eliminado.')
+    } catch { setFeedback('') }
   }
 
-  function handleSave(tipoTrabajoActualizado) {
-    if (modal.modo === 'edit') {
-      setTiposTrabajo((tiposActuales) =>
-        tiposActuales.map((tipoTrabajo) =>
-          tipoTrabajo.id === modal.tipoTrabajo.id
-            ? { ...tipoTrabajo, ...tipoTrabajoActualizado }
-            : tipoTrabajo,
-        ),
-      )
-    } else {
-      setTiposTrabajo((tiposActuales) => [
-        ...tiposActuales,
-        {
-          ...tipoTrabajoActualizado,
-          id: `work-type-${Date.now()}`,
-        },
-      ])
+  async function handleSave(updatedWorkType) {
+    const nextTypes = modal.modo === 'edit'
+      ? tiposTrabajo.map((item) => item.id === modal.tipoTrabajo.id ? { ...item, ...updatedWorkType } : item)
+      : [...tiposTrabajo, { ...updatedWorkType, id: crypto.randomUUID() }]
+    try {
+      await save(nextTypes)
+      setModal(null)
+      setFeedback('Tipo de trabajo guardado en este navegador.')
+    } catch {
+      setFeedback('')
     }
-
-    setModal(null)
   }
 
   return (
-    <ConfigurationPageLayout estado="Recepción abierta">
+    <ConfigurationPageLayout>
       <div className={styles.content}>
         <header className={styles.pageHeading}>
           <div>
             <h1>Tipos de trabajo</h1>
             <p>{tiposTrabajo.length} tipos habilitados para esta edición</p>
           </div>
-          <Button onClick={handleCreate} type="button" variant="primary">
+          <Button disabled={loading || saving} onClick={handleCreate} type="button" variant="primary">
             Nuevo tipo de trabajo
           </Button>
         </header>
 
         <ConfigurationTabs />
+        <p role="status">{loading ? 'Cargando tipos de trabajo…' : error || feedback}</p>
 
         <section aria-label="Tipos de trabajo de la edición" className={styles.tableSection}>
           <WorkTypesTable
             alEditar={handleEdit}
             alEliminar={handleDelete}
             tiposTrabajo={tiposTrabajo}
+            deshabilitado={loading || saving}
           />
         </section>
 
@@ -112,8 +76,10 @@ function WorkTypesPage() {
 
       {modal && (
         <WorkTypeModal
-          alCerrar={() => setModal(null)}
+          alCerrar={() => { if (!saving) setModal(null) }}
           alGuardar={handleSave}
+          guardando={saving}
+          errorGuardado={error}
           key={`${modal.modo}-${modal.tipoTrabajo?.id ?? 'new'}`}
           modo={modal.modo}
           tipoTrabajo={modal.tipoTrabajo}

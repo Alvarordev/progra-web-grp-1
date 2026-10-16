@@ -77,7 +77,7 @@ function CoauthorsPage() {
   }
 
   return (
-    <AuthorPageLayout rutaActiva="/nuevo-trabajo">
+    <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
       <DeadlineNotice restante="Faltan 12 días · 04:11 h">
         Recepción abierta. Cierra el 30/09/2026 a las 23:59.
       </DeadlineNotice>
@@ -88,7 +88,7 @@ function CoauthorsPage() {
           <p>Paso 2 de 3 · TRB-2026-058 · Artículo completo (hasta {MAX_COAUTHORS} coautores)</p>
         </div>
         <div className={styles.actions}>
-          <Button onClick={() => navigate('/nuevo-trabajo')} variant="secondary">
+          <Button onClick={() => navigate('/autor/nuevo-trabajo')} variant="secondary">
             Volver a datos generales
           </Button>
           <Button onClick={() => setMensaje('✓ Coautores confirmados. El siguiente paso es el envío al comité.')} variant="primary">

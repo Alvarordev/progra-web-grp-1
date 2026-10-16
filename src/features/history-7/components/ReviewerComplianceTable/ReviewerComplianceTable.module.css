@@ -1,0 +1,46 @@
+.delivered {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.progress {
+  display: flex;
+  min-width: 200px;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.track {
+  display: block;
+  flex: 1;
+  height: 12px;
+  background: var(--color-primary-soft);
+}
+
+.fill {
+  display: block;
+  height: 100%;
+}
+
+.fillSuccess {
+  background: var(--color-success);
+}
+
+.fillWarning {
+  background: var(--color-warning);
+}
+
+.fillDanger {
+  background: var(--color-danger);
+}
+
+.value {
+  min-width: 48px;
+  font-weight: 700;
+  text-align: right;
+}

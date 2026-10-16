@@ -64,6 +64,37 @@
   color: var(--color-text-muted);
 }
 
+.workTags .recommendationTag {
+  border: 1px solid var(--color-warning);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.deliveryPanel {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--font-size-help);
+}
+
+.deliveryPanel div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+}
+
+.deliveryPanel dt {
+  color: var(--color-text-muted);
+}
+
+.deliveryPanel dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
 .workDetails h1 {
   margin: 0 0 var(--space-2);
   font-size: var(--font-size-subtitle);
@@ -151,10 +182,23 @@
   font: inherit;
 }
 
+.scoreField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 .scoreInput {
   min-height: 34px;
   padding: var(--space-1);
   text-align: center;
+}
+
+.fieldError {
+  color: var(--color-danger);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
 }
 
 .criterionComment {
@@ -379,7 +423,7 @@ textarea:disabled {
     text-align: left;
   }
 
-  .scoreInput {
+  .scoreField {
     grid-column: 2;
   }
 
@@ -395,4 +439,11 @@ textarea:disabled {
   .formActions {
     width: 100%;
   }
+}
+
+.formFields {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }

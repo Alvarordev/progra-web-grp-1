@@ -6,12 +6,14 @@
 
 .navigationContent {
   display: flex;
-  width: min(100% - var(--space-8), var(--content-width));
+  width: 100%;
+  max-width: var(--content-width);
   min-height: 52px;
   align-items: stretch;
   justify-content: space-between;
   gap: var(--space-5);
   margin: 0 auto;
+  padding: 0 var(--space-4);
 }
 
 .navigation {
@@ -52,9 +54,10 @@
 
 @media (max-width: 800px) {
   .navigationContent {
-    width: min(100% - var(--space-6), var(--content-width));
+    width: 100%;
     flex-wrap: wrap;
     gap: 0 var(--space-4);
+    padding: 0 var(--space-3);
   }
 
   .navigation {
