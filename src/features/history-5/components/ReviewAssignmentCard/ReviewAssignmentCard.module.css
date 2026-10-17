@@ -51,7 +51,7 @@
 .badge-pendiente {
   border-color: var(--color-warning);
   background: var(--color-warning-soft);
-  color: #855612;
+  color: var(--color-warning-strong);
 }
 
 .badge-vencida {

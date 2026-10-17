@@ -70,7 +70,7 @@
 }
 
 .pendingStat strong {
-  color: #855612;
+  color: var(--color-warning-strong);
 }
 
 .completedStat {
@@ -142,11 +142,6 @@
   font-size: var(--font-size-help);
 }
 
-.emp{
-  display: flex;
-  color: var(--color-text-muted);
-  white-space: pointer;
-}
 @media (max-width: 900px) {
   .headingRow {
     flex-direction: column;
