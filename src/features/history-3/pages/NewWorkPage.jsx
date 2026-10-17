@@ -1,27 +1,17 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
 import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
-import { thematicAxes, workTypes } from '../data/works.js'
+import { sampleWork, thematicAxes, workTypes } from '../data/works.js'
 import styles from './NewWorkPage.module.css'
 
 const MAX_SUMMARY = 1500
 const MIN_KEYWORDS = 3
 
 const steps = ['1. Datos generales', '2. Coautores', '3. Envío']
-
-const initialWork = {
-  titulo: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
-  tipo: 'Artículo completo',
-  eje: 'Inteligencia artificial y datos',
-  resumen:
-    'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros académicos de cinco cohortes.',
-  palabrasClave: ['deserción universitaria', 'aprendizaje supervisado', 'analítica educativa'],
-  enlace: 'https://drive.ulima.edu.pe/trb-2026-058/articulo.pdf',
-}
 
 function validateWork(trabajo) {
   const errores = {}
@@ -45,7 +35,8 @@ function validateWork(trabajo) {
 
 function NewWorkPage() {
   const navigate = useNavigate()
-  const [trabajo, setTrabajo] = useState(initialWork)
+  const location = useLocation()
+  const [trabajo, setTrabajo] = useState(location.state?.trabajo ?? sampleWork)
   const [nuevaPalabra, setNuevaPalabra] = useState('')
   const [errores, setErrores] = useState({})
   const [borradorGuardado, setBorradorGuardado] = useState(false)
@@ -95,7 +86,7 @@ function NewWorkPage() {
     setErrores(nuevosErrores)
 
     if (Object.keys(nuevosErrores).length === 0) {
-      navigate('/autor/nuevo-trabajo/coautores')
+      navigate('/autor/nuevo-trabajo/coautores', { state: { trabajo } })
     }
   }
 
@@ -106,8 +97,8 @@ function NewWorkPage() {
           ✓ Borrador guardado el 18/09/2026 a las 19:42. Aún no ha sido enviado al comité.{' '}
           <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
-        <DeadlineNotice restante="Faltan 12 días">
-          Recepción abierta. Cierra el 30/09/2026 a las 23:59.
+        <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
+          Cierra el 30/09/2026 a las 23:59.
         </DeadlineNotice>
 
         <div className={styles.pageHeading}>
@@ -121,7 +112,7 @@ function NewWorkPage() {
             <Button onClick={() => setBorradorGuardado(false)} variant="secondary">
               Seguir editando
             </Button>
-            <Button onClick={() => navigate('/autor/nuevo-trabajo/coautores')} variant="primary">
+            <Button onClick={() => navigate('/autor/nuevo-trabajo/coautores', { state: { trabajo } })} variant="primary">
               Enviar al comité
             </Button>
           </div>
@@ -168,8 +159,8 @@ function NewWorkPage() {
 
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
-      <DeadlineNotice restante="Faltan 12 días · 04:11 h">
-        Recepción abierta. Cierra el 30/09/2026 a las 23:59.
+      <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
+        Cierra el 30/09/2026 a las 23:59.
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>

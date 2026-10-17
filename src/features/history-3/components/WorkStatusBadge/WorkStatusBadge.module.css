@@ -3,7 +3,7 @@
   min-height: 24px;
   align-items: center;
   padding: 2px var(--space-2);
-  border: 1px solid currentColor;
+  border: 1px solid;
   border-radius: var(--radius-small);
   font-size: var(--font-size-label);
   font-weight: 600;
@@ -11,27 +11,37 @@
   white-space: nowrap;
 }
 
-.borrador {
-  background: var(--color-bg);
+.borrador,
+.lectura {
+  border-color: #e9e5e0;
+  background: #f3f1ee;
   color: var(--color-text-muted);
 }
 
+.lectura {
+  font-weight: 500;
+}
+
 .enviado {
+  border-color: var(--color-info);
   background: var(--color-info-soft);
-  color: var(--color-info);
+  color: #2f5a8a;
 }
 
 .revision {
+  border-color: #e3c79e;
   background: var(--color-warning-soft);
   color: #855612;
 }
 
 .aceptado {
+  border-color: var(--color-success);
   background: var(--color-success-soft);
   color: var(--color-success);
 }
 
 .rechazado {
+  border-color: var(--color-danger);
   background: var(--color-danger-soft);
   color: var(--color-danger);
 }

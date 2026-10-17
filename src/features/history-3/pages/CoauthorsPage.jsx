@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
+import { hasWorkWithTitle, sampleWork, sendWork } from '../data/works.js'
 import styles from './CoauthorsPage.module.css'
 
 const MAX_COAUTHORS = 4
@@ -31,11 +32,14 @@ const emptyCoauthor = { nombre: '', correo: '', institucion: 'Universidad de Lim
 
 function CoauthorsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const trabajo = location.state?.trabajo ?? sampleWork
   const [autores, setAutores] = useState(initialAuthors)
   const [correspondencia, setCorrespondencia] = useState(initialAuthors[0].correo)
   const [nuevoCoautor, setNuevoCoautor] = useState(emptyCoauthor)
   const [errores, setErrores] = useState({})
   const [mensaje, setMensaje] = useState('')
+  const [errorEnvio, setErrorEnvio] = useState('')
 
   const cantidadCoautores = autores.length - 1
   const limiteAlcanzado = cantidadCoautores >= MAX_COAUTHORS
@@ -70,6 +74,17 @@ function CoauthorsPage() {
     setMensaje(`✓ Se agregó a ${nuevoCoautor.nombre.trim()} como coautor.`)
   }
 
+  function handleSend() {
+    if (hasWorkWithTitle(trabajo.titulo)) {
+      setMensaje('')
+      setErrorEnvio('Ya envió un trabajo con este título. Cambie el título en los datos generales para continuar.')
+      return
+    }
+
+    const codigo = sendWork(trabajo, autores, correspondencia)
+    navigate('/autor/trabajos', { state: { enviado: codigo } })
+  }
+
   function handleRemove(correo) {
     setAutores((autoresActuales) => autoresActuales.filter((autor) => autor.correo !== correo))
     if (correspondencia === correo) setCorrespondencia(initialAuthors[0].correo)
@@ -78,27 +93,27 @@ function CoauthorsPage() {
 
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
-      <DeadlineNotice restante="Faltan 12 días · 04:11 h">
-        Recepción abierta. Cierra el 30/09/2026 a las 23:59.
+      <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
+        Cierra el 30/09/2026 a las 23:59.
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>
         <div>
           <h1>Coautores</h1>
-          <p>Paso 2 de 3 · TRB-2026-058 · Artículo completo (hasta {MAX_COAUTHORS} coautores)</p>
+          <p>Paso 2 de 3 · TRB-2026-058 · {trabajo.tipo} (hasta {MAX_COAUTHORS} coautores)</p>
         </div>
         <div className={styles.actions}>
-          <Button onClick={() => navigate('/autor/nuevo-trabajo')} variant="secondary">
+          <Button onClick={() => navigate('/autor/nuevo-trabajo', { state: { trabajo } })} variant="secondary">
             Volver a datos generales
           </Button>
-          <Button onClick={() => setMensaje('✓ Coautores confirmados. El siguiente paso es el envío al comité.')} variant="primary">
+          <Button onClick={handleSend} variant="primary">
             Continuar
           </Button>
         </div>
       </div>
 
-      <p aria-live="polite" className={styles.feedback}>
-        {mensaje}
+      <p aria-live="polite" className={errorEnvio ? styles.sendError : styles.feedback}>
+        {errorEnvio || mensaje}
       </p>
 
       <div className={styles.layout}>
