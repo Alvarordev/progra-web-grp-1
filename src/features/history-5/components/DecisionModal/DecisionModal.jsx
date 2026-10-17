@@ -9,6 +9,9 @@ const opciones = [
   { value: 'rechazar', label: 'Rechazar', descripcion: 'No participa en esta edición.' },
 ]
 
+// Clase de la opción elegida: verde para Aceptar y rojo para Rechazar, como pide la maqueta.
+const clasesSeleccion = { aceptar: styles.seleccionadaAceptar, rechazar: styles.seleccionadaRechazar }
+
 // Texto sugerido con la forma de la maqueta: la decisión y las observaciones de los revisores.
 function construirTexto(decision, enviados) {
   const frases = []
@@ -90,122 +93,124 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
 
   return (
     <Modal alCerrar={alCerrar} claseTitulo={styles.titulo} titulo="Decisión final del comité">
-      <p className={styles.subtitulo}>
-        {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
-      </p>
-
-      {publicada && (
-        <p className={styles.publicada} role="status">
-          Decisión publicada el {formatDate(decisionGuardada.updatedAt)}. Ya no se puede modificar.
+      <div className={styles.body}>
+        <p className={styles.subtitulo}>
+          {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
         </p>
-      )}
 
-      <fieldset className={styles.fieldset} disabled={publicada || guardando}>
-        <legend className={styles.legendOculta}>Decisión *</legend>
-        <div className={styles.opciones}>
-          {opciones.map((opcion) => (
-            <label
-              className={`${styles.opcion} ${decision === opcion.value ? styles.seleccionada : ''}`}
-              key={opcion.value}
-            >
-              <input
-                checked={decision === opcion.value}
-                name="decision-final"
-                onChange={() => elegirDecision(opcion.value)}
-                type="radio"
-                value={opcion.value}
-              />
-              <span>
-                <strong>{opcion.label}</strong>
-                <small>{opcion.descripcion}</small>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+        {publicada && (
+          <p className={styles.publicada} role="status">
+            Decisión publicada el {formatDate(decisionGuardada.updatedAt)}. Ya no se puede modificar.
+          </p>
+        )}
 
-      <div className={styles.encabezadoCampo}>
-        <label className={styles.etiquetaCampo} htmlFor="retroalimentacion-autor">
-          Retroalimentación al autor *
-        </label>
-        <Button
-          className={styles.enlace}
-          disabled={publicada || guardando}
-          onClick={restaurarTexto}
-          size="small"
-          type="button"
-          variant="tertiary"
-        >
-          Restaurar texto de los revisores
-        </Button>
-      </div>
-      <textarea
-        className={styles.textarea}
-        id="retroalimentacion-autor"
-        onChange={(event) => {
-          setFeedback(event.target.value)
-          setTextoAutomatico(false)
-        }}
-        placeholder="Pendiente: se redacta con los comentarios de los revisores."
-        readOnly={publicada || guardando}
-        rows="5"
-        value={feedback}
-      />
-      <p className={styles.nota}>
-        {nota}
-        {pendientes.length > 0 && ` Pendientes: ${pendientes.join(', ')}.`}
-      </p>
-
-      {errores.length > 0 && (
-        <div className={styles.error} role="alert">
-          <strong>Revise estos campos:</strong>
-          <ul>
-            {errores.map((error) => <li key={error}>{error}</li>)}
-          </ul>
-        </div>
-      )}
-
-      {aviso && <p className={styles.estado} role="status">{aviso}</p>}
-
-      {!publicada && (
-        <p className={styles.aviso}>
-          Al publicar, el autor de correspondencia recibirá un correo y el resultado será visible en su detalle del trabajo. La decisión no se puede modificar después.
-        </p>
-      )}
-
-      {confirmando ? (
-        <div className={styles.confirmacion}>
-          <p>¿Publicar la decisión? Después no se podrá modificar.</p>
-          <div className={styles.acciones}>
-            <Button disabled={guardando} onClick={() => setConfirmando(false)} type="button" variant="secondary">
-              Volver
-            </Button>
-            <Button loading={guardando} onClick={() => guardar('published')} type="button" variant="primary">
-              Sí, publicar decisión
-            </Button>
+        <fieldset className={styles.fieldset} disabled={publicada || guardando}>
+          <legend className={styles.legendOculta}>Decisión *</legend>
+          <div className={styles.opciones}>
+            {opciones.map((opcion) => (
+              <label
+                className={`${styles.opcion} ${decision === opcion.value ? clasesSeleccion[opcion.value] : ''}`}
+                key={opcion.value}
+              >
+                <input
+                  checked={decision === opcion.value}
+                  name="decision-final"
+                  onChange={() => elegirDecision(opcion.value)}
+                  type="radio"
+                  value={opcion.value}
+                />
+                <span>
+                  <strong>{opcion.label}</strong>
+                  <small>{opcion.descripcion}</small>
+                </span>
+              </label>
+            ))}
           </div>
-        </div>
-      ) : publicada ? (
-        <div className={styles.acciones}>
-          <Button onClick={alCerrar} type="button" variant="secondary">Cerrar</Button>
-        </div>
-      ) : (
-        <div className={styles.acciones}>
-          <Button onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
+        </fieldset>
+
+        <div className={styles.encabezadoCampo}>
+          <label className={styles.etiquetaCampo} htmlFor="retroalimentacion-autor">
+            Retroalimentación al autor *
+          </label>
           <Button
             className={styles.enlace}
-            disabled={guardando}
-            onClick={() => guardar('draft')}
+            disabled={publicada || guardando}
+            onClick={restaurarTexto}
+            size="small"
             type="button"
             variant="tertiary"
           >
-            Guardar sin publicar
-          </Button>
-          <Button disabled={guardando} onClick={pedirPublicar} type="button" variant="primary">
-            Publicar decisión
+            Restaurar texto de los revisores
           </Button>
         </div>
-      )}
+        <textarea
+          className={styles.textarea}
+          id="retroalimentacion-autor"
+          onChange={(event) => {
+            setFeedback(event.target.value)
+            setTextoAutomatico(false)
+          }}
+          placeholder="Pendiente: se redacta con los comentarios de los revisores."
+          readOnly={publicada || guardando}
+          rows="5"
+          value={feedback}
+        />
+        <p className={styles.nota}>
+          {nota}
+          {pendientes.length > 0 && ` Pendientes: ${pendientes.join(', ')}.`}
+        </p>
+
+        {errores.length > 0 && (
+          <div className={styles.error} role="alert">
+            <strong>Revise estos campos:</strong>
+            <ul>
+              {errores.map((error) => <li key={error}>{error}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {aviso && <p className={styles.estado} role="status">{aviso}</p>}
+
+        {!publicada && (
+          <p className={styles.aviso}>
+            Al publicar, el autor de correspondencia recibirá un correo y el resultado será visible en su detalle del trabajo. La decisión no se puede modificar después.
+          </p>
+        )}
+
+        {confirmando ? (
+          <div className={styles.confirmacion}>
+            <p>¿Publicar la decisión? Después no se podrá modificar.</p>
+            <div className={styles.acciones}>
+              <Button disabled={guardando} onClick={() => setConfirmando(false)} type="button" variant="secondary">
+                Volver
+              </Button>
+              <Button loading={guardando} onClick={() => guardar('published')} type="button" variant="primary">
+                Sí, publicar decisión
+              </Button>
+            </div>
+          </div>
+        ) : publicada ? (
+          <div className={styles.acciones}>
+            <Button onClick={alCerrar} type="button" variant="secondary">Cerrar</Button>
+          </div>
+        ) : (
+          <div className={styles.acciones}>
+            <Button onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
+            <Button
+              className={styles.enlace}
+              disabled={guardando}
+              onClick={() => guardar('draft')}
+              type="button"
+              variant="tertiary"
+            >
+              Guardar sin publicar
+            </Button>
+            <Button disabled={guardando} onClick={pedirPublicar} type="button" variant="primary">
+              Publicar decisión
+            </Button>
+          </div>
+        )}
+      </div>
     </Modal>
   )
 }

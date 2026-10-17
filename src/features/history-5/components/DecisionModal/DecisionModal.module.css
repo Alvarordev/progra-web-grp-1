@@ -2,15 +2,20 @@
   font-family: var(--font-heading);
 }
 
+/* Relleno del contenido bajo el encabezado, igual que en los demás modales del proyecto. */
+.body {
+  padding: var(--space-5);
+}
+
 .subtitulo {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   color: var(--color-text-muted);
   font-size: var(--font-size-help);
 }
 
 .fieldset {
   min-width: 0;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   padding: 0;
   border: 0;
 }
@@ -30,18 +35,25 @@
 
 .opciones {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .opcion {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
   cursor: pointer;
+}
+
+.opcion input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 
 .opcion span {
@@ -55,15 +67,47 @@
   font-size: var(--font-size-label);
 }
 
+/* Aceptar marcado: verde, como en la maqueta. */
+.seleccionadaAceptar {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.seleccionadaAceptar input {
+  accent-color: var(--color-success);
+}
+
+/* Rechazar marcado: rojo. */
+.seleccionadaRechazar {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.seleccionadaRechazar input {
+  accent-color: var(--color-danger);
+}
+
+.seleccionadaRechazar strong {
+  color: var(--color-danger);
+}
+
 .encabezadoCampo {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
   font-size: var(--font-size-help);
   font-weight: 600;
+}
+
+.etiquetaCampo {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
 .textarea {
@@ -71,6 +115,7 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
+  min-height: 144px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
   background: var(--color-surface);
@@ -78,18 +123,22 @@
   font-family: var(--font-heading);
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);
-  padding: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.textarea:read-only {
+  background: var(--color-bg);
 }
 
 .nota {
-  margin: var(--space-1) 0 var(--space-4);
+  margin: var(--space-2) 0 var(--space-5);
   color: var(--color-text-muted);
   font-size: var(--font-size-label);
 }
 
 .aviso {
-  margin: 0 0 var(--space-4);
-  padding: var(--space-3);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4);
   border: 1px solid var(--color-warning);
   background: var(--color-warning-soft);
   color: var(--color-warning);
@@ -137,27 +186,6 @@
 
 .confirmacion p {
   margin: 0;
-}
-
-.textarea:read-only {
-  background: var(--color-bg);
-}
-
-.seleccionada {
-  border-color: var(--color-success);
-  background: var(--color-success-soft);
-}
-
-.opcion input {
-  accent-color: var(--color-success);
-}
-
-.etiquetaCampo {
-  font-size: var(--font-size-label);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 .enlace {
