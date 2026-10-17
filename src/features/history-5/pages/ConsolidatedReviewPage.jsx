@@ -11,6 +11,7 @@ import ConsolidatedScoreTable from '../components/ConsolidatedScoreTable/Consoli
 import ReviewerCommentsPanel from '../components/ReviewerCommentsPanel/ReviewerCommentsPanel.jsx'
 import DecisionModal from '../components/DecisionModal/DecisionModal.jsx'
 import { assignmentsByWork } from '../data/assignmentsByWork.js'
+import { workDocumentUrl } from '../data/workDocument.js'
 import { buildConsolidation } from '../utils/consolidation.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
@@ -85,7 +86,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 </div>
 
                 <div className={styles.actions}>
-                  <Button variant="secondary" type="button">
+                  <Button variant="secondary" type="button" onClick={() => window.open(workDocumentUrl, '_blank', 'noopener')}>
                     Ver documento
                   </Button>
                   <Button variant="primary" type="button" onClick={() => setDecisionAbierta(true)}>

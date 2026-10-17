@@ -8,6 +8,7 @@ import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavi
 import Button from '../../../core/ui/Button/Button.jsx'
 import { calculateWeightedAverage, formatTenth, isValidScore } from '../utils/scoring.js'
 import { getRecommendationLabel, recommendationOptions } from '../utils/recommendations.js'
+import { workDocumentUrl } from '../data/workDocument.js'
 import styles from './EvaluationPage.module.css'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
@@ -326,7 +327,7 @@ function EvaluationScreen({ codigo }) {
               <Button
                 variant="secondary"
                 type="button"
-                onClick={() => setNotice('El enlace al documento se agregará cuando se conecten los datos del trabajo.')}
+                onClick={() => window.open(workDocumentUrl, '_blank', 'noopener')}
               >
                 Abrir documento
               </Button>
