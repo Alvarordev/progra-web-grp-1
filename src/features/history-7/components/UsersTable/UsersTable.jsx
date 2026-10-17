@@ -19,7 +19,7 @@ function getStatusLabel(usuario) {
   return usuario.femenino ? 'Activa' : 'Activo'
 }
 
-function UsersTable({ alBloquear, alReactivar, usuarios }) {
+function UsersTable({ alBloquear, alEditar, alReactivar, usuarios, deshabilitado = false }) {
   return (
     <DataTable caption="Listado de usuarios">
       <thead>
@@ -62,12 +62,25 @@ function UsersTable({ alBloquear, alReactivar, usuarios }) {
             </td>
             <td data-align="right">
               <div className={styles.actions}>
-                <Button size="small" type="button" variant="tertiary">
+                <Button
+                  disabled={deshabilitado}
+                  aria-label={`Editar a ${usuario.nombre}`}
+                  onClick={() => alEditar(usuario)}
+                  size="small"
+                  type="button"
+                  variant="tertiary"
+                >
                   Editar
                 </Button>
+                {usuario.rol !== 'Comité' && (
+                  <span aria-hidden="true" className={styles.separator}>
+                    ·
+                  </span>
+                )}
                 {usuario.rol !== 'Comité' &&
                   (usuario.bloqueado ? (
                     <Button
+                  disabled={deshabilitado}
                       onClick={() => alReactivar(usuario)}
                       size="small"
                       type="button"
@@ -77,6 +90,7 @@ function UsersTable({ alBloquear, alReactivar, usuarios }) {
                     </Button>
                   ) : (
                     <Button
+                  disabled={deshabilitado}
                       onClick={() => alBloquear(usuario)}
                       size="small"
                       type="button"

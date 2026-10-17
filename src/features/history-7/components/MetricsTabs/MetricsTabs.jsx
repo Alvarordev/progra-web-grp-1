@@ -7,9 +7,12 @@ const tabs = [
   { label: 'Usuarios', to: '/usuarios' },
 ]
 
-function MetricsTabs() {
+function MetricsTabs({ enEncabezado = false }) {
   return (
-    <nav aria-label="Secciones del tablero" className={styles.tabs}>
+    <nav
+      aria-label="Secciones del tablero"
+      className={`${styles.tabs} ${enEncabezado ? styles.inline : ''}`}
+    >
       {tabs.map((tab) => (
         <NavLink
           className={({ isActive }) =>

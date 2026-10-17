@@ -1,46 +1,43 @@
 .filters {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
 }
 
-.field {
-  display: flex;
-  min-width: 180px;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.field label {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-label);
-  font-weight: 600;
-  line-height: var(--line-height-label);
-  text-transform: uppercase;
-}
-
-.field input,
-.field select {
-  min-height: 40px;
-  padding: var(--space-2) var(--space-3);
+.select,
+.search {
+  min-height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
-  background: var(--color-surface);
+  background-color: var(--color-surface);
   color: var(--color-text);
   font: inherit;
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
 }
 
-.field input:focus-visible,
-.field select:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+.select {
+  min-width: 170px;
+  padding: var(--space-1) var(--space-8) var(--space-1) var(--space-3);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+  background-position: right var(--space-3) center;
+  background-repeat: no-repeat;
+  cursor: pointer;
 }
 
 .search {
   min-width: 260px;
   margin-left: auto;
+  padding: var(--space-1) var(--space-3);
+}
+
+.select:focus-visible,
+.search:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
 }
 
 .pagination {
@@ -50,7 +47,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   margin-top: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -64,11 +61,11 @@
 .paginationButtons {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 @media (max-width: 600px) {
-  .field,
+  .select,
   .search {
     min-width: 100%;
     margin-left: 0;

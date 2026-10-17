@@ -113,11 +113,39 @@ src/
   horizontales; toma como referencia el comportamiento adaptable de
   `EditionSettingsPage.module.css`.
 
+## Persistencia de estados
+
+- Usa `src/core/utils/` para la persistencia compartida. Consulta su
+  [guía de uso](src/core/utils/README.md) antes de agregar otro estado.
+- Las features deben consumir los repositorios de
+  `src/core/utils/repositories.js`; no accedas directamente a `localStorage`
+  desde páginas o componentes.
+- Define valores iniciales y validadores en `src/core/utils/states/`. Registra
+  cada repositorio con un nombre único y estable en `repositories.js`.
+- Mantén el contrato asíncrono `get()`, `save(value)` y `remove()` para poder
+  sustituir los repositorios locales por una API que acceda a SQL desde el
+  backend, sin cambiar las llamadas de las pantallas.
+- Usa el adaptador común y la fábrica de repositorios para serialización JSON,
+  claves con prefijo `congress:`, versiones y validación. Un cambio de versión
+  requiere una migración explícita; no borres datos incompatibles automáticamente.
+- Maneja carga y errores en la interfaz y confirma el guardado solo después
+  de que termine `await save(...)`. No permitas cambios durante carga o guardado
+  que puedan sobrescribirse.
+- Persiste datos de negocio o preferencias, no modales, mensajes ni errores
+  de interfaz. La sesión local es una identidad de demostración: no guardes
+  contraseñas ni tokens y no la uses como autorización real.
+- Elimina únicamente el estado correspondiente con `remove()`; no uses
+  `localStorage.clear()`.
+
 ## Commits y verificación
 
 - Mantén los commits pequeños, atómicos y enfocados en una sola feature o
   cambio coherente. No mezcles historias distintas ni cambios ajenos al trabajo.
 - Usa mensajes breves y descriptivos que indiquen qué se agregó o corrigió.
+- No agregues ni mantengas archivos de tests, incluidos tests unitarios, ni
+  dependencias o scripts para ejecutarlos. Realiza verificaciones puntuales
+  sin conservarlas en el repositorio. Para persistencia, comprueba guardado,
+  recuperación tras recargar o reiniciar y eliminación de datos.
 - Antes de dar por terminada una implementación, ejecuta las comprobaciones
   disponibles que correspondan:
 
