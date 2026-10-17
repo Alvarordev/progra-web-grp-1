@@ -1,333 +1,362 @@
-import useStoredState from '../../../core/utils/useStoredState.js'
 import { useState, useMemo } from 'react'
 import Header from '../../../core/ui/Header/Header.jsx'
 import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import Modal from '../../../core/ui/Modal/Modal.jsx'
+import useStoredState from '../../../core/utils/useStoredState.js'
 import { reviewersRepository } from '../../../core/utils/repositories.js'
+import { initialReviewers } from '../../../core/utils/states/worksAssignmentState.js'
 import styles from './ReviewersListPage.module.css'
 
-const committeeUser = {
+const usuarioComite = {
   nombre: 'Dra. Ana Salazar Bermúdez',
-  rol: 'Comité organizador',
+  rol: 'Rol: Comité organizador',
   iniciales: 'AS',
 }
 
 export default function ReviewersListPage() {
-  const reviewersState = useStoredState(reviewersRepository, [])
-  const reviewers = reviewersState.value
-  const busy = [reviewersState].some((state) => state.loading || state.saving)
-  const storageError = [reviewersState].find((state) => state.error)?.error
+  const estadoRevisores = useStoredState(reviewersRepository, initialReviewers)
+  const listaRevisores = estadoRevisores.value
+  const ocupado = estadoRevisores.loading || estadoRevisores.saving
+  const errorAlmacenamiento = estadoRevisores.error
 
-  const [selectedLinea, setSelectedLinea] = useState('todas')
-  const [selectedInstitucion, setSelectedInstitucion] = useState('todas')
-  const [onlyOverdue, setOnlyOverdue] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 8
+  const [lineaSeleccionada, establecerLineaSeleccionada] = useState('todas')
+  const [institucionSeleccionada, establecerInstitucionSeleccionada] = useState('todas')
+  const [soloVencidas, establecerSoloVencidas] = useState(false)
+  const [textoBusqueda, establecerTextoBusqueda] = useState('')
+  const [paginaActual, establecerPaginaActual] = useState(1)
+  const elementosPorPagina = 8
 
-  // Modal de invitar revisor
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-  const [inviteForm, setInviteForm] = useState({
+  const [modalInvitarAbierto, establecerModalInvitarAbierto] = useState(false)
+  const [formularioInvitacion, establecerFormularioInvitacion] = useState({
     nombre: '',
     correo: '',
     institucion: 'Universidad de Lima',
     lineasInteres: '',
   })
-  const [inviteSuccess, setInviteSuccess] = useState('')
+  const [mensajeExito, establecerMensajeExito] = useState('')
 
-  // Totales
-  const totalAsignadas = reviewers.reduce((sum, r) => sum + r.asignadas, 0)
-  const totalVencidas = reviewers.reduce((sum, r) => sum + r.vencidas, 0)
-  const countWithOverdue = reviewers.filter((r) => r.vencidas > 0).length
+  const totalAsignadas = listaRevisores.reduce((suma, revisor) => suma + revisor.asignadas, 0)
+  const totalVencidas = listaRevisores.reduce((suma, revisor) => suma + revisor.vencidas, 0)
+  const cantidadConVencidas = listaRevisores.filter((revisor) => revisor.vencidas > 0).length
 
-  // Filtrado
-  const filteredReviewers = useMemo(() => {
-    return reviewers.filter((r) => {
-      if (onlyOverdue && r.vencidas === 0) return false
-      if (selectedLinea !== 'todas' && !r.lineasInteres.includes(selectedLinea)) return false
-      if (selectedInstitucion !== 'todas' && r.institucion !== selectedInstitucion) return false
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase()
-        const matchesName = r.nombre.toLowerCase().includes(query)
-        const matchesInst = r.institucion.toLowerCase().includes(query)
-        const matchesLine = r.lineasInteres.some((l) => l.toLowerCase().includes(query))
-        if (!matchesName && !matchesInst && !matchesLine) return false
+  const revisoresFiltrados = useMemo(() => {
+    return listaRevisores.filter((revisor) => {
+      if (soloVencidas && revisor.vencidas === 0) return false
+      if (lineaSeleccionada !== 'todas' && !revisor.lineasInteres.includes(lineaSeleccionada)) return false
+      if (institucionSeleccionada !== 'todas' && revisor.institucion !== institucionSeleccionada) return false
+      if (textoBusqueda.trim()) {
+        const consulta = textoBusqueda.toLowerCase()
+        const coincideNombre = revisor.nombre.toLowerCase().includes(consulta)
+        const coincideInstitucion = revisor.institucion.toLowerCase().includes(consulta)
+        const coincideLinea = revisor.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
+        if (!coincideNombre && !coincideInstitucion && !coincideLinea) return false
       }
       return true
     })
-  }, [reviewers, onlyOverdue, selectedLinea, selectedInstitucion, searchQuery])
+  }, [listaRevisores, soloVencidas, lineaSeleccionada, institucionSeleccionada, textoBusqueda])
 
-  // Paginación
-  const totalPages = Math.max(1, Math.ceil(filteredReviewers.length / itemsPerPage))
-  const paginatedReviewers = filteredReviewers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const totalPaginas = Math.max(1, Math.ceil(revisoresFiltrados.length / elementosPorPagina))
+  const revisoresPaginados = revisoresFiltrados.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
+  )
 
-  const handleSendInvite = async (e) => {
-    e.preventDefault()
-    if (busy || storageError) return
-    if (!inviteForm.nombre.trim() || !inviteForm.correo.trim()) return
+  const manejarEnvioInvitacion = async (evento) => {
+    evento.preventDefault()
+    if (ocupado || errorAlmacenamiento) return
+    if (!formularioInvitacion.nombre.trim() || !formularioInvitacion.correo.trim()) return
 
-    const newRev = {
+    const nuevoRevisor = {
       id: `rev-${Date.now()}`,
-      nombre: inviteForm.nombre.trim(),
-      institucion: inviteForm.institucion,
-      lineasInteres: inviteForm.lineasInteres.split(',').map((s) => s.trim()).filter(Boolean),
+      nombre: formularioInvitacion.nombre.trim(),
+      institucion: formularioInvitacion.institucion,
+      lineasInteres: formularioInvitacion.lineasInteres
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
       asignadas: 0,
       entregadas: 0,
       vencidas: 0,
     }
 
-    const updated = [...reviewers, newRev]
-    if (!await reviewersState.save(updated).catch(() => false)) return
+    const actualizados = [...listaRevisores, nuevoRevisor]
+    const guardado = await estadoRevisores.save(actualizados).catch(() => false)
+    if (!guardado) return
 
-    setIsInviteModalOpen(false)
-    setInviteForm({
+    establecerModalInvitarAbierto(false)
+    establecerFormularioInvitacion({
       nombre: '',
       correo: '',
       institucion: 'Universidad de Lima',
       lineasInteres: '',
     })
-    setInviteSuccess(`Invitación enviada exitosamente a ${newRev.nombre}.`)
-    setTimeout(() => setInviteSuccess(''), 5000)
+    establecerMensajeExito(`Invitación enviada exitosamente a ${nuevoRevisor.nombre}.`)
+    setTimeout(() => establecerMensajeExito(''), 5000)
   }
 
   return (
-    <div className={styles.page}>
-      <Header />
-      <CommitteeNavigation rutaActiva="/revisores" usuario={committeeUser} />
+    <div className={styles.pagina}>
+      <Header estado="En revisión" />
+      <CommitteeNavigation rutaActiva="/revisores" usuario={usuarioComite} />
 
-      <main className={styles.mainContent}>
-        {busy && <p role="status">Cargando o guardando datos…</p>}
-        {storageError && <p role="alert">{storageError}</p>}
-        <fieldset className={styles.contentFields} disabled={busy || Boolean(storageError)}>
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Revisores</h1>
-            <p className={styles.subtitle}>
-              {reviewers.length} revisores registrados · {totalAsignadas} revisiones asignadas · {totalVencidas} vencidas
-            </p>
-          </div>
-          <div>
-            <Button variant="primary" onClick={() => setIsInviteModalOpen(true)}>
-              Invitar revisor
-            </Button>
-          </div>
-        </div>
+      <main className={styles.contenidoPrincipal}>
+        {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
 
-        {inviteSuccess && (
-          <div className={styles.notificationSuccess}>
-            <span>✓ {inviteSuccess}</span>
+        <fieldset className={styles.grupoCampos} disabled={ocupado || Boolean(errorAlmacenamiento)}>
+          <div className={styles.filaEncabezado}>
+            <div>
+              <h1 className={styles.titulo}>Revisores</h1>
+              <p className={styles.subtitulo}>
+                {listaRevisores.length} revisores registrados · {totalAsignadas} revisiones asignadas · {totalVencidas} vencidas
+              </p>
+            </div>
+            <div>
+              <Button variant="secondary" type="button" onClick={() => establecerModalInvitarAbierto(true)}>
+                Invitar revisor
+              </Button>
+            </div>
           </div>
-        )}
 
-        {/* Barra de filtros */}
-        <div className={styles.filterBar}>
-          <div className={styles.filterControls}>
-            <label className={styles.selectLabel}>
-              Línea:
+          {mensajeExito ? (
+            <div className={styles.notificacionExito}>
+              <span>✓ {mensajeExito}</span>
+            </div>
+          ) : null}
+
+          <div className={styles.barraFiltros}>
+            <div className={styles.controlesFiltro}>
               <select
-                className={styles.filterSelect}
-                value={selectedLinea}
-                onChange={(e) => {
-                  setSelectedLinea(e.target.value)
-                  setCurrentPage(1)
+                aria-label="Filtrar por línea de interés"
+                className={styles.selectorFiltro}
+                value={lineaSeleccionada}
+                onChange={(evento) => {
+                  establecerLineaSeleccionada(evento.target.value)
+                  establecerPaginaActual(1)
                 }}
               >
-                <option value="todas">todas</option>
-                <option value="Ingeniería de software">Ingeniería de software</option>
-                <option value="Inteligencia artificial y datos">Inteligencia artificial y datos</option>
-                <option value="Sostenibilidad y ciudad">Sostenibilidad y ciudad</option>
-                <option value="Innovación y emprendimiento">Innovación y emprendimiento</option>
-                <option value="Salud y sociedad">Salud y sociedad</option>
-                <option value="Economía y mercados">Economía y mercados</option>
+                <option value="todas">Línea: todas</option>
+                <option value="Ingeniería de software">Línea: Ingeniería de software</option>
+                <option value="IA y datos">Línea: IA y datos</option>
+                <option value="Sostenibilidad y ciudad">Línea: Sostenibilidad y ciudad</option>
+                <option value="Innovación">Línea: Innovación</option>
+                <option value="Innovación y emprendimiento">Línea: Innovación y emprendimiento</option>
+                <option value="Salud y sociedad">Línea: Salud y sociedad</option>
+                <option value="Economía y mercados">Línea: Economía y mercados</option>
               </select>
-            </label>
 
-            <label className={styles.selectLabel}>
-              Institución:
               <select
-                className={styles.filterSelect}
-                value={selectedInstitucion}
-                onChange={(e) => {
-                  setSelectedInstitucion(e.target.value)
-                  setCurrentPage(1)
+                aria-label="Filtrar por institución"
+                className={styles.selectorFiltro}
+                value={institucionSeleccionada}
+                onChange={(evento) => {
+                  establecerInstitucionSeleccionada(evento.target.value)
+                  establecerPaginaActual(1)
                 }}
               >
-                <option value="todas">todas</option>
-                <option value="Universidad de Lima">Universidad de Lima</option>
-                <option value="Pontificia Universidad Católica">Pontificia Universidad Católica</option>
-                <option value="Universidad del Pacífico">Universidad del Pacífico</option>
-                <option value="Universidad Nacional de Ingeniería">Universidad Nacional de Ingeniería</option>
-                <option value="Universidad Nacional Mayor de San Marcos">Universidad Nacional Mayor de San Marcos</option>
+                <option value="todas">Institución: todas</option>
+                <option value="Universidad de Lima">Institución: Universidad de Lima</option>
+                <option value="Pontificia Universidad Católica">Institución: Pontificia Universidad Católica</option>
+                <option value="Universidad del Pacífico">Institución: Universidad del Pacífico</option>
+                <option value="Universidad Nacional de Ingeniería">Institución: Universidad Nacional de Ingeniería</option>
+                <option value="Universidad Nacional Mayor de San Marcos">Institución: Universidad Nacional Mayor de San Marcos</option>
               </select>
-            </label>
 
-            <button
-              type="button"
-              className={`${styles.overdueFilterBtn} ${onlyOverdue ? styles.overdueActive : ''}`}
-              onClick={() => {
-                setOnlyOverdue(!onlyOverdue)
-                setCurrentPage(1)
-              }}
-            >
-              Con revisiones vencidas · {countWithOverdue}
-            </button>
-          </div>
-
-          <div className={styles.searchWrapper}>
-            <input
-              type="text"
-              placeholder="Buscar revisor…"
-              className={styles.searchInput}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setCurrentPage(1)
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Tabla de revisores */}
-        <div className={styles.tableWrapper}>
-          <table className={styles.reviewersTable}>
-            <thead>
-              <tr>
-                <th>REVISOR</th>
-                <th>INSTITUCIÓN</th>
-                <th>LÍNEAS DE INTERÉS</th>
-                <th style={{ textAlign: 'center' }}>ASIGNADAS</th>
-                <th style={{ textAlign: 'center' }}>ENTREGADAS</th>
-                <th style={{ textAlign: 'center' }}>VENCIDAS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedReviewers.map((rev) => (
-                <tr key={rev.id}>
-                  <td className={styles.nameCell}>
-                    <strong>{rev.nombre}</strong>
-                  </td>
-                  <td className={styles.instCell}>{rev.institucion}</td>
-                  <td className={styles.linesCell}>
-                    {rev.lineasInteres.join(' · ')}
-                  </td>
-                  <td style={{ textAlign: 'center' }}>{rev.asignadas}</td>
-                  <td style={{ textAlign: 'center' }}>{rev.entregadas}</td>
-                  <td style={{ textAlign: 'center' }}>
-                    {rev.vencidas > 0 ? (
-                      <span className={styles.overdueBadge}>{rev.vencidas}</span>
-                    ) : (
-                      <span className={styles.zeroBadge}>0</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Paginación */}
-        <div className={styles.paginationRow}>
-          <span className={styles.paginationInfo}>
-            Mostrando {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredReviewers.length)} de {filteredReviewers.length} revisores
-          </span>
-          <div className={styles.paginationButtons}>
-            <button
-              className={styles.pageBtn}
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-            >
-              Anterior
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
               <button
-                key={pageNum}
-                className={`${styles.pageNumberBtn} ${currentPage === pageNum ? styles.activePage : ''}`}
-                onClick={() => setCurrentPage(pageNum)}
+                type="button"
+                className={`${styles.botonFiltroVencidas} ${soloVencidas ? styles.filtroVencidasActivo : ''}`}
+                onClick={() => {
+                  establecerSoloVencidas(!soloVencidas)
+                  establecerPaginaActual(1)
+                }}
               >
-                {pageNum}
+                Con revisiones vencidas · {cantidadConVencidas}
               </button>
-            ))}
-            <button
-              className={styles.pageBtn}
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-            >
-              Siguiente
-            </button>
+            </div>
+
+            <div className={styles.contenedorBusqueda}>
+              <input
+                type="text"
+                placeholder="Buscar revisor..."
+                aria-label="Buscar revisor"
+                className={styles.campoBusqueda}
+                value={textoBusqueda}
+                onChange={(evento) => {
+                  establecerTextoBusqueda(evento.target.value)
+                  establecerPaginaActual(1)
+                }}
+              />
+            </div>
           </div>
-        </div>
+
+          <div className={styles.contenedorTabla}>
+            <table className={styles.tablaRevisores}>
+              <thead>
+                <tr>
+                  <th>REVISOR</th>
+                  <th>INSTITUCIÓN</th>
+                  <th>LÍNEAS DE INTERÉS</th>
+                  <th className={styles.columnaDerecha}>ASIGNADAS</th>
+                  <th className={styles.columnaDerecha}>ENTREGADAS</th>
+                  <th className={styles.columnaDerecha}>VENCIDAS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {revisoresPaginados.map((revisor) => (
+                  <tr key={revisor.id}>
+                    <td className={styles.celdaNombre}>
+                      <strong>{revisor.nombre}</strong>
+                    </td>
+                    <td className={styles.celdaInstitucion}>{revisor.institucion}</td>
+                    <td className={styles.celdaLineas}>
+                      {revisor.lineasInteres.join(' · ')}
+                    </td>
+                    <td className={styles.celdaNumero}>{revisor.asignadas}</td>
+                    <td className={styles.celdaEntregadas}>{revisor.entregadas}</td>
+                    <td className={styles.celdaVencidas}>
+                      {revisor.vencidas > 0 ? (
+                        <span className={styles.valorVencidasAlerta}>{revisor.vencidas}</span>
+                      ) : (
+                        <span className={styles.valorCero}>0</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.filaPaginacion}>
+            <span className={styles.infoPaginacion}>
+              Mostrando {revisoresFiltrados.length === 0 ? 0 : (paginaActual - 1) * elementosPorPagina + 1}–{Math.min(paginaActual * elementosPorPagina, revisoresFiltrados.length)} de {revisoresFiltrados.length} revisores
+            </span>
+            <div className={styles.botonesPaginacion}>
+              <button
+                type="button"
+                className={styles.botonPagina}
+                disabled={paginaActual === 1}
+                onClick={() => establecerPaginaActual((pagina) => pagina - 1)}
+              >
+                Anterior
+              </button>
+              {Array.from({ length: totalPaginas }, (_, indice) => indice + 1).map((numeroPagina) => (
+                <button
+                  key={numeroPagina}
+                  type="button"
+                  className={`${styles.botonNumeroPagina} ${paginaActual === numeroPagina ? styles.paginaActiva : ''}`}
+                  onClick={() => establecerPaginaActual(numeroPagina)}
+                >
+                  {numeroPagina}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={styles.botonPagina}
+                disabled={paginaActual === totalPaginas}
+                onClick={() => establecerPaginaActual((pagina) => pagina + 1)}
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </fieldset>
       </main>
 
       <Footer />
 
-      {/* Modal invitar revisor */}
-      {isInviteModalOpen && <Modal
-        alCerrar={() => { if (!busy) setIsInviteModalOpen(false) }}
-        titulo="Invitar revisor al congreso"
-      >
-        <form onSubmit={handleSendInvite} className={styles.inviteForm}>
-          {storageError && <p role="alert">{storageError}</p>}
-          <fieldset className={styles.contentFields} disabled={busy}>
-          <label className={styles.modalLabel}>
-            NOMBRES Y APELLIDOS *
-            <input
-              type="text"
-              required
-              className={styles.modalInput}
-              value={inviteForm.nombre}
-              placeholder="Ej. Dr. Mario Vargas Llosa"
-              onChange={(e) => setInviteForm({ ...inviteForm, nombre: e.target.value })}
-            />
-          </label>
+      {modalInvitarAbierto ? (
+        <Modal
+          alCerrar={() => {
+            if (!ocupado) establecerModalInvitarAbierto(false)
+          }}
+          titulo="Invitar revisor al congreso"
+        >
+          <form onSubmit={manejarEnvioInvitacion} className={styles.formularioInvitacion}>
+            {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
+            <fieldset className={styles.grupoCampos} disabled={ocupado}>
+              <label className={styles.etiquetaModal}>
+                NOMBRES Y APELLIDOS *
+                <input
+                  type="text"
+                  required
+                  className={styles.campoModal}
+                  value={formularioInvitacion.nombre}
+                  placeholder="Ej. Dr. Mario Vargas Llosa"
+                  onChange={(evento) =>
+                    establecerFormularioInvitacion({
+                      ...formularioInvitacion,
+                      nombre: evento.target.value,
+                    })
+                  }
+                />
+              </label>
 
-          <label className={styles.modalLabel}>
-            CORREO ELECTRÓNICO *
-            <input
-              type="email"
-              required
-              className={styles.modalInput}
-              value={inviteForm.correo}
-              placeholder="revisor@universidad.edu.pe"
-              onChange={(e) => setInviteForm({ ...inviteForm, correo: e.target.value })}
-            />
-          </label>
+              <label className={styles.etiquetaModal}>
+                CORREO ELECTRÓNICO *
+                <input
+                  type="email"
+                  required
+                  className={styles.campoModal}
+                  value={formularioInvitacion.correo}
+                  placeholder="revisor@universidad.edu.pe"
+                  onChange={(evento) =>
+                    establecerFormularioInvitacion({
+                      ...formularioInvitacion,
+                      correo: evento.target.value,
+                    })
+                  }
+                />
+              </label>
 
-          <label className={styles.modalLabel}>
-            INSTITUCIÓN *
-            <input
-              type="text"
-              required
-              className={styles.modalInput}
-              value={inviteForm.institucion}
-              onChange={(e) => setInviteForm({ ...inviteForm, institucion: e.target.value })}
-            />
-          </label>
+              <label className={styles.etiquetaModal}>
+                INSTITUCIÓN *
+                <input
+                  type="text"
+                  required
+                  className={styles.campoModal}
+                  value={formularioInvitacion.institucion}
+                  onChange={(evento) =>
+                    establecerFormularioInvitacion({
+                      ...formularioInvitacion,
+                      institucion: evento.target.value,
+                    })
+                  }
+                />
+              </label>
 
-          <label className={styles.modalLabel}>
-            LÍNEAS DE INTERÉS (SEPARADAS POR COMA)
-            <input
-              type="text"
-              className={styles.modalInput}
-              value={inviteForm.lineasInteres}
-              placeholder="Ingeniería de software, IA y datos"
-              onChange={(e) => setInviteForm({ ...inviteForm, lineasInteres: e.target.value })}
-            />
-          </label>
+              <label className={styles.etiquetaModal}>
+                LÍNEAS DE INTERÉS (SEPARADAS POR COMA)
+                <input
+                  type="text"
+                  className={styles.campoModal}
+                  value={formularioInvitacion.lineasInteres}
+                  placeholder="Ingeniería de software, IA y datos"
+                  onChange={(evento) =>
+                    establecerFormularioInvitacion({
+                      ...formularioInvitacion,
+                      lineasInteres: evento.target.value,
+                    })
+                  }
+                />
+              </label>
 
-          <div className={styles.modalActions}>
-            <Button variant="secondary" type="button" onClick={() => setIsInviteModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="primary" type="submit">
-              Enviar invitación
-            </Button>
-          </div>
-          </fieldset>
-        </form>
-      </Modal>}
+              <div className={styles.accionesModal}>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => establecerModalInvitarAbierto(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button variant="primary" type="submit">
+                  Enviar invitación
+                </Button>
+              </div>
+            </fieldset>
+          </form>
+        </Modal>
+      ) : null}
     </div>
   )
 }

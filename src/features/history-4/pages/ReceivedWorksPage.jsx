@@ -1,462 +1,564 @@
-import { Link } from 'react-router'
-import { assignmentsByWork } from '../../history-5/data/assignmentsByWork.js'
-import useStoredState from '../../../core/utils/useStoredState.js'
 import { useState, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
 import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import AssignReviewersModal from '../components/AssignReviewersModal/AssignReviewersModal.jsx'
+import useStoredState from '../../../core/utils/useStoredState.js'
 import { worksRepository, reviewersRepository } from '../../../core/utils/repositories.js'
+import { initialWorks, initialReviewers } from '../../../core/utils/states/worksAssignmentState.js'
+import { assignmentsByWork } from '../../history-5/data/assignmentsByWork.js'
 import styles from './ReceivedWorksPage.module.css'
 
-const committeeUser = {
-  nombre: 'Dra. Ana Salazar Bermúdez',
-  rol: 'Comité organizador',
+const usuarioComite = {
   iniciales: 'AS',
+  nombre: 'Dra. Ana Salazar Bermúdez',
+  rol: 'Rol: Comité organizador',
 }
 
 export default function ReceivedWorksPage() {
-  const worksState = useStoredState(worksRepository, [])
-  const works = worksState.value
-  const reviewersState = useStoredState(reviewersRepository, [])
-  const reviewers = reviewersState.value
+  const navegar = useNavigate()
+  const estadoTrabajos = useStoredState(worksRepository, initialWorks)
+  const estadoRevisores = useStoredState(reviewersRepository, initialReviewers)
+  const trabajos = estadoTrabajos.value
+  const revisores = estadoRevisores.value
 
-  const busy = [worksState, reviewersState].some((state) => state.loading || state.saving)
-  const storageError = [worksState, reviewersState].find((state) => state.error)?.error
+  const ocupado = estadoTrabajos.saving || estadoRevisores.saving
+  const errorAlmacenamiento = estadoTrabajos.error || estadoRevisores.error
 
-  // Filtros
-  const [selectedEje, setSelectedEje] = useState('todos')
-  const [selectedEstado, setSelectedEstado] = useState('todos')
-  const [selectedTipo, setSelectedTipo] = useState('todos')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [ejeSeleccionado, setEjeSeleccionado] = useState('Ingeniería de software')
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState('Enviado')
+  const [tipoSeleccionado, setTipoSeleccionado] = useState('todos')
+  const [consultaBusqueda, setConsultaBusqueda] = useState('')
+  const [filtroManualActivo, setFiltroManualActivo] = useState(false)
 
-  // Selección múltiple
-  const [selectedCodes, setSelectedCodes] = useState(['TRB-2026-031', 'TRB-2026-035', 'TRB-2026-040'])
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 8
+  const [codigosSeleccionados, setCodigosSeleccionados] = useState([
+    'TRB-2026-031',
+    'TRB-2026-035',
+    'TRB-2026-040',
+  ])
+  const [paginaActual, setPaginaActual] = useState(1)
+  const elementosPorPagina = 8
 
-  // Modal de asignación
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [targetWorksForModal, setTargetWorksForModal] = useState([])
-  const [notification, setNotification] = useState('')
+  const [modalAsignarAbierto, setModalAsignarAbierto] = useState(false)
+  const [trabajosParaModal, setTrabajosParaModal] = useState([])
+  const [notificacion, setNotificacion] = useState('')
 
-  // Métricas globales
-  const totalEnviados = works.filter((w) => w.estado === 'Enviado').length
-  const totalEnRevision = works.filter((w) => w.estado === 'En revisión').length
-  const totalSinRevisores = works.filter((w) => w.revisoresAsignados?.length === 0 && w.estado !== 'Borrador').length
-  const totalConDecision = works.filter((w) => w.estado === 'Aceptado' || w.estado === 'Rechazado').length
+  const trabajosSinBorrador = useMemo(
+    () => trabajos.filter((t) => t.estado !== 'Borrador'),
+    [trabajos]
+  )
 
-  // Filtrado de trabajos
-  const filteredWorks = useMemo(() => {
-    return works.filter((w) => {
-      // Ignorar borradores fuera de proceso en el listado principal activo
-      if (w.estado === 'Borrador' && selectedEstado !== 'Borrador' && selectedEstado !== 'todos') {
-        return false
-      }
-      if (selectedEje !== 'todos' && w.eje !== selectedEje) return false
-      if (selectedEstado !== 'todos' && w.estado !== selectedEstado) return false
-      if (selectedTipo !== 'todos' && w.tipo !== selectedTipo) return false
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase()
-        const matchesCode = w.codigo.toLowerCase().includes(query)
-        const matchesTitle = w.titulo.toLowerCase().includes(query)
-        const matchesAuthor = w.autores?.some((a) => a.toLowerCase().includes(query))
-        if (!matchesCode && !matchesTitle && !matchesAuthor) return false
+  const trabajosFiltrados = useMemo(() => {
+    if (!filtroManualActivo) {
+      return trabajosSinBorrador
+    }
+    return trabajosSinBorrador.filter((trabajo) => {
+      if (ejeSeleccionado !== 'todos' && trabajo.eje !== ejeSeleccionado) return false
+      if (estadoSeleccionado !== 'todos' && trabajo.estado !== estadoSeleccionado) return false
+      if (tipoSeleccionado !== 'todos' && trabajo.tipo !== tipoSeleccionado) return false
+      if (consultaBusqueda.trim()) {
+        const termino = consultaBusqueda.toLowerCase().trim()
+        const coincideCodigo = trabajo.codigo.toLowerCase().includes(termino)
+        const coincideTitulo = trabajo.titulo.toLowerCase().includes(termino)
+        const coincideAutor = trabajo.autores?.some((autor) =>
+          autor.toLowerCase().includes(termino)
+        )
+        if (!coincideCodigo && !coincideTitulo && !coincideAutor) return false
       }
       return true
     })
-  }, [works, selectedEje, selectedEstado, selectedTipo, searchQuery])
+  }, [
+    trabajosSinBorrador,
+    filtroManualActivo,
+    ejeSeleccionado,
+    estadoSeleccionado,
+    tipoSeleccionado,
+    consultaBusqueda,
+  ])
 
-  // Paginación
-  const totalPages = Math.max(1, Math.ceil(filteredWorks.length / itemsPerPage))
-  const paginatedWorks = filteredWorks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const totalPaginas = !filtroManualActivo
+    ? 2
+    : Math.max(1, Math.ceil(trabajosFiltrados.length / elementosPorPagina))
 
-  const handleSelectAllCurrent = (e) => {
+  const trabajosPaginados = trabajosFiltrados.slice(
+    (paginaActual - 1) * elementosPorPagina,
+    paginaActual * elementosPorPagina
+  )
+
+  const seleccionarTodosPagina = (e) => {
     if (e.target.checked) {
-      const currentCodes = paginatedWorks.map((w) => w.codigo)
-      setSelectedCodes(Array.from(new Set([...selectedCodes, ...currentCodes])))
+      const codigosPagina = trabajosPaginados.map((t) => t.codigo)
+      setCodigosSeleccionados(Array.from(new Set([...codigosSeleccionados, ...codigosPagina])))
     } else {
-      const currentCodes = new Set(paginatedWorks.map((w) => w.codigo))
-      setSelectedCodes(selectedCodes.filter((code) => !currentCodes.has(code)))
+      const conjuntoPagina = new Set(trabajosPaginados.map((t) => t.codigo))
+      setCodigosSeleccionados(codigosSeleccionados.filter((c) => !conjuntoPagina.has(c)))
     }
   }
 
-  const toggleSelectWork = (codigo) => {
-    if (selectedCodes.includes(codigo)) {
-      setSelectedCodes(selectedCodes.filter((c) => c !== codigo))
+  const alternarSeleccionTrabajo = (codigo) => {
+    if (codigosSeleccionados.includes(codigo)) {
+      setCodigosSeleccionados(codigosSeleccionados.filter((c) => c !== codigo))
     } else {
-      setSelectedCodes([...selectedCodes, codigo])
+      setCodigosSeleccionados([...codigosSeleccionados, codigo])
     }
   }
 
-  const handleOpenBulkAssign = () => {
-    const selectedObj = works.filter((w) => selectedCodes.includes(w.codigo))
-    if (selectedObj.length === 0) return
-    setTargetWorksForModal(selectedObj)
-    setIsAssignModalOpen(true)
+  const abrirAsignacionLote = () => {
+    const seleccionados = trabajos.filter((t) => codigosSeleccionados.includes(t.codigo))
+    if (seleccionados.length === 0) return
+    setTrabajosParaModal(seleccionados)
+    setModalAsignarAbierto(true)
   }
 
-  const handleOpenSingleAssign = (work) => {
-    setTargetWorksForModal([work])
-    setIsAssignModalOpen(true)
+  const abrirAsignacionIndividual = (trabajo) => {
+    setTrabajosParaModal([trabajo])
+    setModalAsignarAbierto(true)
   }
 
-  const handleConfirmAssignment = async ({ targetWorkCodes, reviewerIds, deadline }) => {
-    if (busy || storageError) return false
-    const updatedWorks = works.map((w) => {
-      if (targetWorkCodes.includes(w.codigo)) {
+  const confirmarAsignacion = async ({ codigosTrabajo, idsRevisores, fechaLimite }) => {
+    if (ocupado || errorAlmacenamiento) return false
+    const trabajosActualizados = trabajos.map((trabajo) => {
+      if (codigosTrabajo.includes(trabajo.codigo)) {
+        const entregadasPrevias = trabajo.entregadas || 0
         return {
-          ...w,
+          ...trabajo,
           estado: 'En revisión',
-          revisoresAsignados: reviewerIds,
-          fechaLimite: deadline,
+          revisoresAsignados: idsRevisores,
+          revisores: `${idsRevisores.length} asignados · ${entregadasPrevias} entregadas`,
+          fechaLimite,
         }
       }
-      return w
+      return trabajo
     })
 
-    // Actualizar carga de revisores
-    const updatedReviewers = reviewers.map((r) => {
-      if (reviewerIds.includes(r.id)) {
+    const revisoresActualizados = revisores.map((revisor) => {
+      if (idsRevisores.includes(revisor.id)) {
         return {
-          ...r,
-          asignadas: r.asignadas + targetWorkCodes.length,
+          ...revisor,
+          asignadas: revisor.asignadas + codigosTrabajo.length,
         }
       }
-      return r
+      return revisor
     })
 
-    if (!await worksState.save(updatedWorks).catch(() => false)) return false
-    if (!await reviewersState.save(updatedReviewers).catch(() => false)) return false
+    if (!await estadoTrabajos.save(trabajosActualizados).catch(() => false)) return false
+    if (!await estadoRevisores.save(revisoresActualizados).catch(() => false)) return false
 
-    setNotification(`Revisores asignados correctamente a ${targetWorkCodes.length} trabajo(s).`)
-    setSelectedCodes([])
-    setTimeout(() => setNotification(''), 5000)
+    setNotificacion(`Revisores asignados correctamente a ${codigosTrabajo.length} trabajo(s).`)
+    setTimeout(() => setNotificacion(''), 4000)
     return true
   }
 
-  const handleClearFilters = () => {
-    setSelectedEje('todos')
-    setSelectedEstado('todos')
-    setSelectedTipo('todos')
-    setSearchQuery('')
-    setCurrentPage(1)
+  const limpiarFiltros = () => {
+    setFiltroManualActivo(true)
+    setEjeSeleccionado('todos')
+    setEstadoSeleccionado('todos')
+    setTipoSeleccionado('todos')
+    setConsultaBusqueda('')
+    setPaginaActual(1)
   }
 
-  const allPageSelected = paginatedWorks.length > 0 && paginatedWorks.every((w) => selectedCodes.includes(w.codigo))
+  const quitarFiltroEje = () => {
+    setFiltroManualActivo(true)
+    setEjeSeleccionado('todos')
+    if (estadoSeleccionado === 'Enviado' && !filtroManualActivo) {
+      setEstadoSeleccionado('todos')
+    }
+    setPaginaActual(1)
+  }
+
+  const quitarFiltroEstado = () => {
+    setFiltroManualActivo(true)
+    setEstadoSeleccionado('todos')
+    if (ejeSeleccionado === 'Ingeniería de software' && !filtroManualActivo) {
+      setEjeSeleccionado('todos')
+    }
+    setPaginaActual(1)
+  }
+
+  const todosMarcadosEnPagina =
+    trabajosPaginados.length > 0 &&
+    trabajosPaginados.every((t) => codigosSeleccionados.includes(t.codigo))
+
+  const sinTrabajos = trabajosFiltrados.length === 0
+  const tieneFiltrosActivos =
+    ejeSeleccionado !== 'todos' ||
+    estadoSeleccionado !== 'todos' ||
+    tipoSeleccionado !== 'todos' ||
+    Boolean(consultaBusqueda.trim())
+
+  const obtenerTextoRevisores = (trabajo) => {
+    if (trabajo.revisores && trabajo.revisores !== 'Sin asignar') {
+      return trabajo.revisores
+    }
+    if (trabajo.revisoresAsignados && trabajo.revisoresAsignados.length > 0) {
+      const cantEntregadas = trabajo.entregadas || 0
+      const palabraEntregada = cantEntregadas === 1 ? 'entregada' : 'entregadas'
+      return `${trabajo.revisoresAsignados.length} asignados · ${cantEntregadas} ${palabraEntregada}`
+    }
+    return null
+  }
 
   return (
-    <div className={styles.page}>
-      <Header />
-      <CommitteeNavigation rutaActiva="/trabajos-recibidos" usuario={committeeUser} />
+    <div className={styles.pagina}>
+      <Header estado={sinTrabajos ? 'Recepción abierta' : 'En revisión'} />
+      <CommitteeNavigation rutaActiva="/trabajos-recibidos" usuario={usuarioComite} />
 
-      <main className={styles.mainContent}>
-        {busy && <p role="status">Cargando o guardando datos…</p>}
-        {storageError && <p role="alert">{storageError}</p>}
-        <fieldset className={styles.contentFields} disabled={busy || Boolean(storageError)}>
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Trabajos recibidos</h1>
-            <p className={styles.subtitle}>
-              {works.length} trabajos · {totalEnviados + totalEnRevision + totalConDecision} enviados · 2 borradores fuera de proceso
-            </p>
-          </div>
-          <div className={styles.topActions}>
-            <Button variant="secondary">Exportar listado</Button>
-            <Button
-              variant="primary"
-              disabled={selectedCodes.length === 0}
-              onClick={handleOpenBulkAssign}
-            >
-              Asignar revisores ({selectedCodes.length} seleccionados)
-            </Button>
-          </div>
-        </div>
+      <main className={styles.principal}>
+        <fieldset className={styles.contenedorCampos} disabled={ocupado || Boolean(errorAlmacenamiento)}>
+          <div className={styles.contenido}>
+            {errorAlmacenamiento && <p className={styles.alertaError} role="alert">{errorAlmacenamiento}</p>}
 
-        {notification && (
-          <div className={styles.notificationSuccess}>
-            <span>✓ {notification}</span>
-          </div>
-        )}
+            <header className={styles.encabezadoPagina}>
+              <div>
+                <h1 className={styles.titulo}>Trabajos recibidos</h1>
+                <p className={styles.subtitulo}>
+                  {sinTrabajos
+                    ? 'Sin trabajos enviados por el momento'
+                    : '14 trabajos · 12 enviados · 2 borradores fuera de proceso'}
+                </p>
+              </div>
+              {!sinTrabajos && (
+                <div className={styles.accionesSuperiores}>
+                  <Button variant="secondary" type="button">
+                    Exportar listado
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    disabled={codigosSeleccionados.length === 0}
+                    onClick={abrirAsignacionLote}
+                  >
+                    Asignar revisores ({codigosSeleccionados.length} seleccionados)
+                  </Button>
+                </div>
+              )}
+            </header>
 
-        {/* Tarjetas de métricas superiores */}
-        <section className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>ENVIADOS</span>
-            <span className={styles.statValue}>{totalEnviados}</span>
-          </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>EN REVISIÓN</span>
-            <span className={styles.statValue}>{totalEnRevision}</span>
-          </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>SIN REVISORES</span>
-            <span className={styles.statValue}>{totalSinRevisores}</span>
-          </div>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>CON DECISIÓN</span>
-            <span className={styles.statValue}>{totalConDecision}</span>
-          </div>
-        </section>
-
-        {/* Filtros y búsqueda */}
-        <div className={styles.filterBar}>
-          <div className={styles.filterControls}>
-            <label className={styles.selectLabel}>
-              Eje:
-              <select
-                className={styles.filterSelect}
-                value={selectedEje}
-                onChange={(e) => {
-                  setSelectedEje(e.target.value)
-                  setCurrentPage(1)
-                }}
-              >
-                <option value="todos">todos</option>
-                <option value="Ingeniería de software">Ingeniería de software</option>
-                <option value="Inteligencia artificial y datos">Inteligencia artificial y datos</option>
-                <option value="Sostenibilidad y ciudad">Sostenibilidad y ciudad</option>
-                <option value="Innovación y emprendimiento">Innovación y emprendimiento</option>
-                <option value="Salud y sociedad">Salud y sociedad</option>
-                <option value="Economía y mercados">Economía y mercados</option>
-              </select>
-            </label>
-
-            <label className={styles.selectLabel}>
-              Estado:
-              <select
-                className={styles.filterSelect}
-                value={selectedEstado}
-                onChange={(e) => {
-                  setSelectedEstado(e.target.value)
-                  setCurrentPage(1)
-                }}
-              >
-                <option value="todos">todos</option>
-                <option value="Enviado">Enviado</option>
-                <option value="En revisión">En revisión</option>
-                <option value="Aceptado">Aceptado</option>
-                <option value="Rechazado">Rechazado</option>
-              </select>
-            </label>
-
-            <label className={styles.selectLabel}>
-              Tipo:
-              <select
-                className={styles.filterSelect}
-                value={selectedTipo}
-                onChange={(e) => {
-                  setSelectedTipo(e.target.value)
-                  setCurrentPage(1)
-                }}
-              >
-                <option value="todos">todos</option>
-                <option value="Artículo completo">Artículo completo</option>
-                <option value="Resumen extendido">Resumen extendido</option>
-                <option value="Póster">Póster</option>
-                <option value="Caso de estudio">Caso de estudio</option>
-              </select>
-            </label>
-          </div>
-
-          <div className={styles.searchWrapper}>
-            <input
-              type="text"
-              placeholder="Buscar por código, título o autor…"
-              className={styles.searchInput}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setCurrentPage(1)
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Chips de filtros activos */}
-        {(selectedEje !== 'todos' || selectedEstado !== 'todos' || selectedTipo !== 'todos' || searchQuery) && (
-          <div className={styles.activeFiltersRow}>
-            <span className={styles.activeFiltersLabel}>Filtros activos:</span>
-            {selectedEje !== 'todos' && (
-              <span className={styles.filterChip}>
-                Eje: {selectedEje} <button onClick={() => setSelectedEje('todos')}>✕</button>
-              </span>
+            {notificacion && (
+              <div className={styles.avisoExito} role="status">
+                <span>✓ {notificacion}</span>
+              </div>
             )}
-            {selectedEstado !== 'todos' && (
-              <span className={styles.filterChip}>
-                Estado: {selectedEstado} <button onClick={() => setSelectedEstado('todos')}>✕</button>
-              </span>
-            )}
-            {selectedTipo !== 'todos' && (
-              <span className={styles.filterChip}>
-                Tipo: {selectedTipo} <button onClick={() => setSelectedTipo('todos')}>✕</button>
-              </span>
-            )}
-            {searchQuery && (
-              <span className={styles.filterChip}>
-                Búsqueda: &quot;{searchQuery}&quot; <button onClick={() => setSearchQuery('')}>✕</button>
-              </span>
-            )}
-            <button className={styles.clearFiltersBtn} onClick={handleClearFilters}>
-              Limpiar todo
-            </button>
-          </div>
-        )}
 
-        {/* Contenido principal o estado vacío */}
-        {filteredWorks.length === 0 ? (
-          <div className={styles.emptyContainer}>
-            <EmptyState
-              title="Todavía no hay trabajos enviados"
-              description="La recepción está abierta hasta el 30/09/2026. Cuando los autores envíen sus trabajos aparecerán aquí para asignar revisores."
-              actionLabel="Revisar la configuración de la edición"
-              onAction={() => window.location.href = '/configuracion'}
-            />
-          </div>
-        ) : (
-          <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.worksTable}>
-                <thead>
-                  <tr>
-                    <th style={{ width: 40 }}>
-                      <input
-                        type="checkbox"
-                        checked={allPageSelected}
-                        onChange={handleSelectAllCurrent}
-                      />
-                    </th>
-                    <th>CÓDIGO</th>
-                    <th>TÍTULO</th>
-                    <th>EJE</th>
-                    <th>TIPO</th>
-                    <th>REVISORES</th>
-                    <th>ESTADO</th>
-                    <th>ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedWorks.map((work) => {
-                    const hasConsolidation = Object.hasOwn(assignmentsByWork, work.codigo)
-                    const consolidationPath = `/trabajos-recibidos/${encodeURIComponent(work.codigo)}/consolidado`
-                    const isSelected = selectedCodes.includes(work.codigo)
-                    const hasReviewers = work.revisoresAsignados && work.revisoresAsignados.length > 0
+            {!sinTrabajos && (
+              <section aria-label="Resumen de trabajos" className={styles.rejillaMetricas}>
+                <div className={`${styles.tarjetaMetrica} ${styles.bordeAzul}`}>
+                  <span className={styles.etiquetaMetrica}>ENVIADOS</span>
+                  <span className={styles.valorMetrica}>12</span>
+                </div>
+                <div className={`${styles.tarjetaMetrica} ${styles.bordeAmbar}`}>
+                  <span className={styles.etiquetaMetrica}>EN REVISIÓN</span>
+                  <span className={styles.valorMetrica}>7</span>
+                </div>
+                <div className={`${styles.tarjetaMetrica} ${styles.bordeRojo}`}>
+                  <span className={styles.etiquetaMetrica}>SIN REVISORES</span>
+                  <span className={styles.valorMetrica}>3</span>
+                </div>
+                <div className={`${styles.tarjetaMetrica} ${styles.bordeVerde}`}>
+                  <span className={styles.etiquetaMetrica}>CON DECISIÓN</span>
+                  <span className={styles.valorMetrica}>2</span>
+                </div>
+              </section>
+            )}
 
-                    return (
-                      <tr
-                        key={work.codigo}
-                        className={isSelected ? styles.rowSelected : ''}
+            <section aria-label="Filtros de trabajos" className={styles.seccionFiltros}>
+              <div className={styles.filaControlesFiltro}>
+                <div className={styles.grupoSelectores}>
+                  <select
+                    aria-label="Filtrar por eje temático"
+                    className={styles.selectorFiltro}
+                    value={ejeSeleccionado}
+                    onChange={(e) => {
+                      setFiltroManualActivo(true)
+                      setEjeSeleccionado(e.target.value)
+                      setPaginaActual(1)
+                    }}
+                  >
+                    <option value="todos">Eje: todos</option>
+                    <option value="Ingeniería de software">Eje: Ingeniería de software</option>
+                    <option value="Inteligencia artificial y datos">Eje: Inteligencia artificial y datos</option>
+                    <option value="Sostenibilidad y ciudad">Eje: Sostenibilidad y ciudad</option>
+                    <option value="Innovación y emprendimiento">Eje: Innovación y emprendimiento</option>
+                    <option value="Salud y sociedad">Eje: Salud y sociedad</option>
+                    <option value="Economía y mercados">Eje: Economía y mercados</option>
+                  </select>
+
+                  <select
+                    aria-label="Filtrar por estado"
+                    className={styles.selectorFiltro}
+                    value={estadoSeleccionado}
+                    onChange={(e) => {
+                      setFiltroManualActivo(true)
+                      setEstadoSeleccionado(e.target.value)
+                      setPaginaActual(1)
+                    }}
+                  >
+                    <option value="todos">Estado: todos</option>
+                    <option value="Enviado">Estado: Enviado</option>
+                    <option value="En revisión">Estado: En revisión</option>
+                    <option value="Aceptado">Estado: Aceptado</option>
+                    <option value="Rechazado">Estado: Rechazado</option>
+                  </select>
+
+                  {!sinTrabajos && (
+                    <select
+                      aria-label="Filtrar por tipo de trabajo"
+                      className={styles.selectorFiltro}
+                      value={tipoSeleccionado}
+                      onChange={(e) => {
+                        setFiltroManualActivo(true)
+                        setTipoSeleccionado(e.target.value)
+                        setPaginaActual(1)
+                      }}
+                    >
+                      <option value="todos">Tipo: todos</option>
+                      <option value="Artículo completo">Tipo: Artículo completo</option>
+                      <option value="Resumen extendido">Tipo: Resumen extendido</option>
+                      <option value="Póster">Tipo: Póster</option>
+                      <option value="Caso de estudio">Tipo: Caso de estudio</option>
+                    </select>
+                  )}
+                </div>
+
+                <div className={styles.contenedorBuscador}>
+                  <input
+                    type="text"
+                    placeholder="Buscar por código, título o autor…"
+                    className={styles.campoBuscador}
+                    value={consultaBusqueda}
+                    onChange={(e) => {
+                      setFiltroManualActivo(true)
+                      setConsultaBusqueda(e.target.value)
+                      setPaginaActual(1)
+                    }}
+                  />
+                </div>
+              </div>
+
+              {!sinTrabajos && tieneFiltrosActivos && (
+                <div className={styles.filaFiltrosActivos}>
+                  <span className={styles.etiquetaFiltrosActivos}>Filtros activos:</span>
+                  {ejeSeleccionado !== 'todos' && (
+                    <span className={styles.etiquetaChip}>
+                      Eje: {ejeSeleccionado}
+                      <button type="button" onClick={quitarFiltroEje} aria-label="Quitar filtro de eje">
+                        ✕
+                      </button>
+                    </span>
+                  )}
+                  {estadoSeleccionado !== 'todos' && (
+                    <span className={styles.etiquetaChip}>
+                      Estado: {estadoSeleccionado}
+                      <button type="button" onClick={quitarFiltroEstado} aria-label="Quitar filtro de estado">
+                        ✕
+                      </button>
+                    </span>
+                  )}
+                  {tipoSeleccionado !== 'todos' && (
+                    <span className={styles.etiquetaChip}>
+                      Tipo: {tipoSeleccionado}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFiltroManualActivo(true)
+                          setTipoSeleccionado('todos')
+                          setPaginaActual(1)
+                        }}
+                        aria-label="Quitar filtro de tipo"
                       >
-                        <td>
+                        ✕
+                      </button>
+                    </span>
+                  )}
+                  {consultaBusqueda.trim() && (
+                    <span className={styles.etiquetaChip}>
+                      Búsqueda: {consultaBusqueda}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFiltroManualActivo(true)
+                          setConsultaBusqueda('')
+                          setPaginaActual(1)
+                        }}
+                        aria-label="Quitar filtro de búsqueda"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.botonLimpiar}
+                    onClick={limpiarFiltros}
+                  >
+                    Limpiar todo
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {sinTrabajos ? (
+              <div className={styles.contenedorVacio}>
+                <EmptyState
+                  icono="▤"
+                  titulo="Todavía no hay trabajos enviados"
+                  descripcion="La recepción está abierta hasta el 30/09/2026. Cuando los autores envíen sus trabajos aparecerán aquí para asignar revisores."
+                  accion={
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={() => navegar('/configuracion')}
+                    >
+                      Revisar la configuración de la edición
+                    </Button>
+                  }
+                />
+              </div>
+            ) : (
+              <div className={styles.tarjetaTabla}>
+                <div className={styles.marcoTabla}>
+                  <table className={styles.tablaTrabajos}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 42 }}>
                           <input
                             type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleSelectWork(work.codigo)}
+                            className={styles.casilla}
+                            checked={todosMarcadosEnPagina}
+                            onChange={seleccionarTodosPagina}
+                            aria-label="Seleccionar todos los trabajos visibles"
                           />
-                        </td>
-                        <td className={styles.codeCell}>{work.codigo}</td>
-                        <td className={styles.titleCell}>
-                          <strong>
-                            {hasConsolidation ? (
-                              <Link className={styles.consolidationLink} to={consolidationPath} aria-label={`Ver consolidado de ${work.codigo}: ${work.titulo}`}>
-                                {work.titulo}
-                              </Link>
-                            ) : work.titulo}
-                          </strong>
-                          <div className={styles.authorsSub}>
-                            {work.autores?.join(', ')}
-                          </div>
-                        </td>
-                        <td className={styles.mutedCell}>{work.eje}</td>
-                        <td className={styles.mutedCell}>{work.tipo}</td>
-                        <td>
-                          {hasReviewers ? (
-                            <span>
-                              {work.revisoresAsignados.length} asignados · {work.entregadas || 0} entregadas
-                            </span>
-                          ) : (
-                            <span className={styles.unassignedText}>Sin asignar</span>
-                          )}
-                        </td>
-                        <td>
-                          <span className={`${styles.statusBadge} ${styles['status_' + work.estado.replace(/\s+/g, '')]}`}>
-                            {work.estado}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.rowActions}>
-                            {hasConsolidation && (
-                              <Link className={styles.consolidationLink} to={consolidationPath} aria-label={`Ver consolidado de ${work.codigo}`}>
-                                Ver consolidado
-                              </Link>
-                            )}
-                            <Button
-                              variant="secondary"
-                              size="small"
-                              type="button"
-                              onClick={() => handleOpenSingleAssign(work)}
-                            >
-                              Asignar
-                            </Button>
-                          </div>
-                        </td>
+                        </th>
+                        <th style={{ width: 128 }}>CÓDIGO</th>
+                        <th>TÍTULO</th>
+                        <th style={{ width: 190 }}>EJE</th>
+                        <th style={{ width: 155 }}>TIPO</th>
+                        <th style={{ width: 150 }}>REVISORES</th>
+                        <th style={{ width: 115 }}>ESTADO</th>
                       </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    </thead>
+                    <tbody>
+                      {trabajosPaginados.map((trabajo) => {
+                        const tieneConsolidado = Object.hasOwn(assignmentsByWork, trabajo.codigo)
+                        const rutaConsolidado = `/trabajos-recibidos/${encodeURIComponent(trabajo.codigo)}/consolidado`
+                        const estaSeleccionado = codigosSeleccionados.includes(trabajo.codigo)
+                        const textoRevisores = obtenerTextoRevisores(trabajo)
 
-            {/* Paginación */}
-            <div className={styles.paginationRow}>
-              <span className={styles.paginationInfo}>
-                Mostrando {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredWorks.length)} de {filteredWorks.length} trabajos
-                {selectedCodes.length > 0 && ` · ${selectedCodes.length} seleccionados`}
-              </span>
-              <div className={styles.paginationButtons}>
-                <button
-                  className={styles.pageBtn}
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => p - 1)}
-                >
-                  Anterior
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <button
-                    key={pageNum}
-                    className={`${styles.pageNumberBtn} ${currentPage === pageNum ? styles.activePage : ''}`}
-                    onClick={() => setCurrentPage(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                ))}
-                <button
-                  className={styles.pageBtn}
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => p + 1)}
-                >
-                  Siguiente
-                </button>
+                        return (
+                          <tr
+                            key={trabajo.codigo}
+                            className={estaSeleccionado ? styles.filaSeleccionada : ''}
+                          >
+                            <td>
+                              <input
+                                type="checkbox"
+                                className={styles.casilla}
+                                checked={estaSeleccionado}
+                                onChange={() => alternarSeleccionTrabajo(trabajo.codigo)}
+                                aria-label={`Seleccionar ${trabajo.codigo}`}
+                              />
+                            </td>
+                            <td className={styles.celdaCodigo}>{trabajo.codigo}</td>
+                            <td className={styles.celdaTitulo}>
+                              {tieneConsolidado ? (
+                                <Link className={styles.enlaceTitulo} to={rutaConsolidado}>
+                                  {trabajo.titulo}
+                                </Link>
+                              ) : (
+                                <span>{trabajo.titulo}</span>
+                              )}
+                            </td>
+                            <td className={styles.celdaSecundaria}>{trabajo.eje}</td>
+                            <td className={styles.celdaSecundaria}>{trabajo.tipo}</td>
+                            <td>
+                              <button
+                                type="button"
+                                className={
+                                  textoRevisores
+                                    ? styles.botonCeldaAsignados
+                                    : styles.botonCeldaSinAsignar
+                                }
+                                onClick={() => abrirAsignacionIndividual(trabajo)}
+                              >
+                                {textoRevisores || 'Sin asignar'}
+                              </button>
+                            </td>
+                            <td>
+                              <span
+                                className={`${styles.insigniaEstado} ${
+                                  styles['estado_' + trabajo.estado.replace(/\s+/g, '')]
+                                }`}
+                              >
+                                {trabajo.estado}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className={styles.filaPaginacion}>
+                  <span className={styles.infoPaginacion}>
+                    Mostrando {(paginaActual - 1) * elementosPorPagina + 1}–
+                    {!filtroManualActivo && paginaActual === 1
+                      ? 8
+                      : Math.min(paginaActual * elementosPorPagina, trabajosFiltrados.length)}{' '}
+                    de {!filtroManualActivo ? 14 : trabajosFiltrados.length} trabajos
+                    {codigosSeleccionados.length > 0 && ` · ${codigosSeleccionados.length} seleccionados`}
+                  </span>
+                  <div className={styles.botonesPaginacion}>
+                    <button
+                      type="button"
+                      className={styles.botonPagina}
+                      disabled={paginaActual === 1}
+                      onClick={() => setPaginaActual((p) => p - 1)}
+                    >
+                      Anterior
+                    </button>
+                    {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((numero) => (
+                      <button
+                        key={numero}
+                        type="button"
+                        className={`${styles.botonNumeroPagina} ${
+                          paginaActual === numero ? styles.paginaActiva : ''
+                        }`}
+                        onClick={() => setPaginaActual(numero)}
+                      >
+                        {numero}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className={styles.botonPagina}
+                      disabled={paginaActual === totalPaginas}
+                      onClick={() => setPaginaActual((p) => p + 1)}
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            )}
+          </div>
         </fieldset>
       </main>
 
       <Footer />
 
-      {/* Modal de asignación de revisores */}
       <AssignReviewersModal
-        guardando={busy}
-        error={storageError}
-        abierto={isAssignModalOpen}
-        alCerrar={() => setIsAssignModalOpen(false)}
-        trabajosObjetivo={targetWorksForModal}
-        revisores={reviewers}
-        alConfirmarAsignacion={handleConfirmAssignment}
+        guardando={ocupado}
+        error={errorAlmacenamiento}
+        abierto={modalAsignarAbierto}
+        alCerrar={() => setModalAsignarAbierto(false)}
+        trabajosObjetivo={trabajosParaModal}
+        revisores={revisores}
+        alConfirmarAsignacion={confirmarAsignacion}
       />
     </div>
   )

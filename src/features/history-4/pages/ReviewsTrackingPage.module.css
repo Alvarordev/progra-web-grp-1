@@ -1,235 +1,271 @@
-.page {
+.pagina {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: var(--color-bg, #fbfaf8);
 }
 
-.mainContent {
+.contenidoPrincipal {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container-width, 1360px);
   margin: 0 auto;
-  padding: 32px 24px 60px 24px;
+  padding: 28px 24px 56px 24px;
   flex: 1;
 }
 
-.headerRow {
+.grupoCampos {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filaEncabezado {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.title {
+.titulo {
   font-family: var(--font-family-serif, 'Source Serif 4', serif);
   font-size: 28px;
-  line-height: 32px;
+  line-height: 34px;
+  font-weight: 700;
   margin: 0 0 4px 0;
-  color: var(--color-primary, #7a2231);
+  color: var(--color-text, #1f1a1b);
 }
 
-.subtitle {
+.subtitulo {
   font-family: var(--font-family-sans, 'Inter', sans-serif);
-  font-size: 15px;
+  font-size: 13px;
   color: var(--color-text-muted, #6f6663);
   margin: 0;
 }
 
-.notificationBanner {
-  margin-bottom: 20px;
-  padding: 12px 16px;
-  background-color: #e8f5e9;
+.bannerNotificacion {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background-color: var(--color-success-soft, #e8f4ed);
   border: 1px solid var(--color-success, #1e7f4d);
   color: var(--color-success, #1e7f4d);
-  border-radius: 2px;
-  font-size: 14px;
+  border-radius: var(--radius-sm, 2px);
+  font-size: 13px;
   font-weight: 500;
 }
 
-.overdueAlertBox {
+.cajaAlertaVencidas {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  background-color: #fdf2f2;
+  gap: 16px;
+  padding: 12px 16px;
+  background-color: var(--color-primary-soft, #f6e9ec);
   border: 1px solid var(--color-danger, #b4322b);
-  border-radius: 2px;
-  margin-bottom: 20px;
-  color: var(--color-danger, #b4322b);
-  font-size: 14px;
+  border-radius: var(--radius-sm, 2px);
+  margin-bottom: 16px;
+  color: #922722;
+  font-size: 13px;
 }
 
-.alertLeft {
+.alertaIzquierda {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.alertIcon {
+.iconoAlerta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
-  background-color: var(--color-danger, #b4322b);
-  color: #fff;
+  background-color: #922722;
+  color: #ffffff;
   border-radius: 50%;
-  font-weight: bold;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
-.alertToggleBtn {
-  background-color: var(--color-danger, #b4322b);
-  color: #fff;
+.botonAlternarAlerta {
+  background-color: #922722;
+  color: #ffffff;
   border: none;
-  padding: 6px 14px;
-  border-radius: 2px;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm, 2px);
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-.alertToggleBtn:hover {
-  background-color: #922822;
+.botonAlternarAlerta:hover {
+  background-color: var(--color-primary-hover, #641b28);
 }
 
-.tableWrapper {
+.contenedorTabla {
   background-color: var(--color-surface, #ffffff);
   border: 1px solid var(--color-border, #e4dfda);
-  border-radius: 2px;
+  border-radius: var(--radius-sm, 2px);
   overflow-x: auto;
 }
 
-.trackingTable {
+.tablaSeguimiento {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-.trackingTable th {
-  background-color: var(--color-bg, #fbfaf8);
-  padding: 12px 14px;
-  font-size: 12px;
+.tablaSeguimiento th {
+  background-color: #f6f3ef;
+  padding: 11px 16px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-muted, #6f6663);
   border-bottom: 1px solid var(--color-border, #e4dfda);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
-.trackingTable td {
-  padding: 12px 14px;
+.tablaSeguimiento td {
+  padding: 13px 16px;
   border-bottom: 1px solid var(--color-border, #e4dfda);
   vertical-align: middle;
 }
 
-.rowOverdue {
-  background-color: #fffdfd;
+.tablaSeguimiento tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.codeCell {
-  font-family: monospace;
-  font-weight: 600;
-  color: var(--color-text, #1f1a1b);
-}
-
-.titleCell strong {
-  color: var(--color-text, #1f1a1b);
-  font-size: 14px;
-}
-
-.reviewerCell {
-  color: var(--color-text, #1f1a1b);
-}
-
-.dateCell {
-  color: var(--color-text-muted, #6f6663);
-}
-
-.badgeOverdue {
-  display: inline-block;
-  padding: 3px 8px;
-  background-color: #fde8e8;
-  color: var(--color-danger, #b4322b);
-  border: 1px solid var(--color-danger, #b4322b);
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.badgePending {
-  display: inline-block;
-  padding: 3px 8px;
-  background-color: #fef8ee;
-  color: var(--color-warning, #b7791f);
-  border: 1px solid var(--color-warning, #b7791f);
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.reassignBtn {
-  background: none;
-  border: 1px solid var(--color-danger, #b4322b);
-  color: var(--color-danger, #b4322b);
-  padding: 4px 12px;
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.reassignBtn:hover {
-  background-color: #fde8e8;
-}
-
-.remindBtn {
-  background: none;
-  border: 1px solid var(--color-border, #e4dfda);
-  color: var(--color-primary, #7a2231);
-  padding: 4px 12px;
-  border-radius: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.remindBtn:hover {
+.filaVencida {
   background-color: var(--color-primary-soft, #f6e9ec);
 }
 
-.bottomStatsRow {
-  display: flex;
-  gap: 24px;
-  margin-top: 24px;
-  padding: 16px 20px;
-  background-color: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e4dfda);
-  border-radius: 2px;
+.celdaCodigo {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text, #1f1a1b);
+  white-space: nowrap;
 }
 
-.bottomStat {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  font-size: 14px;
+.celdaTitulo strong {
+  color: var(--color-text, #1f1a1b);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
-.bottomStatLabel {
-  color: var(--color-text-muted, #6f6663);
-}
-
-.bottomStatValue {
+.celdaRevisor {
   color: var(--color-text, #1f1a1b);
 }
 
-.statDanger strong {
+.celdaFechaVencida {
+  font-weight: 700;
   color: var(--color-danger, #b4322b);
 }
 
-.contentFields {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
+.celdaFechaNormal {
+  font-weight: 700;
+  color: var(--color-text, #1f1a1b);
+}
+
+.insigniaVencida {
+  display: inline-block;
+  padding: 3px 9px;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-danger, #b4322b);
+  border: 1px solid var(--color-danger, #b4322b);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.insigniaPendiente {
+  display: inline-block;
+  padding: 3px 9px;
+  background-color: var(--color-warning-soft, #fbf3e2);
+  color: var(--color-warning, #b7791f);
+  border: 1px solid var(--color-warning, #b7791f);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.columnaAccion {
+  text-align: right;
+}
+
+.celdaAccion {
+  text-align: right;
+}
+
+.botonAccionTexto {
+  background: none;
+  border: none;
+  color: var(--color-primary, #7a2231);
+  padding: 2px 0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botonAccionTexto:hover {
+  text-decoration: underline;
+}
+
+.cuadriculaResumenInferior {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.tarjetaResumenInferior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+}
+
+.etiquetaResumen {
+  font-size: 12px;
+  color: var(--color-text-muted, #6f6663);
+}
+
+.valorResumenExito {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-success, #1e7f4d);
+}
+
+.valorResumenAdvertencia {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-warning, #b7791f);
+}
+
+.valorResumenPeligro {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-danger, #b4322b);
+}
+
+@media (max-width: 768px) {
+  .filaEncabezado {
+    flex-direction: column;
+  }
+
+  .cajaAlertaVencidas {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cuadriculaResumenInferior {
+    grid-template-columns: 1fr;
+  }
 }

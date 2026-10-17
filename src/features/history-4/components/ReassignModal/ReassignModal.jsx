@@ -5,116 +5,123 @@ import styles from './ReassignModal.module.css'
 
 export default function ReassignModal({
   guardando = false,
-  error: storageError = '',
-  abierto: isOpen,
-  alCerrar: onClose,
-  revisionPendiente: pendingItem,
-  revisores: reviewers = [],
-  alConfirmarReasignacion: onConfirmReassignment,
+  error = '',
+  abierto = false,
+  alCerrar,
+  itemPendiente,
+  revisores = [],
+  alConfirmarReasignacion,
 }) {
-  const [selectedNewReviewerId, setSelectedNewReviewerId] = useState('')
-  const [reason, setReason] = useState('')
-  const [error, setError] = useState('')
+  const [nuevoRevisorId, setNuevoRevisorId] = useState('')
+  const [motivo, setMotivo] = useState('')
+  const [errorValidacion, setErrorValidacion] = useState('')
 
-  if (!isOpen || !pendingItem) return null
+  if (!abierto || !itemPendiente) return null
 
-  // Filtrar revisores candidatos excluyendo el revisor actual
-  const candidateReviewers = reviewers.filter((r) => r.id !== pendingItem.revisorId)
+  const candidatos = revisores.filter((r) => r.id !== itemPendiente.revisorId)
 
-  const handleSubmit = async () => {
+  const enviarReasignacion = async (e) => {
+    e.preventDefault()
     if (guardando) return
-    if (!reason.trim()) {
-      setError('El motivo de la reasignación es obligatorio.')
+    if (!nuevoRevisorId) {
+      setErrorValidacion('Debe seleccionar un nuevo revisor.')
       return
     }
-    if (!selectedNewReviewerId) {
-      setError('Debe seleccionar un nuevo revisor.')
+    if (!motivo.trim()) {
+      setErrorValidacion('El motivo de la reasignación es obligatorio.')
       return
     }
 
-    const newReviewer = reviewers.find((r) => r.id === selectedNewReviewerId)
+    const nuevoRevisor = revisores.find((r) => r.id === nuevoRevisorId)
 
-    const saved = await onConfirmReassignment({
-      pendingId: pendingItem.id,
-      codigo: pendingItem.codigo,
-      previousReviewer: pendingItem.revisor,
-      newReviewerId: selectedNewReviewerId,
-      newReviewerName: newReviewer?.nombre || '',
-      reason: reason.trim(),
+    const guardado = await alConfirmarReasignacion({
+      pendienteId: itemPendiente.id,
+      codigo: itemPendiente.codigo,
+      revisorAnterior: itemPendiente.revisor,
+      nuevoRevisorId,
+      nuevoRevisorNombre: nuevoRevisor?.nombre || '',
+      motivo: motivo.trim(),
     })
 
-    if (!saved) return
-    setReason('')
-    setSelectedNewReviewerId('')
-    setError('')
-    onClose()
+    if (!guardado) return
+    setMotivo('')
+    setNuevoRevisorId('')
+    setErrorValidacion('')
+    alCerrar()
   }
 
   return (
-    <Modal alCerrar={() => { if (!guardando) onClose() }} titulo="Reasignar revisor">
-      <fieldset className={styles.modalBody} disabled={guardando}>
-        {storageError && <p role="alert">{storageError}</p>}
-        <div className={styles.itemSummary}>
-          <p className={styles.workTitle}>
-            <strong>{pendingItem.codigo}</strong> · {pendingItem.trabajo}
-          </p>
-          <p className={styles.currentReviewer}>
-            Revisor actual: <strong>{pendingItem.revisor}</strong>
-            <span className={styles.badgeDanger}> ({pendingItem.estado})</span>
-          </p>
-        </div>
+    <Modal alCerrar={() => { if (!guardando) alCerrar() }} titulo="Reasignar revisor">
+      <form onSubmit={enviarReasignacion}>
+        <fieldset className={styles.cuerpoModal} disabled={guardando}>
+          <div className={styles.resumenItem}>
+            <p className={styles.tituloTrabajo}>
+              <strong>{itemPendiente.codigo}</strong> · {itemPendiente.trabajo}
+            </p>
+            <p className={styles.revisorActual}>
+              Revisor actual: <strong>{itemPendiente.revisor}</strong>
+              <span className={styles.alertaVencida}> ({itemPendiente.estado})</span>
+            </p>
+          </div>
 
-        {error && <div className={styles.errorAlert}>{error}</div>}
+          {(error || errorValidacion) && (
+            <p className={styles.mensajeError} role="alert">
+              {error || errorValidacion}
+            </p>
+          )}
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            SELECCIONAR NUEVO REVISOR *
+          <div className={styles.grupoCampo}>
+            <label className={styles.etiqueta} htmlFor="selector-nuevo-revisor">
+              SELECCIONAR NUEVO REVISOR *
+            </label>
             <select
-              className={styles.select}
-              value={selectedNewReviewerId}
+              id="selector-nuevo-revisor"
+              className={styles.selector}
+              value={nuevoRevisorId}
               onChange={(e) => {
-                setSelectedNewReviewerId(e.target.value)
-                setError('')
+                setNuevoRevisorId(e.target.value)
+                setErrorValidacion('')
               }}
             >
               <option value="">Seleccione un revisor disponible…</option>
-              {candidateReviewers.map((rev) => (
+              {candidatos.map((rev) => (
                 <option key={rev.id} value={rev.id}>
                   {rev.nombre} ({rev.institucion} — {rev.asignadas} revisiones asignadas)
                 </option>
               ))}
             </select>
-          </label>
-        </div>
+          </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            MOTIVO DE LA REASIGNACIÓN *
+          <div className={styles.grupoCampo}>
+            <label className={styles.etiqueta} htmlFor="motivo-cambio">
+              MOTIVO DE LA REASIGNACIÓN *
+            </label>
             <textarea
-              className={styles.textarea}
+              id="motivo-cambio"
+              className={styles.areaTexto}
               rows={3}
               placeholder="Explique el motivo del cambio (ej. incumplimiento de plazo, sobrecarga o indisponibilidad)…"
-              value={reason}
+              value={motivo}
               onChange={(e) => {
-                setReason(e.target.value)
-                setError('')
+                setMotivo(e.target.value)
+                setErrorValidacion('')
               }}
             />
-          </label>
-          <span className={styles.helperText}>
-            Este motivo quedará registrado en el historial de la edición.
-          </span>
-        </div>
+            <span className={styles.textoAyuda}>
+              Este motivo quedará registrado en el historial de la edición.
+            </span>
+          </div>
 
-        <div className={styles.actions}>
-          <Button variant="secondary" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Confirmar reasignación
-          </Button>
-        </div>
-      </fieldset>
+          <footer className={styles.pieModal}>
+            <Button variant="secondary" type="button" onClick={alCerrar}>
+              Cancelar
+            </Button>
+            <Button variant="primary" type="submit">
+              Confirmar reasignación
+            </Button>
+          </footer>
+        </fieldset>
+      </form>
     </Modal>
   )
 }
