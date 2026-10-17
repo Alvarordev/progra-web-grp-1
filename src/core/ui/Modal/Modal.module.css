@@ -21,7 +21,7 @@
 
 /* Recuadro más ancho para formularios con opciones lado a lado, como la decisión final. */
 .dialogWide {
-  width: min(100%, 720px);
+  width: min(100%, 820px);
 }
 
 .header {

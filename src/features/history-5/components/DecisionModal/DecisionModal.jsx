@@ -38,18 +38,24 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
   const cantidadTexto = enviados.length === filas.length
     ? `los ${filas.length} revisores`
     : `${enviados.length} de ${filas.length} revisores`
-  const nota = enviados.length
-    ? `Precargado con los comentarios al autor de ${cantidadTexto}. Puede editarlo antes de publicar.`
-    : 'Pendiente: el texto se precarga cuando los revisores envíen sus comentarios.'
-
   // Sin decisión guardada, la maqueta muestra Aceptar marcado; el comité puede cambiarlo.
   const decisionInicial = decisionGuardada?.decision || 'aceptar'
   const [decision, setDecision] = useState(decisionInicial)
-  const [feedback, setFeedback] = useState(
-    decisionGuardada?.feedback ?? construirTexto(decisionInicial, enviados),
-  )
-  // Mientras el texto no se edite a mano, cambia según la decisión elegida.
-  const [textoAutomatico, setTextoAutomatico] = useState(!decisionGuardada)
+  // Al entrar, el texto está en blanco; si ya hay un borrador o una decisión publicada, se muestra su texto.
+  const [feedback, setFeedback] = useState(decisionGuardada?.feedback ?? '')
+  // Solo después de pulsar «Restaurar», el texto cambia según la decisión elegida.
+  const [textoAutomatico, setTextoAutomatico] = useState(false)
+  // La nota dice de dónde sale el texto. Si la decisión ya está publicada, no hay nada que editar.
+  let nota = ''
+  if (!publicada) {
+    if (feedback.trim()) {
+      nota = `Precargado con los comentarios al autor de ${cantidadTexto}. Puede editarlo antes de publicar.`
+    } else {
+      nota = enviados.length
+        ? `Pulse «Restaurar texto de los revisores» para cargar los comentarios de ${cantidadTexto}.`
+        : 'Pendiente: los revisores todavía no envían sus comentarios.'
+    }
+  }
   const [confirmando, setConfirmando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errores, setErrores] = useState([])
@@ -147,7 +153,7 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
             setFeedback(event.target.value)
             setTextoAutomatico(false)
           }}
-          placeholder="Pendiente: se redacta con los comentarios de los revisores."
+          placeholder="Escriba la retroalimentación o pulse «Restaurar texto de los revisores»."
           readOnly={publicada || guardando}
           rows="5"
           value={feedback}
