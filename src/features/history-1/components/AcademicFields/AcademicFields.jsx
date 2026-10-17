@@ -1,9 +1,17 @@
 import styles from '../../pages/RegistrationPage.module.css'
 
 const degrees = [
-  'Ingeniería de Sistemas', 'Ingeniería Industrial', 'Ingeniería Civil',
-  'Administración', 'Economía', 'Contabilidad', 'Comunicación', 'Derecho',
-  'Psicología', 'Arquitectura', 'Otra carrera',
+  'Ingeniería de Sistemas',
+  'Ingeniería Industrial',
+  'Ingeniería Civil',
+  'Administración',
+  'Economía',
+  'Contabilidad',
+  'Comunicación',
+  'Derecho',
+  'Psicología',
+  'Arquitectura',
+  'Otra carrera',
 ]
 
 function AcademicFields({ campos, errores, conErrores, bloqueado, alCambiar, alSalir }) {
@@ -24,9 +32,15 @@ function AcademicFields({ campos, errores, conErrores, bloqueado, alCambiar, alS
           value={campos.degree}
         >
           <option value="">Seleccione su carrera</option>
-          {degrees.map(degree => <option key={degree}>{degree}</option>)}
+          {degrees.map(degree => (
+            <option key={degree}>{degree}</option>
+          ))}
         </select>
-        {conErrores('degree') && <span className={styles.fieldError} id="degree-error">{errores.degree}</span>}
+        {conErrores('degree') && (
+          <span className={styles.fieldError} id="degree-error">
+            {errores.degree}
+          </span>
+        )}
       </div>
       <div className={styles.fieldGroup}>
         <label htmlFor="registration-student-code">Código de alumno *</label>
@@ -43,7 +57,11 @@ function AcademicFields({ campos, errores, conErrores, bloqueado, alCambiar, alS
           required
           value={campos.studentCode}
         />
-        {conErrores('studentCode') && <span className={styles.fieldError} id="student-code-error">{errores.studentCode}</span>}
+        {conErrores('studentCode') && (
+          <span className={styles.fieldError} id="student-code-error">
+            {errores.studentCode}
+          </span>
+        )}
       </div>
     </>
   )

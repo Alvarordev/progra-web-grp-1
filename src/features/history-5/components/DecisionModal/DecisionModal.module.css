@@ -94,7 +94,9 @@
   gap: var(--space-3);
 }
 
-.body { padding: var(--space-5) var(--space-6) 0; }
+.body {
+  padding: var(--space-5) var(--space-6) 0;
+}
 .opcion[data-decision='aceptar']:has(input:checked) {
   border-color: var(--color-success);
   background: var(--color-success-soft);
@@ -103,8 +105,13 @@
   border-color: var(--color-danger);
   background: var(--color-danger-soft);
 }
-.opcion input { accent-color: var(--color-primary); }
-.textarea { min-height: 140px; font-family: var(--font-heading); }
+.opcion input {
+  accent-color: var(--color-primary);
+}
+.textarea {
+  min-height: 140px;
+  font-family: var(--font-heading);
+}
 .acciones {
   margin: var(--space-5) calc(-1 * var(--space-6)) 0;
   padding: var(--space-4) var(--space-6);

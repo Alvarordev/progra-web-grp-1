@@ -11,9 +11,7 @@ const statusLabels = {
 
 function WorkStatusBadge({ estado }) {
   return (
-    <span className={`${styles.badge} ${styles[estado]}`}>
-      {statusLabels[estado]}
-    </span>
+    <span className={`${styles.badge} ${styles[estado]}`}>{statusLabels[estado]}</span>
   )
 }
 

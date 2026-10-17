@@ -11,11 +11,15 @@ import { initialEditionStatus } from '../../../../core/utils/states/editionState
 function ConfigurationPageLayout({ children, estado }) {
   const accountState = useActiveAccount()
   const participant = accountState.participant
-  const committeeUser = participant?.role === 'committee' ? {
-    iniciales: `${participant.names.trim()[0]}${participant.surnames.trim()[0]}`.toUpperCase(),
-    nombre: participant.name,
-    rol: 'Rol: Comité organizador',
-  } : { iniciales: 'CO', nombre: 'Comité organizador', rol: 'Rol: Comité organizador' }
+  const committeeUser =
+    participant?.role === 'committee'
+      ? {
+          iniciales:
+            `${participant.names.trim()[0]}${participant.surnames.trim()[0]}`.toUpperCase(),
+          nombre: participant.name,
+          rol: 'Rol: Comité organizador',
+        }
+      : { iniciales: 'CO', nombre: 'Comité organizador', rol: 'Rol: Comité organizador' }
   const storedStatus = useStoredState(editionStatusRepository, initialEditionStatus)
   return (
     <div className={styles.page}>

@@ -8,20 +8,35 @@ export default function useStoredState(repository, initialValue, enabled = true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) {
+      return
+    }
     let active = true
     function read() {
-      return repository.get().then((data) => {
-        if (active) setValue(data)
-      }).catch((cause) => {
-        if (active) setError(cause.message)
-      }).finally(() => {
-        if (active) setLoading(false)
-      })
+      return repository
+        .get()
+        .then(data => {
+          if (active) {
+            setValue(data)
+          }
+        })
+        .catch(cause => {
+          if (active) {
+            setError(cause.message)
+          }
+        })
+        .finally(() => {
+          if (active) {
+            setLoading(false)
+          }
+        })
     }
     read()
     const unsubscribe = repository.subscribe?.(read)
-    return () => { active = false; unsubscribe?.() }
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
   }, [repository, enabled])
 
   async function save(nextValue) {

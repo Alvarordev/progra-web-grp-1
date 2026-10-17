@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { thematicAxesRepository, worksRepository } from '../../../core/utils/repositories.js'
+import {
+  thematicAxesRepository,
+  worksRepository,
+} from '../../../core/utils/repositories.js'
 import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
@@ -12,9 +15,20 @@ import ThematicAxisModal from '../components/ThematicAxisModal/ThematicAxisModal
 import styles from './ThematicAxesPage.module.css'
 
 function ThematicAxesPage() {
-  const { value: storedAxes, loading: axesLoading, saving, error: axesError, save } = useStoredState(thematicAxesRepository, thematicAxes)
+  const {
+    value: storedAxes,
+    loading: axesLoading,
+    saving,
+    error: axesError,
+    save,
+  } = useStoredState(thematicAxesRepository, thematicAxes)
   const worksState = useStoredState(worksRepository, [])
-  const ejes = storedAxes.map(axis => ({ ...axis, trabajos: worksState.value.filter(work => work.eje === axis.nombre && work.estado !== 'Borrador').length }))
+  const ejes = storedAxes.map(axis => ({
+    ...axis,
+    trabajos: worksState.value.filter(
+      work => work.eje === axis.nombre && work.estado !== 'Borrador'
+    ).length,
+  }))
   const loading = axesLoading || worksState.loading
   const error = axesError || worksState.error
   const [modal, setModal] = useState(null)
@@ -34,7 +48,10 @@ function ThematicAxesPage() {
 
   async function handleDelete(eje) {
     if (eje.trabajos > 0) {
-      setFeedback({ mensaje: 'No se puede eliminar un eje que tiene trabajos asignados.', tipo: 'warning' })
+      setFeedback({
+        mensaje: 'No se puede eliminar un eje que tiene trabajos asignados.',
+        tipo: 'warning',
+      })
       return
     }
 
@@ -43,15 +60,20 @@ function ThematicAxesPage() {
     }
 
     try {
-      await save(ejes.filter((item) => item.id !== eje.id))
+      await save(ejes.filter(item => item.id !== eje.id))
       setFeedback({ mensaje: 'Eje eliminado correctamente.' })
-    } catch { setFeedback(null) }
+    } catch {
+      setFeedback(null)
+    }
   }
 
   async function handleSave(updatedAxis) {
-    const nextAxes = modal.modo === 'edit'
-      ? ejes.map((item) => item.id === modal.eje.id ? { ...item, ...updatedAxis } : item)
-      : [...ejes, { ...updatedAxis, id: crypto.randomUUID(), trabajos: 0 }]
+    const nextAxes =
+      modal.modo === 'edit'
+        ? ejes.map(item =>
+            item.id === modal.eje.id ? { ...item, ...updatedAxis } : item
+          )
+        : [...ejes, { ...updatedAxis, id: crypto.randomUUID(), trabajos: 0 }]
     try {
       await save(nextAxes)
       setModal(null)
@@ -73,30 +95,50 @@ function ThematicAxesPage() {
                 : 'Sin ejes configurados'}
             </p>
           </div>
-          <Button disabled={loading || saving} onClick={handleCreate} type="button" variant="primary">
+          <Button
+            disabled={loading || saving}
+            onClick={handleCreate}
+            type="button"
+            variant="primary"
+          >
             Nuevo eje temático
           </Button>
         </header>
 
         <ConfigurationTabs />
 
-        <ConfigurationFeedback cargando={loading ? 'Cargando ejes…' : ''} error={modal ? '' : error} mensaje={feedback?.mensaje} tipo={feedback?.tipo} />
+        <ConfigurationFeedback
+          cargando={loading ? 'Cargando ejes…' : ''}
+          error={modal ? '' : error}
+          mensaje={feedback?.mensaje}
+          tipo={feedback?.tipo}
+        />
 
         {hasAxes ? (
           <section
             aria-label="Ejes temáticos de la edición"
             className={styles.tableSection}
           >
-            <ThematicAxesTable alEditar={handleEdit} alEliminar={handleDelete} deshabilitado={loading || saving} ejes={ejes} />
+            <ThematicAxesTable
+              alEditar={handleEdit}
+              alEliminar={handleDelete}
+              deshabilitado={loading || saving}
+              ejes={ejes}
+            />
             <p className={styles.helperText}>
-              Un eje con trabajos recibidos no puede eliminarse; primero
-              reasigne los trabajos.
+              Un eje con trabajos recibidos no puede eliminarse; primero reasigne los
+              trabajos.
             </p>
           </section>
         ) : (
           <EmptyState
             accion={
-              <Button disabled={loading || saving} onClick={handleCreate} type="button" variant="primary">
+              <Button
+                disabled={loading || saving}
+                onClick={handleCreate}
+                type="button"
+                variant="primary"
+              >
                 Crear el primer eje
               </Button>
             }
@@ -108,7 +150,11 @@ function ThematicAxesPage() {
       </div>
       {modal && (
         <ThematicAxisModal
-          alCerrar={() => { if (!saving) setModal(null) }}
+          alCerrar={() => {
+            if (!saving) {
+              setModal(null)
+            }
+          }}
           alGuardar={handleSave}
           guardando={saving}
           errorGuardado={error}

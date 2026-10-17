@@ -10,7 +10,21 @@ import useActiveAccount from '../../../core/utils/useActiveAccount.js'
 function History1Page() {
   const accountState = useActiveAccount()
   const conference = useConference()
-  const deadlines = [['Cierre de recepción de trabajos', formatScheduleDate(conference.schedule.reception ?? '')], ['Cierre de la etapa de revisión', formatScheduleDate(conference.schedule.review ?? '')], ['Publicación de resultados', formatScheduleDate(conference.schedule.publication ?? '')], ['Días del congreso', '12/11/2026 – 13/11/2026']]
+  const deadlines = [
+    [
+      'Cierre de recepción de trabajos',
+      formatScheduleDate(conference.schedule.reception ?? ''),
+    ],
+    [
+      'Cierre de la etapa de revisión',
+      formatScheduleDate(conference.schedule.review ?? ''),
+    ],
+    [
+      'Publicación de resultados',
+      formatScheduleDate(conference.schedule.publication ?? ''),
+    ],
+    ['Días del congreso', '12/11/2026 – 13/11/2026'],
+  ]
   const criteria = conference.criteria.map(item => [item.nombre, `${item.peso} %`])
 
   return (
@@ -22,7 +36,12 @@ function History1Page() {
       rutaBase="/history-1"
     >
       <main>
-        {!accountState.loading && <HeroSection edicion={conference.edition} rol={accountState.participant?.role} />}
+        {!accountState.loading && (
+          <HeroSection
+            edicion={conference.edition}
+            rol={accountState.participant?.role}
+          />
+        )}
         <TopicsSection ejes={conference.axes} />
         <div className={styles.infoGrid}>
           <InfoSection

@@ -15,12 +15,10 @@ function PendingWorksPanel({ alAgregar, hayEspacio, trabajos }) {
       </header>
 
       {trabajos.length === 0 ? (
-        <p className={styles.empty}>
-          No quedan trabajos aceptados sin sesión.
-        </p>
+        <p className={styles.empty}>No quedan trabajos aceptados sin sesión.</p>
       ) : (
         <ul className={styles.list}>
-          {trabajos.map((trabajo) => (
+          {trabajos.map(trabajo => (
             <li className={styles.item} key={trabajo.codigo}>
               <div className={styles.details}>
                 <span className={styles.code}>{trabajo.codigo}</span>

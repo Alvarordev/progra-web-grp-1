@@ -11,18 +11,32 @@ import styles from './WorkDetailPage.module.css'
 
 function getAuthorsLine(autores) {
   return autores
-    .map((autor) => (autor.correspondencia ? `${autor.nombre} (correspondencia)` : autor.nombre))
+    .map(autor =>
+      autor.correspondencia ? `${autor.nombre} (correspondencia)` : autor.nombre
+    )
     .join(' · ')
 }
 
 function ReadOnlyWorkPage() {
   const { codigo } = useParams()
   const conference = useConference()
-  const trabajo = getAuthorWorks(conference.works, conference.account, conference.decisions).find(work => work.codigo === codigo)
+  const trabajo = getAuthorWorks(
+    conference.works,
+    conference.account,
+    conference.decisions
+  ).find(work => work.codigo === codigo)
 
-  if (conference.loading || conference.error) return <AuthorPageLayout><p role="status">{conference.error || 'Cargando trabajo…'}</p></AuthorPageLayout>
+  if (conference.loading || conference.error) {
+    return (
+      <AuthorPageLayout>
+        <p role="status">{conference.error || 'Cargando trabajo…'}</p>
+      </AuthorPageLayout>
+    )
+  }
 
-  if (!trabajo) return <Navigate replace to="/autor/trabajos" />
+  if (!trabajo) {
+    return <Navigate replace to="/autor/trabajos" />
+  }
 
   const enviado = trabajo.enviado
     ? [trabajo.enviado, trabajo.hora].filter(Boolean).join(' · ')
@@ -35,15 +49,25 @@ function ReadOnlyWorkPage() {
           !
         </span>
         <p>
-          <strong>{receptionIsOpen(conference.status, conference.schedule) ? 'Vista de solo lectura.' : `La recepción cerró el ${formatScheduleDate(conference.schedule.reception ?? '')}.`}</strong> Este trabajo se muestra en modo lectura y
-          ya no admite cambios. Si necesita corregir un dato, escriba al comité organizador.
+          <strong>
+            {receptionIsOpen(conference.status, conference.schedule)
+              ? 'Vista de solo lectura.'
+              : `La recepción cerró el ${formatScheduleDate(conference.schedule.reception ?? '')}.`}
+          </strong>{' '}
+          Este trabajo se muestra en modo lectura y ya no admite cambios. Si necesita
+          corregir un dato, escriba al comité organizador.
         </p>
       </section>
 
       <WorkHeading
         acciones={
           <>
-            <a className={styles.secondaryLink} href={trabajo.enlace} rel="noreferrer" target="_blank">
+            <a
+              className={styles.secondaryLink}
+              href={trabajo.enlace}
+              rel="noreferrer"
+              target="_blank"
+            >
               Ver documento
             </a>
             <button className={styles.disabledButton} disabled type="button">
@@ -62,14 +86,22 @@ function ReadOnlyWorkPage() {
           <p className={styles.fieldValue}>{getAuthorsLine(trabajo.autores)}</p>
           <h3 className={styles.fieldLabel}>Enlace al documento</h3>
           <p className={styles.fieldValue}>
-            <a className={styles.documentLink} href={trabajo.enlace} rel="noreferrer" target="_blank">
+            <a
+              className={styles.documentLink}
+              href={trabajo.enlace}
+              rel="noreferrer"
+              target="_blank"
+            >
               {trabajo.enlace}
             </a>
           </p>
         </WorkDataPanel>
         <aside className={styles.sideColumn}>
           <InfoPanel etiqueta="Campos bloqueados" tipo="muted">
-            <p>Título, tipo, eje temático, resumen, palabras clave, coautores y enlace al documento.</p>
+            <p>
+              Título, tipo, eje temático, resumen, palabras clave, coautores y enlace al
+              documento.
+            </p>
           </InfoPanel>
           <InfoPanel etiqueta="Qué sigue">
             <p>{trabajo.queSigue}</p>

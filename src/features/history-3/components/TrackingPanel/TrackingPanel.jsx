@@ -5,7 +5,7 @@ function TrackingPanel({ pasos }) {
   return (
     <InfoPanel etiqueta="Seguimiento">
       <ol className={styles.steps}>
-        {pasos.map((paso) => (
+        {pasos.map(paso => (
           <li className={styles[paso.estado]} key={paso.paso}>
             <span aria-hidden="true" className={styles.dot} />
             <div>

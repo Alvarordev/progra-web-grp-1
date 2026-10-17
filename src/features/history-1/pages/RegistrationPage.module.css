@@ -205,7 +205,9 @@
   accent-color: var(--color-primary);
 }
 
-.agreement .fieldError { color: var(--color-danger); }
+.agreement .fieldError {
+  color: var(--color-danger);
+}
 
 .cancel {
   display: inline-flex;

@@ -16,13 +16,17 @@ export default function ModalReasignar({
   const [motivo, cambiarMotivo] = usarEstado('')
   const [errorValidacion, cambiarErrorValidacion] = usarEstado('')
 
-  if (!abierto || !itemPendiente) return null
+  if (!abierto || !itemPendiente) {
+    return null
+  }
 
-  const candidatos = revisores.filter((revisor) => revisor.id !== itemPendiente.revisorId)
+  const candidatos = revisores.filter(revisor => revisor.id !== itemPendiente.revisorId)
 
-  const enviarReasignacion = async (evento) => {
+  const enviarReasignacion = async evento => {
     evento.preventDefault()
-    if (guardando) return
+    if (guardando) {
+      return
+    }
     if (!nuevoRevisorId) {
       cambiarErrorValidacion('Debe seleccionar un nuevo revisor.')
       return
@@ -32,7 +36,7 @@ export default function ModalReasignar({
       return
     }
 
-    const nuevoRevisor = revisores.find((revisor) => revisor.id === nuevoRevisorId)
+    const nuevoRevisor = revisores.find(revisor => revisor.id === nuevoRevisorId)
 
     const guardado = await alConfirmarReasignacion({
       pendienteId: itemPendiente.id,
@@ -43,7 +47,9 @@ export default function ModalReasignar({
       motivo: motivo.trim(),
     })
 
-    if (!guardado) return
+    if (!guardado) {
+      return
+    }
     cambiarMotivo('')
     cambiarNuevoRevisorId('')
     cambiarErrorValidacion('')
@@ -53,7 +59,9 @@ export default function ModalReasignar({
   return (
     <ModalBase
       alCerrar={() => {
-        if (!guardando) alCerrar()
+        if (!guardando) {
+          alCerrar()
+        }
       }}
       titulo="Reasignar revisor"
     >
@@ -83,15 +91,16 @@ export default function ModalReasignar({
               id="selector-nuevo-revisor"
               className={estilos.selector}
               value={nuevoRevisorId}
-              onChange={(evento) => {
+              onChange={evento => {
                 cambiarNuevoRevisorId(evento.target.value)
                 cambiarErrorValidacion('')
               }}
             >
               <option value="">Seleccione un revisor disponible…</option>
-              {candidatos.map((revisor) => (
+              {candidatos.map(revisor => (
                 <option key={revisor.id} value={revisor.id}>
-                  {revisor.nombre} ({revisor.institucion} — {revisor.asignadas} revisiones asignadas)
+                  {revisor.nombre} ({revisor.institucion} — {revisor.asignadas} revisiones
+                  asignadas)
                 </option>
               ))}
             </select>
@@ -107,7 +116,7 @@ export default function ModalReasignar({
               rows={3}
               placeholder="Explique el motivo del cambio (ej. incumplimiento de plazo, sobrecarga o indisponibilidad)…"
               value={motivo}
-              onChange={(evento) => {
+              onChange={evento => {
                 cambiarMotivo(evento.target.value)
                 cambiarErrorValidacion('')
               }}

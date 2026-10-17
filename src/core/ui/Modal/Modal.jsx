@@ -39,9 +39,13 @@ function Modal({ alCerrar, children, titulo, descripcion, tamano = 'medium' }) {
       return
     }
 
-    const elementosEnfocables = [...dialogRef.current.querySelectorAll(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )].filter(element => !element.matches(':disabled') && element.getClientRects().length > 0)
+    const elementosEnfocables = [
+      ...dialogRef.current.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      ),
+    ].filter(
+      element => !element.matches(':disabled') && element.getClientRects().length > 0
+    )
     const primero = elementosEnfocables[0]
     const ultimo = elementosEnfocables[elementosEnfocables.length - 1]
 
@@ -88,10 +92,14 @@ function Modal({ alCerrar, children, titulo, descripcion, tamano = 'medium' }) {
       >
         <header className={styles.header}>
           <div>
-          <h2 className={styles.title} id={dialogId}>
-            {titulo}
-          </h2>
-          {descripcion && <p className={styles.description} id={`${dialogId}-description`}>{descripcion}</p>}
+            <h2 className={styles.title} id={dialogId}>
+              {titulo}
+            </h2>
+            {descripcion && (
+              <p className={styles.description} id={`${dialogId}-description`}>
+                {descripcion}
+              </p>
+            )}
           </div>
           <Button
             aria-label="Cerrar ventana"

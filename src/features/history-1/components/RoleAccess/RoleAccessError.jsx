@@ -9,8 +9,12 @@ function RoleAccessError() {
       <main className={styles.main}>
         <div className={styles.content}>
           <h1>No se pudo comprobar su sesión</h1>
-          <p className={styles.description} role="alert">{error?.message || 'Intente recargar la página.'}</p>
-          <Link className={styles.primaryAction} to="/">Volver al inicio</Link>
+          <p className={styles.description} role="alert">
+            {error?.message || 'Intente recargar la página.'}
+          </p>
+          <Link className={styles.primaryAction} to="/">
+            Volver al inicio
+          </Link>
         </div>
       </main>
     </PublicNavigation>

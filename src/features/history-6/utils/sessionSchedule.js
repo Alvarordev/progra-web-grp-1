@@ -40,7 +40,7 @@ export function findOverlaps(sesiones) {
   const conflictos = []
 
   sesiones.forEach((sesion, indice) => {
-    sesiones.slice(indice + 1).forEach((otra) => {
+    sesiones.slice(indice + 1).forEach(otra => {
       if (sessionsOverlap(sesion, otra)) {
         conflictos.push([sesion, otra])
       }
@@ -51,10 +51,7 @@ export function findOverlaps(sesiones) {
 }
 
 export function getOverlapRange(primera, segunda) {
-  const inicio = Math.max(
-    toMinutes(primera.horaInicio),
-    toMinutes(segunda.horaInicio),
-  )
+  const inicio = Math.max(toMinutes(primera.horaInicio), toMinutes(segunda.horaInicio))
   const fin = Math.min(toMinutes(primera.horaFin), toMinutes(segunda.horaFin))
 
   return { horaInicio: toTime(inicio), horaFin: toTime(fin) }
@@ -68,7 +65,7 @@ export function getSessionCapacity(sesion) {
 
 export function getSessionWorks(trabajos, sesionId) {
   return trabajos
-    .filter((trabajo) => trabajo.sesionId === sesionId)
+    .filter(trabajo => trabajo.sesionId === sesionId)
     .sort((primero, segundo) => primero.orden - segundo.orden)
 }
 

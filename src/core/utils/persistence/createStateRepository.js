@@ -26,12 +26,16 @@ export default function createStateRepository({
         if (text === null) {
           const data = structuredClone(defaultValue)
           assertValid(data)
-          if (data !== null) window[storage].setItem(key, JSON.stringify({ version: 1, data }))
+          if (data !== null) {
+            window[storage].setItem(key, JSON.stringify({ version: 1, data }))
+          }
           return data
         }
         stored = JSON.parse(text)
       } catch (cause) {
-        throw new Error('No se pudieron leer los datos guardados en este navegador.', { cause })
+        throw new Error('No se pudieron leer los datos guardados en este navegador.', {
+          cause,
+        })
       }
 
       // Conservamos el formato existente para recuperar los datos ya guardados.

@@ -35,6 +35,10 @@
 }
 
 @media (max-width: 600px) {
-  .section { padding: var(--space-4); }
-  .types { grid-template-columns: 1fr; }
+  .section {
+    padding: var(--space-4);
+  }
+  .types {
+    grid-template-columns: 1fr;
+  }
 }

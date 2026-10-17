@@ -5,7 +5,7 @@ function ScorePanel({ dictamen }) {
   return (
     <InfoPanel etiqueta="Puntaje por criterio">
       <dl className={styles.scores}>
-        {dictamen.puntajes.map((puntaje) => (
+        {dictamen.puntajes.map(puntaje => (
           <div key={puntaje.criterio}>
             <dt>{puntaje.criterio}</dt>
             <dd>{puntaje.nota}</dd>

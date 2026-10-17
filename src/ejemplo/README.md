@@ -44,7 +44,7 @@ recarguen el documento:
 ```jsx
 import { Link } from 'react-router'
 
-<Link to="/history-2">Ir a History 2</Link>
+;<Link to="/history-2">Ir a History 2</Link>
 ```
 
 La ruta de destino debe existir en la configuración central antes de que el

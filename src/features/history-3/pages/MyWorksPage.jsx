@@ -30,31 +30,47 @@ function MyWorksPage() {
   const [busqueda, setBusqueda] = useState('')
   const [page, setPage] = useState(1)
 
-  const trabajos = searchParams.get('vista') === 'vacia' ? [] : getAuthorWorks(conference.works, conference.account, conference.decisions)
+  const trabajos =
+    searchParams.get('vista') === 'vacia'
+      ? []
+      : getAuthorWorks(conference.works, conference.account, conference.decisions)
   const codigoEnviado = location.state?.enviado
 
   const texto = busqueda.trim().toLowerCase()
   const trabajosFiltrados = trabajos.filter(
-    (trabajo) =>
+    trabajo =>
       (filtroActivo === 'todos' || trabajo.estado === filtroActivo) &&
-      (trabajo.titulo.toLowerCase().includes(texto) || trabajo.codigo.toLowerCase().includes(texto)),
+      (trabajo.titulo.toLowerCase().includes(texto) ||
+        trabajo.codigo.toLowerCase().includes(texto))
   )
 
   const pageSize = 4
-  const currentPage = Math.min(page, Math.max(1, Math.ceil(trabajosFiltrados.length / pageSize)))
-  const visibleWorks = trabajosFiltrados.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const currentPage = Math.min(
+    page,
+    Math.max(1, Math.ceil(trabajosFiltrados.length / pageSize))
+  )
+  const visibleWorks = trabajosFiltrados.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
 
   const filtrosConCantidad = filters
-    .map((filtro) => ({
+    .map(filtro => ({
       ...filtro,
       cantidad:
         filtro.estado === 'todos'
           ? trabajos.length
-          : trabajos.filter((trabajo) => trabajo.estado === filtro.estado).length,
+          : trabajos.filter(trabajo => trabajo.estado === filtro.estado).length,
     }))
-    .filter((filtro) => filtro.estado === 'todos' || filtro.cantidad > 0)
+    .filter(filtro => filtro.estado === 'todos' || filtro.cantidad > 0)
 
-  if (conference.loading || conference.error) return <AuthorPageLayout><p role="status">{conference.error || 'Cargando trabajos…'}</p></AuthorPageLayout>
+  if (conference.loading || conference.error) {
+    return (
+      <AuthorPageLayout>
+        <p role="status">{conference.error || 'Cargando trabajos…'}</p>
+      </AuthorPageLayout>
+    )
+  }
 
   if (trabajos.length === 0) {
     return (
@@ -67,7 +83,11 @@ function MyWorksPage() {
             <h1>Mis trabajos</h1>
             <p>Aún no registra trabajos en esta edición</p>
           </div>
-          <Button disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
+          <Button
+            disabled={!open}
+            onClick={() => navigate('/autor/nuevo-trabajo')}
+            variant="primary"
+          >
             Nuevo trabajo
           </Button>
         </div>
@@ -75,7 +95,11 @@ function MyWorksPage() {
           <EmptyState
             accion={
               <div className={styles.emptyActions}>
-                <Button disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
+                <Button
+                  disabled={!open}
+                  onClick={() => navigate('/autor/nuevo-trabajo')}
+                  variant="primary"
+                >
                   Registrar mi primer trabajo
                 </Button>
                 <Link className={styles.textLink} to="/bases">
@@ -83,7 +107,11 @@ function MyWorksPage() {
                 </Link>
               </div>
             }
-            descripcion={open ? 'Puede guardar su trabajo como borrador y completarlo antes del cierre de recepción.' : 'La recepción está cerrada. Consulte las fechas vigentes en las bases del congreso.'}
+            descripcion={
+              open
+                ? 'Puede guardar su trabajo como borrador y completarlo antes del cierre de recepción.'
+                : 'La recepción está cerrada. Consulte las fechas vigentes en las bases del congreso.'
+            }
             icono="✎"
             titulo="Todavía no tiene trabajos registrados"
           />
@@ -108,17 +136,27 @@ function MyWorksPage() {
           <h1>Mis trabajos</h1>
           <p>{trabajos.length} trabajos registrados como autora o coautora</p>
         </div>
-        <Button type="button" disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')}> {open ? 'Nuevo trabajo' : 'Nuevo trabajo (recepción cerrada)'} </Button>
+        <Button
+          type="button"
+          disabled={!open}
+          onClick={() => navigate('/autor/nuevo-trabajo')}
+        >
+          {' '}
+          {open ? 'Nuevo trabajo' : 'Nuevo trabajo (recepción cerrada)'}{' '}
+        </Button>
       </div>
 
       <div className={styles.toolbar}>
         <div aria-label="Filtrar por estado" className={styles.filters} role="group">
-          {filtrosConCantidad.map((filtro) => (
+          {filtrosConCantidad.map(filtro => (
             <button
               aria-pressed={filtroActivo === filtro.estado}
               className={`${styles.filter} ${filtroActivo === filtro.estado ? styles.filterActive : ''}`}
               key={filtro.estado}
-              onClick={() => { setFiltroActivo(filtro.estado); setPage(1) }}
+              onClick={() => {
+                setFiltroActivo(filtro.estado)
+                setPage(1)
+              }}
               type="button"
             >
               {filtro.label} · {filtro.cantidad}
@@ -128,7 +166,10 @@ function MyWorksPage() {
         <label className={styles.search}>
           <span className={styles.visuallyHidden}>Buscar trabajos</span>
           <input
-            onChange={(event) => { setBusqueda(event.target.value); setPage(1) }}
+            onChange={event => {
+              setBusqueda(event.target.value)
+              setPage(1)
+            }}
             placeholder="Buscar por título o código…"
             type="search"
             value={busqueda}
@@ -138,7 +179,7 @@ function MyWorksPage() {
 
       {trabajosFiltrados.length > 0 ? (
         <section aria-label="Lista de trabajos" className={styles.workGrid}>
-          {visibleWorks.map((trabajo) => (
+          {visibleWorks.map(trabajo => (
             <WorkCard key={trabajo.codigo} trabajo={trabajo} recepcionAbierta={open} />
           ))}
         </section>
@@ -146,7 +187,12 @@ function MyWorksPage() {
         <p className={styles.noResults}>Ningún trabajo coincide con la búsqueda.</p>
       )}
 
-      <Pagination pagina={currentPage} porPagina={pageSize} total={trabajosFiltrados.length} alCambiar={setPage} />
+      <Pagination
+        pagina={currentPage}
+        porPagina={pageSize}
+        total={trabajosFiltrados.length}
+        alCambiar={setPage}
+      />
     </AuthorPageLayout>
   )
 }

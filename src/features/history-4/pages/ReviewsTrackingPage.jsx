@@ -20,7 +20,11 @@ const usuarioComite = {
 
 export default function PaginaSeguimientoRevisiones() {
   const conference = useConference()
-  const revisionesPendientes = getPendingReviews(conference.works, conference.reviewers, conference.reviews)
+  const revisionesPendientes = getPendingReviews(
+    conference.works,
+    conference.reviewers,
+    conference.reviews
+  )
   const listaRevisores = conference.reviewers.filter(reviewer => !reviewer.bloqueado)
   const ocupado = conference.busy
   const errorAlmacenamiento = conference.error
@@ -30,33 +34,72 @@ export default function PaginaSeguimientoRevisiones() {
   const [notificacion, cambiarNotificacion] = usarEstado('')
 
   const [modalReasignarAbierto, cambiarModalReasignarAbierto] = usarEstado(false)
-  const [elementoSeleccionadoReasignar, cambiarElementoSeleccionadoReasignar] = usarEstado(null)
+  const [elementoSeleccionadoReasignar, cambiarElementoSeleccionadoReasignar] =
+    usarEstado(null)
 
-  const cantidadVencidas = revisionesPendientes.filter((elemento) => elemento.esVencida).length
-  const cantidadEnPlazo = revisionesPendientes.filter((elemento) => !elemento.esVencida).length
-  const totalAsignadas = conference.works.reduce((sum, work) => sum + work.revisoresAsignados.length, 0)
-  const totalEntregadas = conference.works.reduce((sum, work) => sum + work.revisoresAsignados.filter(id => { const reviewer = conference.reviewers.find(item => item.id === id); return reviewer && getReview(conference.reviews, reviewer, work.codigo)?.status === 'submitted' }).length, 0)
+  const cantidadVencidas = revisionesPendientes.filter(
+    elemento => elemento.esVencida
+  ).length
+  const cantidadEnPlazo = revisionesPendientes.filter(
+    elemento => !elemento.esVencida
+  ).length
+  const totalAsignadas = conference.works.reduce(
+    (sum, work) => sum + work.revisoresAsignados.length,
+    0
+  )
+  const totalEntregadas = conference.works.reduce(
+    (sum, work) =>
+      sum +
+      work.revisoresAsignados.filter(id => {
+        const reviewer = conference.reviewers.find(item => item.id === id)
+        return (
+          reviewer &&
+          getReview(conference.reviews, reviewer, work.codigo)?.status === 'submitted'
+        )
+      }).length,
+    0
+  )
 
   const listaMostrada = filtrarSoloVencidas
-    ? revisionesPendientes.filter((elemento) => elemento.esVencida)
+    ? revisionesPendientes.filter(elemento => elemento.esVencida)
     : revisionesPendientes
 
   const pageSize = 6
-  const currentPage = Math.min(page, Math.max(1, Math.ceil(listaMostrada.length / pageSize)))
-  const visibleReviews = listaMostrada.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const currentPage = Math.min(
+    page,
+    Math.max(1, Math.ceil(listaMostrada.length / pageSize))
+  )
+  const visibleReviews = listaMostrada.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  )
 
   async function recordReminders(items) {
-    if (ocupado) return
+    if (ocupado) {
+      return
+    }
     try {
       const existing = await remindersRepository.get()
-      await remindersRepository.save([...existing, ...items.map(item => ({ id: crypto.randomUUID(), codigo: item.codigo, revisorId: item.revisorId, createdAt: new Date().toISOString() }))])
-      cambiarNotificacion(`${items.length} recordatorio(s) registrado(s) en este navegador.`)
-    } catch (cause) { cambiarNotificacion(cause.message) }
+      await remindersRepository.save([
+        ...existing,
+        ...items.map(item => ({
+          id: crypto.randomUUID(),
+          codigo: item.codigo,
+          revisorId: item.revisorId,
+          createdAt: new Date().toISOString(),
+        })),
+      ])
+      cambiarNotificacion(
+        `${items.length} recordatorio(s) registrado(s) en este navegador.`
+      )
+    } catch (cause) {
+      cambiarNotificacion(cause.message)
+    }
   }
   const manejarRecordarTodos = () => recordReminders(revisionesPendientes)
   const manejarRecordarIndividual = item => recordReminders([item])
 
-  const manejarAbrirReasignacion = (elemento) => {
+  const manejarAbrirReasignacion = elemento => {
     cambiarElementoSeleccionadoReasignar(elemento)
     cambiarModalReasignarAbierto(true)
   }
@@ -68,16 +111,42 @@ export default function PaginaSeguimientoRevisiones() {
     nuevoRevisorNombre,
     motivo,
   }) => {
-    if (ocupado || errorAlmacenamiento) return false
+    if (ocupado || errorAlmacenamiento) {
+      return false
+    }
 
     const pending = revisionesPendientes.find(item => item.id === pendienteId)
-    if (!pending) return false
+    if (!pending) {
+      return false
+    }
     const candidate = listaRevisores.find(reviewer => reviewer.id === nuevoRevisorId)
     const work = conference.works.find(item => item.codigo === pending.codigo)
-    if (!candidate || work.revisoresAsignados.includes(candidate.id) || work.details?.autores?.some(author => author.correo === candidate.email)) return false
+    if (
+      !candidate ||
+      work.revisoresAsignados.includes(candidate.id) ||
+      work.details?.autores?.some(author => author.correo === candidate.email)
+    ) {
+      return false
+    }
     try {
-      await conference.save('works', conference.works.map(item => item.codigo === pending.codigo ? { ...item, revisoresAsignados: item.revisoresAsignados.map(id => id === pending.revisorId ? nuevoRevisorId : id), reassignmentReason: motivo, assignedAt: new Date().toISOString() } : item))
-    } catch { return false }
+      await conference.save(
+        'works',
+        conference.works.map(item =>
+          item.codigo === pending.codigo
+            ? {
+                ...item,
+                revisoresAsignados: item.revisoresAsignados.map(id =>
+                  id === pending.revisorId ? nuevoRevisorId : id
+                ),
+                reassignmentReason: motivo,
+                assignedAt: new Date().toISOString(),
+              }
+            : item
+        )
+      )
+    } catch {
+      return false
+    }
 
     cambiarNotificacion(
       `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
@@ -102,7 +171,8 @@ export default function PaginaSeguimientoRevisiones() {
             <div>
               <h1 className={estilos.titulo}>Seguimiento de revisiones</h1>
               <p className={estilos.subtitulo}>
-                Pendientes ordenadas por fecha límite · cierre de la etapa: {formatScheduleDate(conference.schedule.review ?? '')}
+                Pendientes ordenadas por fecha límite · cierre de la etapa:{' '}
+                {formatScheduleDate(conference.schedule.review ?? '')}
               </p>
             </div>
             <div>
@@ -125,7 +195,8 @@ export default function PaginaSeguimientoRevisiones() {
                   !
                 </span>
                 <span>
-                  <strong>{cantidadVencidas} revisiones vencidas.</strong> Considere reasignar para no retrasar la publicación de resultados.
+                  <strong>{cantidadVencidas} revisiones vencidas.</strong> Considere
+                  reasignar para no retrasar la publicación de resultados.
                 </span>
               </div>
               <button
@@ -151,14 +222,16 @@ export default function PaginaSeguimientoRevisiones() {
                 </tr>
               </thead>
               <tbody>
-                {visibleReviews.map((elemento) => (
+                {visibleReviews.map(elemento => (
                   <tr
                     key={elemento.id}
                     className={elemento.esVencida ? estilos.filaVencida : ''}
                   >
                     <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
                     <td className={estilos.celdaTitulo}>
-                      <Link to={`/trabajos-recibidos/${elemento.codigo}/consolidado`}><strong>{elemento.trabajo}</strong></Link>
+                      <Link to={`/trabajos-recibidos/${elemento.codigo}/consolidado`}>
+                        <strong>{elemento.trabajo}</strong>
+                      </Link>
                     </td>
                     <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
                     <td
@@ -174,7 +247,9 @@ export default function PaginaSeguimientoRevisiones() {
                       {elemento.esVencida ? (
                         <span className={estilos.insigniaVencida}>{elemento.estado}</span>
                       ) : (
-                        <span className={estilos.insigniaPendiente}>{elemento.estado}</span>
+                        <span className={estilos.insigniaPendiente}>
+                          {elemento.estado}
+                        </span>
                       )}
                     </td>
                     <td className={estilos.celdaAccion}>
@@ -202,7 +277,12 @@ export default function PaginaSeguimientoRevisiones() {
             </table>
           </div>
 
-          <Pagination pagina={currentPage} total={listaMostrada.length} porPagina={pageSize} alCambiar={setPage} />
+          <Pagination
+            pagina={currentPage}
+            total={listaMostrada.length}
+            porPagina={pageSize}
+            alCambiar={setPage}
+          />
 
           <div className={estilos.cuadriculaResumenInferior}>
             <div className={estilos.tarjetaResumenInferior}>

@@ -1,4 +1,12 @@
-.form { composes: form from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
-.field { composes: field from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
-.footer { composes: footer from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
-.fields { composes: fields from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
+.form {
+  composes: form from '../ThematicAxisModal/ThematicAxisModal.module.css';
+}
+.field {
+  composes: field from '../ThematicAxisModal/ThematicAxisModal.module.css';
+}
+.footer {
+  composes: footer from '../ThematicAxisModal/ThematicAxisModal.module.css';
+}
+.fields {
+  composes: fields from '../ThematicAxisModal/ThematicAxisModal.module.css';
+}

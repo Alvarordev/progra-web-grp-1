@@ -12,15 +12,12 @@ const navigationItems = [
   { label: 'Usuarios', to: '/usuarios' },
 ]
 
-function CommitteeNavigation({
-  rutaActiva = '/configuracion',
-  usuario,
-}) {
+function CommitteeNavigation({ rutaActiva = '/configuracion', usuario }) {
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del comité" className={styles.navigation}>
-          {navigationItems.map((elemento) => {
+          {navigationItems.map(elemento => {
             const esConfiguracion = elemento.to === '/configuracion'
             const esRutaActiva =
               elemento.to === rutaActiva ||

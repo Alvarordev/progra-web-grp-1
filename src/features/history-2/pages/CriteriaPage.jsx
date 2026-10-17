@@ -11,16 +11,23 @@ import CriterionModal from '../components/CriterionModal/CriterionModal.jsx'
 import styles from './CriteriaPage.module.css'
 
 function CriteriaPage() {
-  const { value, loading, saving, error, save } = useStoredState(criteriaRepository, initialCriteria)
+  const { value, loading, saving, error, save } = useStoredState(
+    criteriaRepository,
+    initialCriteria
+  )
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
   const criteria = value
   const total = criteria.reduce((sum, item) => sum + item.peso, 0)
 
   async function handleApply(updatedCriterion) {
-    if (loading || saving) return
+    if (loading || saving) {
+      return
+    }
     const nextCriteria = modal.criterio
-      ? criteria.map((item) => item.id === modal.criterio.id ? { ...item, ...updatedCriterion } : item)
+      ? criteria.map(item =>
+          item.id === modal.criterio.id ? { ...item, ...updatedCriterion } : item
+        )
       : [...criteria, { ...updatedCriterion, id: crypto.randomUUID() }]
     try {
       await save(nextCriteria)
@@ -32,10 +39,14 @@ function CriteriaPage() {
   }
 
   async function handleDelete(id) {
-    if (loading || saving) return
-    if (!window.confirm('¿Eliminar este criterio?')) return
+    if (loading || saving) {
+      return
+    }
+    if (!window.confirm('¿Eliminar este criterio?')) {
+      return
+    }
     try {
-      await save(criteria.filter((item) => item.id !== id))
+      await save(criteria.filter(item => item.id !== id))
       setFeedback('Criterio eliminado correctamente.')
     } catch {
       setFeedback('')
@@ -43,40 +54,85 @@ function CriteriaPage() {
   }
 
   async function handleSave() {
-    if (loading || saving) return
+    if (loading || saving) {
+      return
+    }
     try {
       await save(criteria)
       setFeedback('Criterios guardados correctamente.')
-    } catch { setFeedback('') }
+    } catch {
+      setFeedback('')
+    }
   }
 
   return (
     <ConfigurationPageLayout>
       <div className={styles.content}>
         <header className={styles.pageHeading}>
-          <div><h1>Criterios de evaluación</h1><p>Los pesos de todos los criterios deben sumar 100.</p></div>
+          <div>
+            <h1>Criterios de evaluación</h1>
+            <p>Los pesos de todos los criterios deben sumar 100.</p>
+          </div>
           <div className={styles.actions}>
-            <Button variant="secondary" disabled={loading || saving} onClick={() => { setFeedback(''); setModal({ criterio: null }) }}>Nuevo criterio</Button>
-            <Button disabled={loading} loading={saving} onClick={handleSave}>Guardar criterios</Button>
+            <Button
+              variant="secondary"
+              disabled={loading || saving}
+              onClick={() => {
+                setFeedback('')
+                setModal({ criterio: null })
+              }}
+            >
+              Nuevo criterio
+            </Button>
+            <Button disabled={loading} loading={saving} onClick={handleSave}>
+              Guardar criterios
+            </Button>
           </div>
         </header>
         <ConfigurationTabs />
-        <ConfigurationFeedback cargando={loading ? 'Cargando criterios…' : ''} error={modal ? '' : error} mensaje={feedback} />
-        {!loading && !error && <ConfigurationFeedback
-          tipo={total === 100 ? 'success' : 'warning'}
-          mensaje={total === 100 ? 'Configuración válida: los pesos suman 100.' : `Los pesos suman ${total} de 100. ${total < 100 ? `Faltan ${100 - total}` : `Sobran ${total - 100}`} puntos. Ajuste los criterios antes de abrir la revisión.`}
-        />}
+        <ConfigurationFeedback
+          cargando={loading ? 'Cargando criterios…' : ''}
+          error={modal ? '' : error}
+          mensaje={feedback}
+        />
+        {!loading && !error && (
+          <ConfigurationFeedback
+            tipo={total === 100 ? 'success' : 'warning'}
+            mensaje={
+              total === 100
+                ? 'Configuración válida: los pesos suman 100.'
+                : `Los pesos suman ${total} de 100. ${total < 100 ? `Faltan ${100 - total}` : `Sobran ${total - 100}`} puntos. Ajuste los criterios antes de abrir la revisión.`
+            }
+          />
+        )}
         {criteria.length > 0 ? (
-          <CriteriaTable criterios={criteria} deshabilitado={loading || saving} alEditar={(item) => { setFeedback(''); setModal({ criterio: item }) }} alEliminar={handleDelete} />
-        ) : <p>No hay criterios configurados. Agregue el primer criterio.</p>}
-        <p className={styles.helperText}>Cada criterio se guarda al confirmar su formulario. Para abrir la revisión, los pesos deben sumar 100.</p>
+          <CriteriaTable
+            criterios={criteria}
+            deshabilitado={loading || saving}
+            alEditar={item => {
+              setFeedback('')
+              setModal({ criterio: item })
+            }}
+            alEliminar={handleDelete}
+          />
+        ) : (
+          <p>No hay criterios configurados. Agregue el primer criterio.</p>
+        )}
+        <p className={styles.helperText}>
+          Cada criterio se guarda al confirmar su formulario. Para abrir la revisión, los
+          pesos deben sumar 100.
+        </p>
       </div>
       {modal && (
         <CriterionModal
           criterio={modal.criterio}
           guardando={saving}
           errorGuardado={error}
-          alCerrar={() => { if (!saving) setModal(null) }}
+          alCerrar={() => {
+            if (!saving) {
+              setModal(null)
+            }
+          }}
           alGuardar={handleApply}
         />
       )}

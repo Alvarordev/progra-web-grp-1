@@ -24,8 +24,8 @@ function ProgramSummary({ asignados, sinSesion, total }) {
         </div>
       </dl>
       <p className={styles.note}>
-        El alta y la edición de sesiones se realizan en modal, con validación
-        de solapamiento de sala y hora.
+        El alta y la edición de sesiones se realizan en modal, con validación de
+        solapamiento de sala y hora.
       </p>
     </section>
   )

@@ -6,8 +6,12 @@ function getCompliance(revisor) {
 }
 
 function getComplianceTone(porcentaje) {
-  if (porcentaje >= 100) return styles.fillSuccess
-  if (porcentaje >= 60) return styles.fillWarning
+  if (porcentaje >= 100) {
+    return styles.fillSuccess
+  }
+  if (porcentaje >= 60) {
+    return styles.fillWarning
+  }
   return styles.fillDanger
 }
 
@@ -17,15 +21,23 @@ function ReviewerComplianceTable({ revisores }) {
       <thead>
         <tr>
           <th scope="col">Revisor</th>
-          <th data-align="right" scope="col">Asignadas</th>
-          <th data-align="right" scope="col">Entregadas</th>
-          <th data-align="right" scope="col">Vencidas</th>
-          <th data-align="right" scope="col">Tiempo prom.</th>
+          <th data-align="right" scope="col">
+            Asignadas
+          </th>
+          <th data-align="right" scope="col">
+            Entregadas
+          </th>
+          <th data-align="right" scope="col">
+            Vencidas
+          </th>
+          <th data-align="right" scope="col">
+            Tiempo prom.
+          </th>
           <th scope="col">Cumplimiento</th>
         </tr>
       </thead>
       <tbody>
-        {revisores.map((revisor) => {
+        {revisores.map(revisor => {
           const porcentaje = getCompliance(revisor)
 
           return (
@@ -41,7 +53,9 @@ function ReviewerComplianceTable({ revisores }) {
               >
                 {revisor.vencidas}
               </td>
-              <td data-align="right">{revisor.tiempo === null ? '—' : `${revisor.tiempo.toFixed(1)} días`}</td>
+              <td data-align="right">
+                {revisor.tiempo === null ? '—' : `${revisor.tiempo.toFixed(1)} días`}
+              </td>
               <td>
                 <div className={styles.progress}>
                   <span aria-hidden="true" className={styles.track}>

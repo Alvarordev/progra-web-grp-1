@@ -7,20 +7,33 @@ import FormField from '../components/FormField/FormField.jsx'
 import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
 import { sampleWork } from '../../../core/utils/states/submissionState.js'
 import useConference from '../../../core/utils/useConference.js'
-import { emptySubmission, receptionIsOpen, saveSubmission, toSubmission } from '../../../core/utils/submissions.js'
+import {
+  emptySubmission,
+  receptionIsOpen,
+  saveSubmission,
+  toSubmission,
+} from '../../../core/utils/submissions.js'
 import { getReceptionNotice } from '../../../core/utils/reception.js'
 import styles from './NewWorkPage.module.css'
 
 const MAX_SUMMARY = 1500
 const MIN_KEYWORDS = 3
 
-const steps = ['1. Datos generales', '2. Resumen y palabras clave', '3. Documento y coautores']
+const steps = [
+  '1. Datos generales',
+  '2. Resumen y palabras clave',
+  '3. Documento y coautores',
+]
 
 function validateWork(trabajo) {
   const errores = {}
 
-  if (!trabajo.titulo.trim()) errores.titulo = 'Ingrese el título del trabajo.'
-  if (!trabajo.eje) errores.eje = 'Debe elegir un eje temático.'
+  if (!trabajo.titulo.trim()) {
+    errores.titulo = 'Ingrese el título del trabajo.'
+  }
+  if (!trabajo.eje) {
+    errores.eje = 'Debe elegir un eje temático.'
+  }
   if (!trabajo.resumen.trim()) {
     errores.resumen = 'Ingrese el resumen del trabajo.'
   } else if (trabajo.resumen.length > MAX_SUMMARY) {
@@ -41,36 +54,58 @@ function NewWorkPage() {
   const conference = useConference()
   const [searchParams, setSearchParams] = useSearchParams()
   const code = searchParams.get('borrador')
-  const stored = conference.works.find(work => work.codigo === code && (work.ownerId === conference.account?.userId || work.ownerEmail === conference.account?.email))
+  const stored = conference.works.find(
+    work =>
+      work.codigo === code &&
+      (work.ownerId === conference.account?.userId ||
+        work.ownerEmail === conference.account?.email)
+  )
   const [draft, setDraft] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const open = receptionIsOpen(conference.status, conference.schedule)
   const busy = conference.busy || saving
-  const trabajo = draft ?? (stored ? toSubmission(stored) : conference.account?.email === 'rosa.quispe@aloe.ulima.edu.pe' ? sampleWork : { ...emptySubmission, tipo: conference.types[0]?.nombre ?? '' })
-  const setTrabajo = updater => setDraft(typeof updater === 'function' ? updater(trabajo) : updater)
-  const workTypes = conference.types.map(type => ({ ...type, requisitos: `${type.extensionMaxima} · ${type.formatoEsperado}`, maxCoautores: type.admiteCoautores ? type.maxCoautores : 0 }))
+  const trabajo = draft ?? getInitialWork()
+  function getInitialWork() {
+    if (stored) {
+      return toSubmission(stored)
+    }
+    if (conference.account?.email === 'rosa.quispe@aloe.ulima.edu.pe') {
+      return sampleWork
+    }
+    return { ...emptySubmission, tipo: conference.types[0]?.nombre ?? '' }
+  }
+
+  const setTrabajo = updater =>
+    setDraft(typeof updater === 'function' ? updater(trabajo) : updater)
+  const workTypes = conference.types.map(type => ({
+    ...type,
+    requisitos: `${type.extensionMaxima} · ${type.formatoEsperado}`,
+    maxCoautores: type.admiteCoautores ? type.maxCoautores : 0,
+  }))
   const thematicAxes = conference.axes.map(axis => axis.nombre)
   const [nuevaPalabra, setNuevaPalabra] = useState('')
   const [errores, setErrores] = useState({})
   const [borradorGuardado, setBorradorGuardado] = useState(false)
 
-  const tipoElegido = workTypes.find((tipo) => tipo.nombre === trabajo.tipo)
+  const tipoElegido = workTypes.find(tipo => tipo.nombre === trabajo.tipo)
   const cantidadErrores = Object.keys(errores).length
 
   function handleChange(event) {
     const { name, value } = event.target
-    setTrabajo((trabajoActual) => ({ ...trabajoActual, [name]: value }))
+    setTrabajo(trabajoActual => ({ ...trabajoActual, [name]: value }))
   }
 
   function handleKeywordKeyDown(event) {
-    if (event.key !== 'Enter') return
+    if (event.key !== 'Enter') {
+      return
+    }
 
     event.preventDefault()
     const palabra = nuevaPalabra.trim()
 
     if (palabra && !trabajo.palabrasClave.includes(palabra)) {
-      setTrabajo((trabajoActual) => ({
+      setTrabajo(trabajoActual => ({
         ...trabajoActual,
         palabrasClave: [...trabajoActual.palabrasClave, palabra],
       }))
@@ -79,36 +114,65 @@ function NewWorkPage() {
   }
 
   function handleRemoveKeyword(palabra) {
-    setTrabajo((trabajoActual) => ({
+    setTrabajo(trabajoActual => ({
       ...trabajoActual,
-      palabrasClave: trabajoActual.palabrasClave.filter((actual) => actual !== palabra),
+      palabrasClave: trabajoActual.palabrasClave.filter(actual => actual !== palabra),
     }))
   }
 
   async function persist(sendNext) {
-    if (busy) return
-    if (!trabajo.titulo.trim()) { setErrores({ titulo: 'Ingrese al menos el título para guardar el borrador.' }); return }
+    if (busy) {
+      return
+    }
+    if (!trabajo.titulo.trim()) {
+      setErrores({ titulo: 'Ingrese al menos el título para guardar el borrador.' })
+      return
+    }
     setSaving(true)
     setSaveError('')
     try {
-      const savedCode = await saveSubmission({ account: conference.account, submission: trabajo, code, status: conference.status, schedule: conference.schedule })
+      const savedCode = await saveSubmission({
+        account: conference.account,
+        submission: trabajo,
+        code,
+        status: conference.status,
+        schedule: conference.schedule,
+      })
       setSearchParams({ borrador: savedCode }, { replace: true })
       await conference.refresh()
-      if (sendNext) navigate(`/autor/nuevo-trabajo/coautores?borrador=${savedCode}`)
-      else { setErrores({}); setBorradorGuardado(true) }
-    } catch (cause) { setSaveError(cause.message) } finally { setSaving(false) }
+      if (sendNext) {
+        navigate(`/autor/nuevo-trabajo/coautores?borrador=${savedCode}`)
+      } else {
+        setErrores({})
+        setBorradorGuardado(true)
+      }
+    } catch (cause) {
+      setSaveError(cause.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function handleSaveDraft() { persist(false) }
+  function handleSaveDraft() {
+    persist(false)
+  }
 
   function handleSubmit(event) {
     event.preventDefault()
     const found = validateWork(trabajo)
     setErrores(found)
-    if (!Object.keys(found).length) persist(true)
+    if (!Object.keys(found).length) {
+      persist(true)
+    }
   }
 
-  if (conference.loading) return <AuthorPageLayout><p role="status">Cargando trabajo…</p></AuthorPageLayout>
+  if (conference.loading) {
+    return (
+      <AuthorPageLayout>
+        <p role="status">Cargando trabajo…</p>
+      </AuthorPageLayout>
+    )
+  }
 
   if (borradorGuardado) {
     return (
@@ -117,7 +181,14 @@ function NewWorkPage() {
           ✓ Borrador guardado el 18/09/2026 a las 19:42. Aún no ha sido enviado al comité.{' '}
           <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
-        <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+        <DeadlineNotice
+          restante={
+            open
+              ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}`
+              : undefined
+          }
+          titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}
+        >
           {getReceptionNotice(conference.status, conference.schedule)}
         </DeadlineNotice>
 
@@ -165,11 +236,13 @@ function NewWorkPage() {
               <li>✓ Datos generales completos</li>
               <li>✓ Resumen y palabras clave</li>
               <li>✓ Enlace al documento</li>
-              <li className={styles.pending}>• Falta confirmar al autor de correspondencia</li>
+              <li className={styles.pending}>
+                • Falta confirmar al autor de correspondencia
+              </li>
             </ul>
             <p className={styles.helperText}>
-              Los borradores no participan del proceso de revisión. Debe enviarlo antes del
-              cierre de la recepción.
+              Los borradores no participan del proceso de revisión. Debe enviarlo antes
+              del cierre de la recepción.
             </p>
           </aside>
         </div>
@@ -179,7 +252,14 @@ function NewWorkPage() {
 
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
-      <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+      <DeadlineNotice
+        restante={
+          open
+            ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}`
+            : undefined
+        }
+        titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}
+      >
         {getReceptionNotice(conference.status, conference.schedule)}
       </DeadlineNotice>
 
@@ -192,7 +272,12 @@ function NewWorkPage() {
           <Button disabled={busy || !open} onClick={handleSaveDraft} variant="secondary">
             Guardar como borrador
           </Button>
-          <Button disabled={busy || !open} form="new-work-form" type="submit" variant="primary">
+          <Button
+            disabled={busy || !open}
+            form="new-work-form"
+            type="submit"
+            variant="primary"
+          >
             Continuar a coautores
           </Button>
         </div>
@@ -217,80 +302,125 @@ function NewWorkPage() {
         </section>
       )}
 
-      {(conference.error || saveError) && <p role="alert">{conference.error || saveError}</p>}
+      {(conference.error || saveError) && (
+        <p role="alert">{conference.error || saveError}</p>
+      )}
       <div className={styles.layout}>
-        <form className={`${styles.panel} ${styles.form}`} id="new-work-form" noValidate onSubmit={handleSubmit}>
+        <form
+          className={`${styles.panel} ${styles.form}`}
+          id="new-work-form"
+          noValidate
+          onSubmit={handleSubmit}
+        >
           <fieldset disabled={busy || !open} className={styles.formFields}>
-          <div className={styles.fullWidth}>
-            <FormField error={errores.titulo} etiqueta="Título del trabajo *" htmlFor="work-title">
-              <input id="work-title" maxLength={180} name="titulo" onChange={handleChange} value={trabajo.titulo} />
-            </FormField>
-          </div>
+            <div className={styles.fullWidth}>
+              <FormField
+                error={errores.titulo}
+                etiqueta="Título del trabajo *"
+                htmlFor="work-title"
+              >
+                <input
+                  id="work-title"
+                  maxLength={180}
+                  name="titulo"
+                  onChange={handleChange}
+                  value={trabajo.titulo}
+                />
+              </FormField>
+            </div>
 
-          <FormField etiqueta="Tipo de trabajo *" htmlFor="work-type">
-            <select id="work-type" name="tipo" onChange={handleChange} value={trabajo.tipo}>
-              {workTypes.map((tipo) => (
-                <option key={tipo.nombre} value={tipo.nombre}>
-                  {tipo.nombre}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField error={errores.eje} etiqueta="Eje temático *" htmlFor="work-axis">
-            <select id="work-axis" name="eje" onChange={handleChange} value={trabajo.eje}>
-              <option value="">Seleccione un eje</option>
-              {thematicAxes.map((eje) => (
-                <option key={eje} value={eje}>
-                  {eje}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <div className={styles.fullWidth}>
-            <FormField
-              ayuda={`${trabajo.resumen.length} / 1 500 caracteres`}
-              error={errores.resumen}
-              etiqueta="Resumen *"
-              htmlFor="work-summary"
-            >
-              <textarea id="work-summary" name="resumen" onChange={handleChange} value={trabajo.resumen} />
-            </FormField>
-          </div>
-
-          <div className={styles.fullWidth}>
-            <FormField error={errores.palabrasClave} etiqueta="Palabras clave *" htmlFor="work-keyword">
-              <ul aria-label="Palabras clave agregadas" className={styles.keywords}>
-                {trabajo.palabrasClave.map((palabra) => (
-                  <li key={palabra}>
-                    {palabra}
-                    <button aria-label={`Quitar ${palabra}`} onClick={() => handleRemoveKeyword(palabra)} type="button">
-                      ✕
-                    </button>
-                  </li>
+            <FormField etiqueta="Tipo de trabajo *" htmlFor="work-type">
+              <select
+                id="work-type"
+                name="tipo"
+                onChange={handleChange}
+                value={trabajo.tipo}
+              >
+                {workTypes.map(tipo => (
+                  <option key={tipo.nombre} value={tipo.nombre}>
+                    {tipo.nombre}
+                  </option>
                 ))}
-              </ul>
-              <input
-                id="work-keyword"
-                onChange={(event) => setNuevaPalabra(event.target.value)}
-                onKeyDown={handleKeywordKeyDown}
-                placeholder="Escriba y presione Enter…"
-                value={nuevaPalabra}
-              />
+              </select>
             </FormField>
-          </div>
 
-          <div className={styles.fullWidth}>
-            <FormField
-              ayuda="El enlace debe permitir el acceso de lectura al comité y a los revisores."
-              error={errores.enlace}
-              etiqueta="Enlace al documento *"
-              htmlFor="work-link"
-            >
-              <input id="work-link" name="enlace" onChange={handleChange} value={trabajo.enlace} />
+            <FormField error={errores.eje} etiqueta="Eje temático *" htmlFor="work-axis">
+              <select
+                id="work-axis"
+                name="eje"
+                onChange={handleChange}
+                value={trabajo.eje}
+              >
+                <option value="">Seleccione un eje</option>
+                {thematicAxes.map(eje => (
+                  <option key={eje} value={eje}>
+                    {eje}
+                  </option>
+                ))}
+              </select>
             </FormField>
-          </div>
+
+            <div className={styles.fullWidth}>
+              <FormField
+                ayuda={`${trabajo.resumen.length} / 1 500 caracteres`}
+                error={errores.resumen}
+                etiqueta="Resumen *"
+                htmlFor="work-summary"
+              >
+                <textarea
+                  id="work-summary"
+                  name="resumen"
+                  onChange={handleChange}
+                  value={trabajo.resumen}
+                />
+              </FormField>
+            </div>
+
+            <div className={styles.fullWidth}>
+              <FormField
+                error={errores.palabrasClave}
+                etiqueta="Palabras clave *"
+                htmlFor="work-keyword"
+              >
+                <ul aria-label="Palabras clave agregadas" className={styles.keywords}>
+                  {trabajo.palabrasClave.map(palabra => (
+                    <li key={palabra}>
+                      {palabra}
+                      <button
+                        aria-label={`Quitar ${palabra}`}
+                        onClick={() => handleRemoveKeyword(palabra)}
+                        type="button"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <input
+                  id="work-keyword"
+                  onChange={event => setNuevaPalabra(event.target.value)}
+                  onKeyDown={handleKeywordKeyDown}
+                  placeholder="Escriba y presione Enter…"
+                  value={nuevaPalabra}
+                />
+              </FormField>
+            </div>
+
+            <div className={styles.fullWidth}>
+              <FormField
+                ayuda="El enlace debe permitir el acceso de lectura al comité y a los revisores."
+                error={errores.enlace}
+                etiqueta="Enlace al documento *"
+                htmlFor="work-link"
+              >
+                <input
+                  id="work-link"
+                  name="enlace"
+                  onChange={handleChange}
+                  value={trabajo.enlace}
+                />
+              </FormField>
+            </div>
           </fieldset>
         </form>
 
@@ -303,13 +433,21 @@ function NewWorkPage() {
           </section>
           <section className={styles.panel}>
             <h2 className={styles.label}>Antes de enviar</h2>
-            <p>Verifique que el documento no contenga los nombres de los autores: la revisión es ciega.</p>
-            <p className={styles.helperText}>Podrá editar el trabajo hasta el cierre de la recepción.</p>
+            <p>
+              Verifique que el documento no contenga los nombres de los autores: la
+              revisión es ciega.
+            </p>
+            <p className={styles.helperText}>
+              Podrá editar el trabajo hasta el cierre de la recepción.
+            </p>
           </section>
           {cantidadErrores > 0 && (
             <section className={`${styles.panel} ${styles.warningPanel}`}>
               <h2 className={styles.label}>Sus cambios no se han guardado</h2>
-              <p>Puede guardar el trabajo como borrador y corregir los campos más tarde, antes del cierre de la recepción.</p>
+              <p>
+                Puede guardar el trabajo como borrador y corregir los campos más tarde,
+                antes del cierre de la recepción.
+              </p>
             </section>
           )}
         </aside>

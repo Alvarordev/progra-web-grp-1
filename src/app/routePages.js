@@ -1,37 +1,101 @@
 import { lazy } from 'react'
 
-export const MyPresentationPage = lazy(() => import('../features/history-6/pages/MyPresentationPage.jsx'))
-export const PublicProgramPage = lazy(() => import('../features/history-6/pages/PublicProgramPage.jsx'))
-export const SessionAssignmentPage = lazy(() => import('../features/history-6/pages/SessionAssignmentPage.jsx'))
-export const SessionBuilderPage = lazy(() => import('../features/history-6/pages/SessionBuilderPage.jsx'))
-export const MetricsPage = lazy(() => import('../features/history-7/pages/MetricsPage.jsx'))
-export const ReviewerCompliancePage = lazy(() => import('../features/history-7/pages/ReviewerCompliancePage.jsx'))
+export const MyPresentationPage = lazy(
+  () => import('../features/history-6/pages/MyPresentationPage.jsx')
+)
+export const PublicProgramPage = lazy(
+  () => import('../features/history-6/pages/PublicProgramPage.jsx')
+)
+export const SessionAssignmentPage = lazy(
+  () => import('../features/history-6/pages/SessionAssignmentPage.jsx')
+)
+export const SessionBuilderPage = lazy(
+  () => import('../features/history-6/pages/SessionBuilderPage.jsx')
+)
+export const MetricsPage = lazy(
+  () => import('../features/history-7/pages/MetricsPage.jsx')
+)
+export const ReviewerCompliancePage = lazy(
+  () => import('../features/history-7/pages/ReviewerCompliancePage.jsx')
+)
 export const UsersPage = lazy(() => import('../features/history-7/pages/UsersPage.jsx'))
-export const ReceivedWorksPage = lazy(() => import('../features/history-4/pages/ReceivedWorksPage.jsx'))
-export const ReviewersListPage = lazy(() => import('../features/history-4/pages/ReviewersListPage.jsx'))
-export const ReviewsTrackingPage = lazy(() => import('../features/history-4/pages/ReviewsTrackingPage.jsx'))
-export const InformationPage = lazy(() => import('../features/history-1/pages/InformationPage.jsx'))
+export const ReceivedWorksPage = lazy(
+  () => import('../features/history-4/pages/ReceivedWorksPage.jsx')
+)
+export const ReviewersListPage = lazy(
+  () => import('../features/history-4/pages/ReviewersListPage.jsx')
+)
+export const ReviewsTrackingPage = lazy(
+  () => import('../features/history-4/pages/ReviewsTrackingPage.jsx')
+)
+export const InformationPage = lazy(
+  () => import('../features/history-1/pages/InformationPage.jsx')
+)
 export const ExamplePage = lazy(() => import('../ejemplo/ExamplePage.jsx'))
-export const AuthorHomePage = lazy(() => import('../features/history-1/pages/AuthorHomePage.jsx'))
-export const History1Page = lazy(() => import('../features/history-1/pages/History1Page.jsx'))
-export const CongressRulesPage = lazy(() => import('../features/history-1/pages/CongressRulesPage.jsx'))
+export const AuthorHomePage = lazy(
+  () => import('../features/history-1/pages/AuthorHomePage.jsx')
+)
+export const History1Page = lazy(
+  () => import('../features/history-1/pages/History1Page.jsx')
+)
+export const CongressRulesPage = lazy(
+  () => import('../features/history-1/pages/CongressRulesPage.jsx')
+)
 export const LoginPage = lazy(() => import('../features/history-1/pages/LoginPage.jsx'))
-export const PasswordRecoveryPage = lazy(() => import('../features/history-1/pages/PasswordRecoveryPage.jsx'))
-export const RegistrationPage = lazy(() => import('../features/history-1/pages/RegistrationPage.jsx'))
-export const AccountPage = lazy(() => import('../features/history-1/pages/AccountPage.jsx'))
-export const NotFoundPage = lazy(() => import('../features/history-1/pages/NotFoundPage.jsx'))
-export const RoleAccess = lazy(() => import('../features/history-1/components/RoleAccess/RoleAccess.jsx'))
-export const RoleAccessError = lazy(() => import('../features/history-1/components/RoleAccess/RoleAccessError.jsx'))
-export const EditionSettingsPage = lazy(() => import('../features/history-2/pages/EditionSettingsPage.jsx'))
-export const ThematicAxesPage = lazy(() => import('../features/history-2/pages/ThematicAxesPage.jsx'))
-export const WorkTypesPage = lazy(() => import('../features/history-2/pages/WorkTypesPage.jsx'))
-export const SchedulePage = lazy(() => import('../features/history-2/pages/SchedulePage.jsx'))
-export const CriteriaPage = lazy(() => import('../features/history-2/pages/CriteriaPage.jsx'))
-export const NewWorkPage = lazy(() => import('../features/history-3/pages/NewWorkPage.jsx'))
-export const CoauthorsPage = lazy(() => import('../features/history-3/pages/CoauthorsPage.jsx'))
-export const MyWorksPage = lazy(() => import('../features/history-3/pages/MyWorksPage.jsx'))
-export const WorkDetailPage = lazy(() => import('../features/history-3/pages/WorkDetailPage.jsx'))
-export const ReadOnlyWorkPage = lazy(() => import('../features/history-3/pages/ReadOnlyWorkPage.jsx'))
-export const ReviewerInboxPage = lazy(() => import('../features/history-5/pages/ReviewerInboxPage.jsx'))
-export const EvaluationPage = lazy(() => import('../features/history-5/pages/EvaluationPage.jsx'))
-export const ConsolidatedReviewPage = lazy(() => import('../features/history-5/pages/ConsolidatedReviewPage.jsx'))
+export const PasswordRecoveryPage = lazy(
+  () => import('../features/history-1/pages/PasswordRecoveryPage.jsx')
+)
+export const RegistrationPage = lazy(
+  () => import('../features/history-1/pages/RegistrationPage.jsx')
+)
+export const AccountPage = lazy(
+  () => import('../features/history-1/pages/AccountPage.jsx')
+)
+export const NotFoundPage = lazy(
+  () => import('../features/history-1/pages/NotFoundPage.jsx')
+)
+export const RoleAccess = lazy(
+  () => import('../features/history-1/components/RoleAccess/RoleAccess.jsx')
+)
+export const RoleAccessError = lazy(
+  () => import('../features/history-1/components/RoleAccess/RoleAccessError.jsx')
+)
+export const EditionSettingsPage = lazy(
+  () => import('../features/history-2/pages/EditionSettingsPage.jsx')
+)
+export const ThematicAxesPage = lazy(
+  () => import('../features/history-2/pages/ThematicAxesPage.jsx')
+)
+export const WorkTypesPage = lazy(
+  () => import('../features/history-2/pages/WorkTypesPage.jsx')
+)
+export const SchedulePage = lazy(
+  () => import('../features/history-2/pages/SchedulePage.jsx')
+)
+export const CriteriaPage = lazy(
+  () => import('../features/history-2/pages/CriteriaPage.jsx')
+)
+export const NewWorkPage = lazy(
+  () => import('../features/history-3/pages/NewWorkPage.jsx')
+)
+export const CoauthorsPage = lazy(
+  () => import('../features/history-3/pages/CoauthorsPage.jsx')
+)
+export const MyWorksPage = lazy(
+  () => import('../features/history-3/pages/MyWorksPage.jsx')
+)
+export const WorkDetailPage = lazy(
+  () => import('../features/history-3/pages/WorkDetailPage.jsx')
+)
+export const ReadOnlyWorkPage = lazy(
+  () => import('../features/history-3/pages/ReadOnlyWorkPage.jsx')
+)
+export const ReviewerInboxPage = lazy(
+  () => import('../features/history-5/pages/ReviewerInboxPage.jsx')
+)
+export const EvaluationPage = lazy(
+  () => import('../features/history-5/pages/EvaluationPage.jsx')
+)
+export const ConsolidatedReviewPage = lazy(
+  () => import('../features/history-5/pages/ConsolidatedReviewPage.jsx')
+)

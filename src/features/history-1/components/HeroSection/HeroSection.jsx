@@ -1,14 +1,18 @@
 import { Link } from 'react-router'
 import styles from './HeroSection.module.css'
 
+const authorAction = { to: '/autor', label: 'Ir a mi área de autor' }
+
+const actionsByRole = {
+  committee: { to: '/configuracion', label: 'Ir a la configuración del congreso' },
+  reviewer: { to: '/mi-cuenta', label: 'Ir a mi cuenta' },
+  author: authorAction,
+  both: authorAction,
+  guest: { to: '/iniciar-sesion', label: 'Enviar mi trabajo' },
+}
+
 function HeroSection({ rol, edicion }) {
-  const action = rol === 'committee'
-    ? { to: '/configuracion', label: 'Ir a la configuración del congreso' }
-    : rol === 'reviewer'
-    ? { to: '/mi-cuenta', label: 'Ir a mi cuenta' }
-    : rol === 'author' || rol === 'both'
-      ? { to: '/autor', label: 'Ir a mi área de autor' }
-      : { to: '/iniciar-sesion', label: 'Enviar mi trabajo' }
+  const action = actionsByRole[rol] ?? actionsByRole.guest
 
   return (
     <section className={styles.hero}>
@@ -18,9 +22,7 @@ function HeroSection({ rol, edicion }) {
             CONGRESO ACADÉMICO · LIMA · EDICIÓN {edicion?.editionYear}
           </p>
           <h1>{edicion?.editionName ?? 'VIII Congreso Académico Estudiantil'}</h1>
-          <p className={styles.description}>
-            {edicion?.editionDescription}
-          </p>
+          <p className={styles.description}>{edicion?.editionDescription}</p>
         </div>
 
         <div className={styles.actions}>

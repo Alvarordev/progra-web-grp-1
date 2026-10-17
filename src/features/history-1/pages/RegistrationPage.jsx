@@ -1,9 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
-import { getAccountHome, registerParticipant, startAccountSession } from '../../../core/utils/accounts.js'
+import {
+  getAccountHome,
+  registerParticipant,
+  startAccountSession,
+} from '../../../core/utils/accounts.js'
 import { requiresAcademicDetails } from '../../../core/utils/states/participantState.js'
-import { initialRegistrationForm, validateRegistrationForm, getRegistrationPasswordRequirements, getRegistrationParticipant } from '../utils/registrationForm.js'
+import {
+  initialRegistrationForm,
+  validateRegistrationForm,
+  getRegistrationPasswordRequirements,
+  getRegistrationParticipant,
+} from '../utils/registrationForm.js'
 import PublicNavigation from '../components/PublicNavigation/PublicNavigation.jsx'
 import AcademicFields from '../components/AcademicFields/AcademicFields.jsx'
 import styles from './RegistrationPage.module.css'
@@ -33,19 +42,25 @@ function RegistrationPage() {
   }
 
   function handleBlur(event) {
-    if (!submitted) return
+    if (!submitted) {
+      return
+    }
     const { name } = event.target
-    setTouched((currentTouched) => ({ ...currentTouched, [name]: true }))
+    setTouched(currentTouched => ({ ...currentTouched, [name]: true }))
   }
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (saving) return
+    if (saving) {
+      return
+    }
 
     setSubmitted(true)
-    setTouched(Object.fromEntries(fieldNames.map((fieldName) => [fieldName, true])))
+    setTouched(Object.fromEntries(fieldNames.map(fieldName => [fieldName, true])))
 
-    if (Object.keys(errors).length > 0) return
+    if (Object.keys(errors).length > 0) {
+      return
+    }
 
     const participant = getRegistrationParticipant(form)
 
@@ -72,9 +87,27 @@ function RegistrationPage() {
   }
 
   function getControlClassName(fieldName) {
-    if (shouldShowError(fieldName)) return styles.invalid
-    if (fieldName === 'password' && shouldShowValid(fieldName)) return styles.valid
+    if (shouldShowError(fieldName)) {
+      return styles.invalid
+    }
+    if (fieldName === 'password' && shouldShowValid(fieldName)) {
+      return styles.valid
+    }
     return ''
+  }
+
+  function renderPasswordHint() {
+    if (shouldShowError('password')) {
+      return (
+        <span className={styles.fieldError} id="password-error">
+          {errors.password}
+        </span>
+      )
+    }
+    if (shouldShowValid('password')) {
+      return <span className={styles.validHint}>Contraseña segura.</span>
+    }
+    return <span>Mínimo 8 caracteres, con una mayúscula y un número.</span>
   }
 
   return (
@@ -83,13 +116,19 @@ function RegistrationPage() {
         <section aria-labelledby="registration-title" className={styles.formCard}>
           <div>
             <h1 id="registration-title">Registro de participante</h1>
-            <p className={styles.intro}>Los campos marcados con asterisco son obligatorios.</p>
+            <p className={styles.intro}>
+              Los campos marcados con asterisco son obligatorios.
+            </p>
             {submitted && Object.keys(errors).length > 0 && (
               <div aria-live="polite" className={styles.errorSummary} role="alert">
                 Revise {Object.keys(errors).length} campos con errores antes de continuar.
               </div>
             )}
-            {saveError && <p aria-live="polite" className={styles.saveError} role="alert">{saveError}</p>}
+            {saveError && (
+              <p aria-live="polite" className={styles.saveError} role="alert">
+                {saveError}
+              </p>
+            )}
             <form aria-busy={saving} noValidate onSubmit={handleSubmit}>
               <div className={styles.fieldGroup}>
                 <label htmlFor="names">Nombres *</label>
@@ -105,12 +144,18 @@ function RegistrationPage() {
                   required
                   value={form.names}
                 />
-                {shouldShowError('names') && <span className={styles.fieldError} id="names-error">{errors.names}</span>}
+                {shouldShowError('names') && (
+                  <span className={styles.fieldError} id="names-error">
+                    {errors.names}
+                  </span>
+                )}
               </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="surnames">Apellidos *</label>
                 <input
-                  aria-describedby={shouldShowError('surnames') ? 'surnames-error' : undefined}
+                  aria-describedby={
+                    shouldShowError('surnames') ? 'surnames-error' : undefined
+                  }
                   aria-invalid={shouldShowError('surnames') || undefined}
                   className={getControlClassName('surnames')}
                   id="surnames"
@@ -121,12 +166,18 @@ function RegistrationPage() {
                   required
                   value={form.surnames}
                 />
-                {shouldShowError('surnames') && <span className={styles.fieldError} id="surnames-error">{errors.surnames}</span>}
+                {shouldShowError('surnames') && (
+                  <span className={styles.fieldError} id="surnames-error">
+                    {errors.surnames}
+                  </span>
+                )}
               </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="registration-email">Correo institucional *</label>
                 <input
-                  aria-describedby={shouldShowError('email') ? 'registration-email-error' : undefined}
+                  aria-describedby={
+                    shouldShowError('email') ? 'registration-email-error' : undefined
+                  }
                   aria-invalid={shouldShowError('email') || undefined}
                   className={getControlClassName('email')}
                   id="registration-email"
@@ -139,7 +190,9 @@ function RegistrationPage() {
                   value={form.email}
                 />
                 {shouldShowError('email') ? (
-                  <span className={styles.fieldError} id="registration-email-error">{errors.email}</span>
+                  <span className={styles.fieldError} id="registration-email-error">
+                    {errors.email}
+                  </span>
                 ) : (
                   <span>Se usará para todas las notificaciones.</span>
                 )}
@@ -161,12 +214,16 @@ function RegistrationPage() {
                   <option>Pontificia Universidad Católica del Perú</option>
                   <option>Universidad Nacional de Ingeniería</option>
                 </select>
-                {shouldShowError('institution') && <span className={styles.fieldError}>{errors.institution}</span>}
+                {shouldShowError('institution') && (
+                  <span className={styles.fieldError}>{errors.institution}</span>
+                )}
               </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="registration-password">Contraseña *</label>
                 <input
-                  aria-describedby={shouldShowError('password') ? 'password-error' : undefined}
+                  aria-describedby={
+                    shouldShowError('password') ? 'password-error' : undefined
+                  }
                   aria-invalid={shouldShowError('password') || undefined}
                   className={getControlClassName('password')}
                   id="registration-password"
@@ -178,18 +235,16 @@ function RegistrationPage() {
                   type="password"
                   value={form.password}
                 />
-                {shouldShowError('password') ? (
-                  <span className={styles.fieldError} id="password-error">{errors.password}</span>
-                ) : shouldShowValid('password') ? (
-                  <span className={styles.validHint}>Contraseña segura.</span>
-                ) : (
-                  <span>Mínimo 8 caracteres, con una mayúscula y un número.</span>
-                )}
+                {renderPasswordHint()}
               </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="confirm-password">Confirmar contraseña *</label>
                 <input
-                  aria-describedby={shouldShowError('confirmPassword') ? 'confirm-password-error' : undefined}
+                  aria-describedby={
+                    shouldShowError('confirmPassword')
+                      ? 'confirm-password-error'
+                      : undefined
+                  }
                   aria-invalid={shouldShowError('confirmPassword') || undefined}
                   className={getControlClassName('confirmPassword')}
                   id="confirm-password"
@@ -201,36 +256,74 @@ function RegistrationPage() {
                   type="password"
                   value={form.confirmPassword}
                 />
-                {shouldShowError('confirmPassword') && <span className={styles.fieldError} id="confirm-password-error">{errors.confirmPassword}</span>}
+                {shouldShowError('confirmPassword') && (
+                  <span className={styles.fieldError} id="confirm-password-error">
+                    {errors.confirmPassword}
+                  </span>
+                )}
               </div>
-              {requiresAcademicDetails(form.role) && <AcademicFields
-                alCambiar={handleChange}
-                alSalir={handleBlur}
-                bloqueado={saving}
-                campos={form}
-                conErrores={shouldShowError}
-                errores={errors}
-              />}
+              {requiresAcademicDetails(form.role) && (
+                <AcademicFields
+                  alCambiar={handleChange}
+                  alSalir={handleBlur}
+                  bloqueado={saving}
+                  campos={form}
+                  conErrores={shouldShowError}
+                  errores={errors}
+                />
+              )}
               <fieldset className={styles.roleField}>
                 <legend>Deseo participar como *</legend>
                 <label>
-                  <input checked={form.role === 'author'} disabled={saving} name="role" onChange={handleChange} type="radio" value="author" />
-                  <span className={styles.roleCopy}><strong>Autor</strong><small>Enviaré uno o más trabajos.</small></span>
+                  <input
+                    checked={form.role === 'author'}
+                    disabled={saving}
+                    name="role"
+                    onChange={handleChange}
+                    type="radio"
+                    value="author"
+                  />
+                  <span className={styles.roleCopy}>
+                    <strong>Autor</strong>
+                    <small>Enviaré uno o más trabajos.</small>
+                  </span>
                 </label>
                 <label>
-                  <input checked={form.role === 'reviewer'} disabled={saving} name="role" onChange={handleChange} type="radio" value="reviewer" />
-                  <span className={styles.roleCopy}><strong>Revisor</strong><small>Evaluaré trabajos asignados.</small></span>
+                  <input
+                    checked={form.role === 'reviewer'}
+                    disabled={saving}
+                    name="role"
+                    onChange={handleChange}
+                    type="radio"
+                    value="reviewer"
+                  />
+                  <span className={styles.roleCopy}>
+                    <strong>Revisor</strong>
+                    <small>Evaluaré trabajos asignados.</small>
+                  </span>
                 </label>
                 <label>
-                  <input checked={form.role === 'both'} disabled={saving} name="role" onChange={handleChange} type="radio" value="both" />
-                  <span className={styles.roleCopy}><strong>Ambos</strong><small>Autor y revisor.</small></span>
+                  <input
+                    checked={form.role === 'both'}
+                    disabled={saving}
+                    name="role"
+                    onChange={handleChange}
+                    type="radio"
+                    value="both"
+                  />
+                  <span className={styles.roleCopy}>
+                    <strong>Ambos</strong>
+                    <small>Autor y revisor.</small>
+                  </span>
                 </label>
               </fieldset>
               <div className={styles.actions}>
                 <div className={styles.agreement}>
                   <label>
                     <input
-                      aria-describedby={shouldShowError('acceptedTerms') ? 'terms-error' : undefined}
+                      aria-describedby={
+                        shouldShowError('acceptedTerms') ? 'terms-error' : undefined
+                      }
                       aria-invalid={shouldShowError('acceptedTerms') || undefined}
                       checked={form.acceptedTerms}
                       disabled={saving}
@@ -240,12 +333,26 @@ function RegistrationPage() {
                       required
                       type="checkbox"
                     />
-                    <span>Acepto las <Link rel="noreferrer" target="_blank" to="/bases">bases del congreso y el tratamiento de mis datos</Link>. *</span>
+                    <span>
+                      Acepto las{' '}
+                      <Link rel="noreferrer" target="_blank" to="/bases">
+                        bases del congreso y el tratamiento de mis datos
+                      </Link>
+                      . *
+                    </span>
                   </label>
-                  {shouldShowError('acceptedTerms') && <span className={styles.fieldError} id="terms-error">{errors.acceptedTerms}</span>}
+                  {shouldShowError('acceptedTerms') && (
+                    <span className={styles.fieldError} id="terms-error">
+                      {errors.acceptedTerms}
+                    </span>
+                  )}
                 </div>
-                <Link className={styles.cancel} to="/">Cancelar</Link>
-                <Button disabled={saving} loading={saving} type="submit">Crear mi cuenta</Button>
+                <Link className={styles.cancel} to="/">
+                  Cancelar
+                </Link>
+                <Button disabled={saving} loading={saving} type="submit">
+                  Crear mi cuenta
+                </Button>
               </div>
             </form>
           </div>
@@ -254,8 +361,15 @@ function RegistrationPage() {
               <>
                 <h2>Requisitos de la contraseña</h2>
                 <ul className={styles.requirements}>
-                  {passwordRequirements.map((requirement) => (
-                    <li className={requirement.valid ? styles.requirementMet : styles.requirementError} key={requirement.label}>
+                  {passwordRequirements.map(requirement => (
+                    <li
+                      className={
+                        requirement.valid
+                          ? styles.requirementMet
+                          : styles.requirementError
+                      }
+                      key={requirement.label}
+                    >
                       <span aria-hidden="true">{requirement.valid ? '✓' : '×'}</span>
                       {requirement.label}
                     </li>
@@ -265,8 +379,14 @@ function RegistrationPage() {
             ) : (
               <>
                 <h2>Antes de registrarse</h2>
-                <p>La recepción de trabajos cierra el 30/09/2026 a las 23:59. Después de esa fecha no será posible editar los envíos.</p>
-                <p>Si participa como revisor, deberá declarar sus líneas de interés para recibir asignaciones sin conflicto.</p>
+                <p>
+                  La recepción de trabajos cierra el 15/12/2026 a las 23:59. Después de
+                  esa fecha no será posible editar los envíos.
+                </p>
+                <p>
+                  Si participa como revisor, deberá declarar sus líneas de interés para
+                  recibir asignaciones sin conflicto.
+                </p>
               </>
             )}
           </aside>

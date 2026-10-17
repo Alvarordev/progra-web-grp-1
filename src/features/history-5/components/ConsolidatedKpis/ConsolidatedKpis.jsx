@@ -20,19 +20,23 @@ function ConsolidatedKpis({ resumen }) {
     },
     {
       etiqueta: 'Recomiendan aceptar',
-      valor: sinEnvios ? '—' : `${resumen.recomiendanAceptar} de ${resumen.totalRevisiones}`,
+      valor: sinEnvios
+        ? '—'
+        : `${resumen.recomiendanAceptar} de ${resumen.totalRevisiones}`,
       detalle: `${resumen.conObservaciones} con observaciones`,
     },
     {
       etiqueta: 'Última entrega',
       valor: resumen.ultimaEntrega ? formatDay(resumen.ultimaEntrega) : '—',
-      detalle: resumen.ultimaEntrega ? String(resumen.ultimaEntrega.getFullYear()) : 'pendiente',
+      detalle: resumen.ultimaEntrega
+        ? String(resumen.ultimaEntrega.getFullYear())
+        : 'pendiente',
     },
   ]
 
   return (
     <section className={styles.kpis} aria-label="Indicadores de la revisión">
-      {indicadores.map((indicador) => (
+      {indicadores.map(indicador => (
         <div className={styles.kpi} key={indicador.etiqueta}>
           <span className={styles.label}>{indicador.etiqueta}</span>
           <strong>{indicador.valor}</strong>

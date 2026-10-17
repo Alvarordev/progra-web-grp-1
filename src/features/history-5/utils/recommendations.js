@@ -5,5 +5,5 @@ export const recommendationOptions = [
 ]
 
 export function getRecommendationLabel(value) {
-  return recommendationOptions.find((option) => option.value === value)?.label ?? ''
+  return recommendationOptions.find(option => option.value === value)?.label ?? ''
 }

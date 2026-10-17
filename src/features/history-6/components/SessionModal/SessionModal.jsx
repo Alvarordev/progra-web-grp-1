@@ -58,7 +58,7 @@ function validate(valores, sesiones, idActual) {
 
   if (Object.keys(errores).length === 0) {
     const conflicto = sesiones.find(
-      (otra) => otra.id !== idActual && sessionsOverlap(valores, otra),
+      otra => otra.id !== idActual && sessionsOverlap(valores, otra)
     )
 
     if (conflicto) {
@@ -69,7 +69,15 @@ function validate(valores, sesiones, idActual) {
   return errores
 }
 
-function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, sesiones, ejes }) {
+function SessionModal({
+  guardando = false,
+  alCerrar,
+  alGuardar,
+  modo,
+  sesion,
+  sesiones,
+  ejes,
+}) {
   const [valores, setValores] = useState(() => createFormValues(sesion))
   const [errores, setErrores] = useState({})
   const titulo = modo === 'edit' ? 'Editar sesión' : 'Nueva sesión'
@@ -77,13 +85,15 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
   function handleChange(event) {
     const { name, value } = event.target
 
-    setValores((valoresActuales) => ({ ...valoresActuales, [name]: value }))
-    setErrores((erroresActuales) => ({ ...erroresActuales, [name]: '' }))
+    setValores(valoresActuales => ({ ...valoresActuales, [name]: value }))
+    setErrores(erroresActuales => ({ ...erroresActuales, [name]: '' }))
   }
 
   function handleSubmit(event) {
     event.preventDefault()
-    if (guardando) return
+    if (guardando) {
+      return
+    }
 
     const erroresFormulario = validate(valores, sesiones, sesion?.id)
 
@@ -125,7 +135,12 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
 
   return (
     <Modal alCerrar={alCerrar} titulo={titulo}>
-      <form aria-busy={guardando} className={styles.form} noValidate onSubmit={handleSubmit}>
+      <form
+        aria-busy={guardando}
+        className={styles.form}
+        noValidate
+        onSubmit={handleSubmit}
+      >
         <div className={styles.field}>
           <label htmlFor="session-nombre">Nombre *</label>
           <input {...fieldProps('nombre')} autoComplete="off" required />
@@ -138,7 +153,7 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
             <option disabled value="">
               Seleccione un eje
             </option>
-            {ejes.map((eje) => (
+            {ejes.map(eje => (
               <option key={eje} value={eje}>
                 {eje}
               </option>
@@ -159,7 +174,7 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
               <option disabled value="">
                 Seleccione una sala
               </option>
-              {rooms.map((sala) => (
+              {rooms.map(sala => (
                 <option key={sala.codigo} value={sala.codigo}>
                   {sala.codigo}
                 </option>
@@ -189,7 +204,12 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
         </div>
 
         <footer className={styles.footer}>
-          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
+          <Button
+            disabled={guardando}
+            onClick={alCerrar}
+            type="button"
+            variant="secondary"
+          >
             Cancelar
           </Button>
           <Button loading={guardando} type="submit" variant="primary">

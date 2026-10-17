@@ -29,16 +29,16 @@ const workStatuses = [
 function ExamplePage() {
   return (
     <div className={styles.page}>
-      <Header estado={"Recepcion abierta"}/>
+      <Header estado={'Recepcion abierta'} />
 
       <main className={styles.content}>
         <section aria-labelledby="page-title" className={styles.intro}>
           <p className={styles.eyebrow}>Ejemplo para el equipo</p>
           <h1 id="page-title">Una base compartida para todas las historias</h1>
           <p className={styles.lead}>
-            Usa esta página como referencia para crear componentes React y sus
-            estilos con CSS Modules, manteniendo los mismos tokens y componentes
-            visuales en todo el proyecto.
+            Usa esta página como referencia para crear componentes React y sus estilos con
+            CSS Modules, manteniendo los mismos tokens y componentes visuales en todo el
+            proyecto.
           </p>
           <nav aria-label="Navegación de ejemplo" className={styles.navigation}>
             <Link aria-current="page" className={styles.navLink} to="/ejemplo">
@@ -60,12 +60,12 @@ function ExamplePage() {
               <h2 id="tokens-title">Tokens de color</h2>
             </div>
             <p className={styles.sectionDescription}>
-              Los componentes consumen variables globales; evita repetir
-              valores hexadecimales en las hojas de cada pantalla.
+              Los componentes consumen variables globales; evita repetir valores
+              hexadecimales en las hojas de cada pantalla.
             </p>
           </div>
           <ul className={styles.colorGrid}>
-            {designColors.map((color) => (
+            {designColors.map(color => (
               <li className={styles.colorItem} key={color.token}>
                 <span
                   aria-hidden="true"
@@ -86,8 +86,8 @@ function ExamplePage() {
               <h2 id="buttons-title">Botones y variantes</h2>
             </div>
             <p className={styles.sectionDescription}>
-              Usa <code>Button</code> para acciones. Para cambiar de página,
-              utiliza <code>Link</code> del router.
+              Usa <code>Button</code> para acciones. Para cambiar de página, utiliza{' '}
+              <code>Link</code> del router.
             </p>
           </div>
           <div className={styles.buttonShowcase}>
@@ -107,12 +107,11 @@ function ExamplePage() {
               <h2 id="statuses-title">Estados del trabajo</h2>
             </div>
             <p className={styles.sectionDescription}>
-              El color ayuda a reconocer el estado, pero nunca es su único
-              indicador.
+              El color ayuda a reconocer el estado, pero nunca es su único indicador.
             </p>
           </div>
           <ul className={styles.statusList}>
-            {workStatuses.map((status) => (
+            {workStatuses.map(status => (
               <li
                 className={`${styles.status} ${styles[status.className]}`}
                 key={status.label}
@@ -130,8 +129,8 @@ function ExamplePage() {
               <h2 id="card-title">Ejemplo de contenido de una pantalla</h2>
             </div>
             <p className={styles.sectionDescription}>
-              Mantén el JSX legible y asigna las clases desde el CSS Module
-              de esa pantalla.
+              Mantén el JSX legible y asigna las clases desde el CSS Module de esa
+              pantalla.
             </p>
           </div>
 
@@ -139,14 +138,12 @@ function ExamplePage() {
           <article className={styles.workCard}>
             <div className={styles.workCardTopline}>
               <span className={styles.workCode}>TRB-2026-042</span>
-              <span className={`${styles.status} ${styles.review}`}>
-                En revisión
-              </span>
+              <span className={`${styles.status} ${styles.review}`}>En revisión</span>
             </div>
-            <h3>Predicción de deserción universitaria mediante aprendizaje supervisado</h3>
-            <p className={styles.authors}>
-              Rosa Quispe Ttito, Diego Chávez Manrique
-            </p>
+            <h3>
+              Predicción de deserción universitaria mediante aprendizaje supervisado
+            </h3>
+            <p className={styles.authors}>Rosa Quispe Ttito, Diego Chávez Manrique</p>
             <div className={styles.workCardFooter}>
               <span>Inteligencia artificial y datos</span>
               <span>Artículo completo</span>

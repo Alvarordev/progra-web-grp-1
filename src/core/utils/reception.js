@@ -13,9 +13,15 @@ export function getEditionStatusLabel(status, schedule) {
 }
 
 export function getReceptionNotice(status, schedule) {
-  if (status === 'En preparación') return 'La recepción todavía no se ha abierto.'
-  if (status === 'En revisión') return 'La edición está en revisión. Consulte el dictamen y las fechas vigentes en las bases.'
-  if (!schedule.reception) return 'Consulte el cronograma vigente en las bases del congreso.'
+  if (status === 'En preparación') {
+    return 'La recepción todavía no se ha abierto.'
+  }
+  if (status === 'En revisión') {
+    return 'La edición está en revisión. Consulte el dictamen y las fechas vigentes en las bases.'
+  }
+  if (!schedule.reception) {
+    return 'Consulte el cronograma vigente en las bases del congreso.'
+  }
   const deadline = `${formatScheduleDate(schedule.reception)} a las ${schedule.reception.slice(11)} (Lima)`
   return receptionIsOpen(status, schedule)
     ? `Cierra el ${deadline}.`

@@ -2,7 +2,11 @@ import { useState } from 'react'
 import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { scheduleRepository } from '../../../core/utils/repositories.js'
-import { initialSchedule, getScheduleErrors, formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import {
+  initialSchedule,
+  getScheduleErrors,
+  formatScheduleDate,
+} from '../../../core/utils/states/scheduleState.js'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
@@ -15,7 +19,10 @@ const scheduleFields = [
 ]
 
 function SchedulePage() {
-  const { value, loading, saving, error, save } = useStoredState(scheduleRepository, initialSchedule)
+  const { value, loading, saving, error, save } = useStoredState(
+    scheduleRepository,
+    initialSchedule
+  )
   const [draft, setDraft] = useState(null)
   const [feedback, setFeedback] = useState('')
   const schedule = draft ?? value
@@ -32,12 +39,16 @@ function SchedulePage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (invalid || loading || saving) return
+    if (invalid || loading || saving) {
+      return
+    }
     try {
       await save(schedule)
       setDraft(null)
       setFeedback('Cronograma guardado correctamente.')
-    } catch { setFeedback('') }
+    } catch {
+      setFeedback('')
+    }
   }
 
   return (
@@ -48,54 +59,100 @@ function SchedulePage() {
             <h1>Fechas límite</h1>
             <p>Las fechas deben ser consecutivas: recepción, revisión y publicación.</p>
           </div>
-          <Button form="schedule-form" type="submit" disabled={loading || invalid} loading={saving}>
+          <Button
+            form="schedule-form"
+            type="submit"
+            disabled={loading || invalid}
+            loading={saving}
+          >
             Guardar cronograma
           </Button>
         </header>
         <ConfigurationTabs />
-        <ConfigurationFeedback cargando={loading ? 'Cargando cronograma…' : ''} error={error} mensaje={feedback} />
-        <ConfigurationFeedback error={!loading && !error && invalid ? 'El cronograma no es válido. Corrija las fechas y horas marcadas para guardar.' : ''} />
+        <ConfigurationFeedback
+          cargando={loading ? 'Cargando cronograma…' : ''}
+          error={error}
+          mensaje={feedback}
+        />
+        <ConfigurationFeedback
+          error={
+            !loading && !error && invalid
+              ? 'El cronograma no es válido. Corrija las fechas y horas marcadas para guardar.'
+              : ''
+          }
+        />
         <div className={styles.dashboard}>
           <form id="schedule-form" onSubmit={handleSubmit} className={styles.panel}>
             <fieldset className={styles.fields} disabled={loading || saving}>
-              <legend className={styles.visuallyHidden}>Fechas y horas del cronograma</legend>
-              {scheduleFields.map((field) => (
+              <legend className={styles.visuallyHidden}>
+                Fechas y horas del cronograma
+              </legend>
+              {scheduleFields.map(field => (
                 <div key={field.name}>
                   <div className={styles.dateRow}>
                     <div className={styles.field}>
                       <label htmlFor={`${field.name}-date`}>{field.label} *</label>
-                      <input id={`${field.name}-date`} type="date" required
+                      <input
+                        id={`${field.name}-date`}
+                        type="date"
+                        required
                         value={schedule[field.name].split('T')[0]}
                         aria-invalid={Boolean(errors[field.name])}
-                        aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
-                        onChange={(event) => handleChange(field.name, 'date', event.target.value)} />
+                        aria-describedby={
+                          errors[field.name] ? `${field.name}-error` : undefined
+                        }
+                        onChange={event =>
+                          handleChange(field.name, 'date', event.target.value)
+                        }
+                      />
                     </div>
                     <div className={styles.field}>
                       <label htmlFor={`${field.name}-time`}>Hora *</label>
-                      <input id={`${field.name}-time`} type="time" required
+                      <input
+                        id={`${field.name}-time`}
+                        type="time"
+                        required
                         value={schedule[field.name].split('T')[1] ?? ''}
                         aria-invalid={Boolean(errors[field.name])}
-                        aria-describedby={errors[field.name] ? `${field.name}-error` : undefined}
-                        onChange={(event) => handleChange(field.name, 'time', event.target.value)} />
+                        aria-describedby={
+                          errors[field.name] ? `${field.name}-error` : undefined
+                        }
+                        onChange={event =>
+                          handleChange(field.name, 'time', event.target.value)
+                        }
+                      />
                     </div>
                   </div>
-                  {errors[field.name] && <p id={`${field.name}-error`} className={styles.fieldError}>{errors[field.name]}</p>}
+                  {errors[field.name] && (
+                    <p id={`${field.name}-error`} className={styles.fieldError}>
+                      {errors[field.name]}
+                    </p>
+                  )}
                 </div>
               ))}
             </fieldset>
-            {!loading && !error && !invalid && <ConfigurationFeedback mensaje="Cronograma válido: las tres fechas son consecutivas." />}
+            {!loading && !error && !invalid && (
+              <ConfigurationFeedback mensaje="Cronograma válido: las tres fechas son consecutivas." />
+            )}
           </form>
           <aside className={styles.panel} aria-labelledby="schedule-preview">
             <h2 id="schedule-preview">Vista previa pública</h2>
             <dl className={styles.preview}>
-              {scheduleFields.map((field) => (
+              {scheduleFields.map(field => (
                 <div key={field.name}>
                   <dt>{field.preview}</dt>
-                  <dd>{errors[field.name] ? 'Fecha pendiente' : `${formatScheduleDate(schedule[field.name])} · ${schedule[field.name].slice(11)}`}</dd>
+                  <dd>
+                    {errors[field.name]
+                      ? 'Fecha pendiente'
+                      : `${formatScheduleDate(schedule[field.name])} · ${schedule[field.name].slice(11)}`}
+                  </dd>
                 </div>
               ))}
             </dl>
-            <p className={styles.helperText}>Al guardar, se actualiza el aviso de recepción en la configuración de la edición. Horario local del congreso (Lima).</p>
+            <p className={styles.helperText}>
+              Al guardar, se actualiza el aviso de recepción en la configuración de la
+              edición. Horario local del congreso (Lima).
+            </p>
           </aside>
         </div>
       </div>

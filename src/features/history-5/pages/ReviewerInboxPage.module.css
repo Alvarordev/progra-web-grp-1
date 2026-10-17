@@ -157,7 +157,7 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-help);
 }
-.emp{
+.emp {
   display: flex;
   color: var(--color-text-muted);
   white-space: pointer;
@@ -210,7 +210,6 @@
   background: var(--color-primary-soft);
 }
 
-
 @media (max-width: 900px) {
   .headingRow {
     flex-direction: column;
@@ -227,5 +226,9 @@
   }
 }
 
-.pendingStat { background: var(--color-warning-soft); }
-.completedStat { background: var(--color-success-soft); }
+.pendingStat {
+  background: var(--color-warning-soft);
+}
+.completedStat {
+  background: var(--color-success-soft);
+}

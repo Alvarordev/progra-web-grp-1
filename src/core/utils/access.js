@@ -3,5 +3,12 @@ export function hasRoleAccess(participant, allowedRoles) {
 }
 
 export function getRoleLabel(role) {
-  return { author: 'autor', reviewer: 'revisor', both: 'autor y revisor', committee: 'comité organizador' }[role] ?? role
+  return (
+    {
+      author: 'autor',
+      reviewer: 'revisor',
+      both: 'autor y revisor',
+      committee: 'comité organizador',
+    }[role] ?? role
+  )
 }

@@ -23,9 +23,9 @@ function SessionBuilderPage() {
 
   const conflictos = findOverlaps(sesiones)
   const idsEnConflicto = new Set(
-    conflictos.flatMap((pareja) => pareja.map((sesion) => sesion.id)),
+    conflictos.flatMap(pareja => pareja.map(sesion => sesion.id))
   )
-  const asignados = acceptedWorks.filter((trabajo) => trabajo.sesionId).length
+  const asignados = acceptedWorks.filter(trabajo => trabajo.sesionId).length
 
   function handleCreate() {
     setModal({ modo: 'create', sesion: null })
@@ -36,21 +36,64 @@ function SessionBuilderPage() {
   }
 
   async function handleSave(updated) {
-    if (conference.busy) return
-    const sessions = modal.modo === 'edit' ? sesiones.map(session => session.id === modal.sesion.id ? { ...session, ...updated, moderadorCompleto: updated.moderador } : session) : [...sesiones, { ...updated, id: crypto.randomUUID() }]
-    if (findOverlaps(sessions).some(pair => pair.some(session => session.id === (modal.sesion?.id ?? sessions.at(-1).id)))) {
-      setFeedback({ mensaje: 'La sala y la hora se superponen con otra sesión.', esError: true }); return
+    if (conference.busy) {
+      return
     }
-    try { await conference.save('program', { ...conference.program, sessions }); setModal(null); setFeedback({ mensaje: SAVED_MESSAGE, esError: false }) } catch { /* el error permanece visible */ }
+    const sessions =
+      modal.modo === 'edit'
+        ? sesiones.map(session =>
+            session.id === modal.sesion.id
+              ? { ...session, ...updated, moderadorCompleto: updated.moderador }
+              : session
+          )
+        : [...sesiones, { ...updated, id: crypto.randomUUID() }]
+    if (
+      findOverlaps(sessions).some(pair =>
+        pair.some(session => session.id === (modal.sesion?.id ?? sessions.at(-1).id))
+      )
+    ) {
+      setFeedback({
+        mensaje: 'La sala y la hora se superponen con otra sesión.',
+        esError: true,
+      })
+      return
+    }
+    try {
+      await conference.save('program', { ...conference.program, sessions })
+      setModal(null)
+      setFeedback({ mensaje: SAVED_MESSAGE, esError: false })
+    } catch {
+      /* el error permanece visible */
+    }
   }
 
   async function handlePublish() {
-    if (conference.busy) return
-    if (conflictos.length) { setFeedback({ mensaje: 'No se puede publicar el programa mientras existan solapamientos.', esError: true }); return }
+    if (conference.busy) {
+      return
+    }
+    if (conflictos.length) {
+      setFeedback({
+        mensaje: 'No se puede publicar el programa mientras existan solapamientos.',
+        esError: true,
+      })
+      return
+    }
     try {
-      await conference.save('program', { ...conference.program, published: true, publishedSnapshot: { sessions: sesiones, assignments: conference.program.assignments } })
-      setFeedback({ mensaje: 'Programa publicado. La versión pública ya está disponible.', esError: false })
-    } catch { /* el error permanece visible */ }
+      await conference.save('program', {
+        ...conference.program,
+        published: true,
+        publishedSnapshot: {
+          sessions: sesiones,
+          assignments: conference.program.assignments,
+        },
+      })
+      setFeedback({
+        mensaje: 'Programa publicado. La versión pública ya está disponible.',
+        esError: false,
+      })
+    } catch {
+      /* el error permanece visible */
+    }
   }
 
   return (
@@ -60,15 +103,25 @@ function SessionBuilderPage() {
           <div>
             <h1>Sesiones del congreso</h1>
             <p>
-              {sesiones.length} sesiones · 12 y 13 de noviembre de 2026 ·
-              Universidad de Lima
+              {sesiones.length} sesiones · 12 y 13 de noviembre de 2026 · Universidad de
+              Lima
             </p>
           </div>
           <div className={styles.actions}>
-            <Button disabled={conference.busy} onClick={handlePublish} type="button" variant="secondary">
+            <Button
+              disabled={conference.busy}
+              onClick={handlePublish}
+              type="button"
+              variant="secondary"
+            >
               Publicar programa
             </Button>
-            <Button disabled={conference.busy} onClick={handleCreate} type="button" variant="primary">
+            <Button
+              disabled={conference.busy}
+              onClick={handleCreate}
+              type="button"
+              variant="primary"
+            >
               Nueva sesión
             </Button>
           </div>
@@ -78,7 +131,9 @@ function SessionBuilderPage() {
           aria-live="polite"
           className={feedback.esError ? styles.feedbackError : styles.feedback}
         >
-          {conference.loading ? 'Cargando programa…' : conference.error || feedback.mensaje}
+          {conference.loading
+            ? 'Cargando programa…'
+            : conference.error || feedback.mensaje}
         </p>
 
         {conflictos.length > 0 && (
@@ -92,11 +147,10 @@ function SessionBuilderPage() {
 
                 return (
                   <p key={`${primera.id}-${segunda.id}`}>
-                    <strong>Solapamiento de sala:</strong> «{primera.nombre}» y
-                    «{segunda.nombre}» usan la Sala {primera.sala} el{' '}
-                    {formatDate(primera.fecha)} entre las {rango.horaInicio} y
-                    las {rango.horaFin}. Ajuste la hora o la sala antes de
-                    publicar.
+                    <strong>Solapamiento de sala:</strong> «{primera.nombre}» y «
+                    {segunda.nombre}» usan la Sala {primera.sala} el{' '}
+                    {formatDate(primera.fecha)} entre las {rango.horaInicio} y las{' '}
+                    {rango.horaFin}. Ajuste la hora o la sala antes de publicar.
                   </p>
                 )
               })}
@@ -113,11 +167,7 @@ function SessionBuilderPage() {
         </section>
 
         <div className={styles.panels}>
-          <RoomOccupancy
-            fecha={OCCUPANCY_DATE}
-            salas={rooms}
-            sesiones={sesiones}
-          />
+          <RoomOccupancy fecha={OCCUPANCY_DATE} salas={rooms} sesiones={sesiones} />
           <ProgramSummary
             asignados={asignados}
             sinSesion={acceptedWorks.length - asignados}
@@ -128,7 +178,11 @@ function SessionBuilderPage() {
 
       {modal && (
         <SessionModal
-          alCerrar={() => { if (!conference.saving) setModal(null) }}
+          alCerrar={() => {
+            if (!conference.saving) {
+              setModal(null)
+            }
+          }}
           guardando={conference.saving}
           ejes={conference.axes.map(axis => axis.nombre)}
           alGuardar={handleSave}

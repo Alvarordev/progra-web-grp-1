@@ -1,4 +1,12 @@
-.content { composes: content from './EditionSettingsPage.module.css'; }
-.pageHeading { composes: pageHeading from './EditionSettingsPage.module.css'; }
-.actions { composes: actions from './EditionSettingsPage.module.css'; }
-.helperText { composes: helperText from './EditionSettingsPage.module.css'; }
+.content {
+  composes: content from './EditionSettingsPage.module.css';
+}
+.pageHeading {
+  composes: pageHeading from './EditionSettingsPage.module.css';
+}
+.actions {
+  composes: actions from './EditionSettingsPage.module.css';
+}
+.helperText {
+  composes: helperText from './EditionSettingsPage.module.css';
+}

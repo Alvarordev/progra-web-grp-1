@@ -9,17 +9,23 @@ const roleClasses = {
 }
 
 function getRoleLabel(usuario) {
-  return usuario.femenino && usuario.rol !== 'Comité'
-    ? `${usuario.rol}a`
-    : usuario.rol
+  return usuario.femenino && usuario.rol !== 'Comité' ? `${usuario.rol}a` : usuario.rol
 }
 
 function getStatusLabel(usuario) {
-  if (usuario.bloqueado) return 'Bloqueado'
+  if (usuario.bloqueado) {
+    return 'Bloqueado'
+  }
   return usuario.femenino ? 'Activa' : 'Activo'
 }
 
-function UsersTable({ alBloquear, alEditar, alReactivar, usuarios, deshabilitado = false }) {
+function UsersTable({
+  alBloquear,
+  alEditar,
+  alReactivar,
+  usuarios,
+  deshabilitado = false,
+}) {
   return (
     <DataTable caption="Listado de usuarios">
       <thead>
@@ -29,20 +35,20 @@ function UsersTable({ alBloquear, alEditar, alReactivar, usuarios, deshabilitado
           <th scope="col">Institución</th>
           <th scope="col">Trabajos / Revisiones</th>
           <th scope="col">Estado</th>
-          <th data-align="right" scope="col">Acciones</th>
+          <th data-align="right" scope="col">
+            Acciones
+          </th>
         </tr>
       </thead>
       <tbody>
         {usuarios.length === 0 && (
           <tr>
             <td colSpan={6}>
-              <p className={styles.empty}>
-                No se encontraron usuarios con esos filtros.
-              </p>
+              <p className={styles.empty}>No se encontraron usuarios con esos filtros.</p>
             </td>
           </tr>
         )}
-        {usuarios.map((usuario) => (
+        {usuarios.map(usuario => (
           <tr className={usuario.bloqueado ? styles.blocked : ''} key={usuario.id}>
             <th scope="row">
               <span className={styles.userName}>{usuario.nombre}</span>
@@ -80,7 +86,7 @@ function UsersTable({ alBloquear, alEditar, alReactivar, usuarios, deshabilitado
                 {usuario.rol !== 'Comité' &&
                   (usuario.bloqueado ? (
                     <Button
-                  disabled={deshabilitado}
+                      disabled={deshabilitado}
                       onClick={() => alReactivar(usuario)}
                       size="small"
                       type="button"
@@ -90,7 +96,7 @@ function UsersTable({ alBloquear, alEditar, alReactivar, usuarios, deshabilitado
                     </Button>
                   ) : (
                     <Button
-                  disabled={deshabilitado}
+                      disabled={deshabilitado}
                       onClick={() => alBloquear(usuario)}
                       size="small"
                       type="button"

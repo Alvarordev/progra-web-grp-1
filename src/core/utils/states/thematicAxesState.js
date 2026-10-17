@@ -44,10 +44,18 @@ export const thematicAxes = [
 ]
 
 export function validateThematicAxes(value) {
-  return Array.isArray(value) && value.every((item) =>
-    item !== null && typeof item.id === 'string' &&
-    ['nombre', 'descripcion', 'responsable'].every((field) =>
-      typeof item[field] === 'string' && Boolean(item[field].trim()),
-    ) && Number.isInteger(item.trabajos) && item.trabajos >= 0,
-  ) && new Set(value.map((item) => item.id)).size === value.length
+  return (
+    Array.isArray(value) &&
+    value.every(
+      item =>
+        item !== null &&
+        typeof item.id === 'string' &&
+        ['nombre', 'descripcion', 'responsable'].every(
+          field => typeof item[field] === 'string' && Boolean(item[field].trim())
+        ) &&
+        Number.isInteger(item.trabajos) &&
+        item.trabajos >= 0
+    ) &&
+    new Set(value.map(item => item.id)).size === value.length
+  )
 }

@@ -5,7 +5,11 @@ import AccessMessage from '../components/AccessMessage/AccessMessage.jsx'
 function AccessDeniedPage({ participante, motivo }) {
   const isAuthor = ['author', 'both'].includes(participante.role)
   const actions = [
-    { texto: isAuthor ? 'Volver a mi inicio' : 'Volver a mi cuenta', ruta: isAuthor ? '/autor' : '/mi-cuenta', primaria: true },
+    {
+      texto: isAuthor ? 'Volver a mi inicio' : 'Volver a mi cuenta',
+      ruta: isAuthor ? '/autor' : '/mi-cuenta',
+      primaria: true,
+    },
     { texto: 'Escribir al comité', href: 'mailto:congreso@ulima.edu.pe' },
   ]
 

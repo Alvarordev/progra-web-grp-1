@@ -1,12 +1,24 @@
 import styles from './ConfigurationFeedback.module.css'
 
-function ConfigurationFeedback({ cargando, error, mensaje, tipo = 'success', compacto = false }) {
+function ConfigurationFeedback({
+  cargando,
+  error,
+  mensaje,
+  tipo = 'success',
+  compacto = false,
+}) {
   if (cargando) {
-    return <p className={styles.loading} role="status">{cargando}</p>
+    return (
+      <p className={styles.loading} role="status">
+        {cargando}
+      </p>
+    )
   }
 
   const text = error || mensaje
-  if (!text) return null
+  if (!text) {
+    return null
+  }
 
   const variant = error ? 'error' : tipo
   return (

@@ -14,68 +14,128 @@ export default function ModalAsignarRevisores({
 }) {
   const primerTrabajo = trabajosObjetivo[0]
   const [terminoBusqueda, cambiarTerminoBusqueda] = usarEstado('')
-  const [revisoresSeleccionados, cambiarRevisoresSeleccionados] = usarEstado(() =>
-    []
-  )
+  const [revisoresSeleccionados, cambiarRevisoresSeleccionados] = usarEstado(() => [])
   const [permitirMismaInstitucion, cambiarPermitirMismaInstitucion] = usarEstado(false)
   const [fechaLimite, cambiarFechaLimite] = usarEstado('20/10/2026')
 
   const [justification, setJustification] = usarEstado('')
-  const listaRevisores = usarMemo(() => revisores.filter(reviewer => !reviewer.bloqueado).map(reviewer => {
-    const coauthor = trabajosObjetivo.some(work => work.details?.autores?.some(author => Boolean(author.correo && reviewer.email && author.correo.toLowerCase() === reviewer.email.toLowerCase()) || author.nombre === reviewer.nombre) || work.autores.some(name => reviewer.nombre.includes(name)))
-    const sameInstitution = trabajosObjetivo.some(work => work.institucion === reviewer.institucion)
-    return { ...reviewer, cargaTexto: `${reviewer.asignadas} revisiones`, conflicto: coauthor ? { tipo: 'coautor', etiqueta: 'Coautor del trabajo', bloqueante: true } : sameInstitution ? { tipo: 'institucion', etiqueta: 'Misma institución', bloqueante: false } : { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false } }
-  }), [revisores, trabajosObjetivo])
-  const esCasoConflicto = listaRevisores.some(reviewer => reviewer.conflicto.tipo !== 'ninguno')
+  const listaRevisores = usarMemo(
+    () =>
+      revisores
+        .filter(reviewer => !reviewer.bloqueado)
+        .map(reviewer => {
+          const coauthor = trabajosObjetivo.some(
+            work =>
+              work.details?.autores?.some(
+                author =>
+                  Boolean(
+                    author.correo &&
+                    reviewer.email &&
+                    author.correo.toLowerCase() === reviewer.email.toLowerCase()
+                  ) || author.nombre === reviewer.nombre
+              ) || work.autores.some(name => reviewer.nombre.includes(name))
+          )
+          const sameInstitution = trabajosObjetivo.some(
+            work => work.institucion === reviewer.institucion
+          )
+          let conflicto = {
+            tipo: 'ninguno',
+            etiqueta: 'Sin conflicto',
+            bloqueante: false,
+          }
+          if (coauthor) {
+            conflicto = {
+              tipo: 'coautor',
+              etiqueta: 'Coautor del trabajo',
+              bloqueante: true,
+            }
+          } else if (sameInstitution) {
+            conflicto = {
+              tipo: 'institucion',
+              etiqueta: 'Misma institución',
+              bloqueante: false,
+            }
+          }
+          return {
+            ...reviewer,
+            cargaTexto: `${reviewer.asignadas} revisiones`,
+            conflicto,
+          }
+        }),
+    [revisores, trabajosObjetivo]
+  )
+  const esCasoConflicto = listaRevisores.some(
+    reviewer => reviewer.conflicto.tipo !== 'ninguno'
+  )
 
   const revisoresFiltrados = usarMemo(() => {
     const consulta = terminoBusqueda.toLowerCase().trim()
-    if (!consulta) return listaRevisores
+    if (!consulta) {
+      return listaRevisores
+    }
     return listaRevisores.filter(
-      (revisor) =>
+      revisor =>
         revisor.nombre.toLowerCase().includes(consulta) ||
         revisor.institucion.toLowerCase().includes(consulta) ||
-        revisor.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
+        revisor.lineasInteres.some(linea => linea.toLowerCase().includes(consulta))
     )
   }, [listaRevisores, terminoBusqueda])
 
-  if (!abierto || trabajosObjetivo.length === 0) return null
+  if (!abierto || trabajosObjetivo.length === 0) {
+    return null
+  }
 
-  const alternarRevisor = (revisorId) => {
-    if (guardando) return
-    const elemento = listaRevisores.find((revisor) => revisor.id === revisorId)
-    if (elemento?.conflicto?.bloqueante) return
+  const alternarRevisor = revisorId => {
+    if (guardando) {
+      return
+    }
+    const elemento = listaRevisores.find(revisor => revisor.id === revisorId)
+    if (elemento?.conflicto?.bloqueante) {
+      return
+    }
 
     if (revisoresSeleccionados.includes(revisorId)) {
       cambiarRevisoresSeleccionados(
-        revisoresSeleccionados.filter((identificador) => identificador !== revisorId)
+        revisoresSeleccionados.filter(identificador => identificador !== revisorId)
       )
     } else {
-      if (revisoresSeleccionados.length >= 3) return
+      if (revisoresSeleccionados.length >= 3) {
+        return
+      }
       cambiarRevisoresSeleccionados([...revisoresSeleccionados, revisorId])
     }
   }
 
-  const seleccionTieneInstitucion = revisoresSeleccionados.some((identificador) => {
-    const elemento = listaRevisores.find((revisor) => revisor.id === identificador)
+  const seleccionTieneInstitucion = revisoresSeleccionados.some(identificador => {
+    const elemento = listaRevisores.find(revisor => revisor.id === identificador)
     return elemento?.conflicto?.tipo === 'institucion'
   })
 
   const cantidadValida = revisoresSeleccionados.length
   const cumpleCantidad = cantidadValida >= 2 && cantidadValida <= 3
   const bloqueadoPorInstitucion = seleccionTieneInstitucion && !permitirMismaInstitucion
-  const validDate = /^\d{2}\/\d{2}\/\d{4}$/.test(fechaLimite) && Number.isFinite(Date.parse(fechaLimite.split('/').reverse().join('-')))
-  const puedeGuardar = cumpleCantidad && !bloqueadoPorInstitucion && (!seleccionTieneInstitucion || Boolean(justification.trim())) && validDate
+  const validDate =
+    /^\d{2}\/\d{2}\/\d{4}$/.test(fechaLimite) &&
+    Number.isFinite(Date.parse(fechaLimite.split('/').reverse().join('-')))
+  const puedeGuardar =
+    cumpleCantidad &&
+    !bloqueadoPorInstitucion &&
+    (!seleccionTieneInstitucion || Boolean(justification.trim())) &&
+    validDate
 
   const guardarAsignacion = async () => {
-    if (guardando || !puedeGuardar) return
+    if (guardando || !puedeGuardar) {
+      return
+    }
     const guardado = await alConfirmarAsignacion({
-      codigosTrabajo: trabajosObjetivo.map((trabajo) => trabajo.codigo),
+      codigosTrabajo: trabajosObjetivo.map(trabajo => trabajo.codigo),
       idsRevisores: revisoresSeleccionados,
       fechaLimite,
       justificacion: justification.trim(),
     })
-    if (!guardado) return
+    if (!guardado) {
+      return
+    }
     alCerrar()
   }
 
@@ -89,7 +149,9 @@ export default function ModalAsignarRevisores({
   return (
     <ModalBase
       alCerrar={() => {
-        if (!guardando) alCerrar()
+        if (!guardando) {
+          alCerrar()
+        }
       }}
       titulo="Asignar revisores"
       descripcion={textoReferencia}
@@ -108,7 +170,9 @@ export default function ModalAsignarRevisores({
               !
             </span>
             <p className={estilos.textoConflicto}>
-              <strong>Conflicto detectado:</strong> Hay revisores que son coautores o pertenecen a la misma institución del autor de correspondencia. No es posible asignar a un coautor.
+              <strong>Conflicto detectado:</strong> Hay revisores que son coautores o
+              pertenecen a la misma institución del autor de correspondencia. No es
+              posible asignar a un coautor.
             </p>
           </div>
         )}
@@ -121,7 +185,7 @@ export default function ModalAsignarRevisores({
               aria-label="Buscar revisor"
               placeholder="Buscar revisor por nombre, institución o línea de interés…"
               value={terminoBusqueda}
-              onChange={(evento) => cambiarTerminoBusqueda(evento.target.value)}
+              onChange={evento => cambiarTerminoBusqueda(evento.target.value)}
             />
             <span className={estilos.avisoRegla}>Mínimo 2 · máximo 3 revisores</span>
           </div>
@@ -139,7 +203,7 @@ export default function ModalAsignarRevisores({
               </tr>
             </thead>
             <tbody>
-              {revisoresFiltrados.map((revisor) => {
+              {revisoresFiltrados.map(revisor => {
                 const seleccionado = revisoresSeleccionados.includes(revisor.id)
                 const esCoautor = revisor.conflicto.tipo === 'coautor'
                 const esInstitucion = revisor.conflicto.tipo === 'institucion'
@@ -167,7 +231,7 @@ export default function ModalAsignarRevisores({
                         aria-label={`Seleccionar a ${revisor.nombre}`}
                         disabled={guardando || esCoautor}
                         onChange={() => alternarRevisor(revisor.id)}
-                        onClick={(evento) => evento.stopPropagation()}
+                        onClick={evento => evento.stopPropagation()}
                       />
                     </td>
                     <td className={estilos.celdaNombre}>{revisor.nombre}</td>
@@ -177,10 +241,14 @@ export default function ModalAsignarRevisores({
                     <td className={estilos.celdaCarga}>{revisor.cargaTexto}</td>
                     <td>
                       {esCoautor && (
-                        <span className={estilos.estadoCoautor}>{revisor.conflicto.etiqueta}</span>
+                        <span className={estilos.estadoCoautor}>
+                          {revisor.conflicto.etiqueta}
+                        </span>
                       )}
                       {esInstitucion && (
-                        <span className={estilos.estadoInstitucion}>{revisor.conflicto.etiqueta}</span>
+                        <span className={estilos.estadoInstitucion}>
+                          {revisor.conflicto.etiqueta}
+                        </span>
                       )}
                       {!esCoautor && !esInstitucion && (
                         <span className={estilos.estadoSinConflicto}>Sin conflicto</span>
@@ -200,14 +268,30 @@ export default function ModalAsignarRevisores({
                 type="checkbox"
                 className={estilos.casilla}
                 checked={permitirMismaInstitucion}
-                onChange={(evento) => cambiarPermitirMismaInstitucion(evento.target.checked)}
+                onChange={evento =>
+                  cambiarPermitirMismaInstitucion(evento.target.checked)
+                }
               />
               <span>
-                Asignar de todos modos al revisor de la misma institución (requiere justificación del comité).
+                Asignar de todos modos al revisor de la misma institución (requiere
+                justificación del comité).
               </span>
             </label>
-            {permitirMismaInstitucion && <label>Justificación del comité *<textarea value={justification} onChange={event => setJustification(event.target.value)} /></label>}
-            <label htmlFor="conflict-deadline">Fecha límite de revisión *</label><input id="conflict-deadline" value={fechaLimite} onChange={event => cambiarFechaLimite(event.target.value)} />
+            {permitirMismaInstitucion && (
+              <label>
+                Justificación del comité *
+                <textarea
+                  value={justification}
+                  onChange={event => setJustification(event.target.value)}
+                />
+              </label>
+            )}
+            <label htmlFor="conflict-deadline">Fecha límite de revisión *</label>
+            <input
+              id="conflict-deadline"
+              value={fechaLimite}
+              onChange={event => cambiarFechaLimite(event.target.value)}
+            />
           </div>
         ) : (
           <div className={estilos.bloqueFecha}>
@@ -220,7 +304,7 @@ export default function ModalAsignarRevisores({
                 type="text"
                 className={estilos.campoFecha}
                 value={fechaLimite}
-                onChange={(evento) => cambiarFechaLimite(evento.target.value)}
+                onChange={evento => cambiarFechaLimite(evento.target.value)}
               />
               <span aria-hidden="true" className={estilos.iconoCalendario}>
                 ▤

@@ -16,7 +16,7 @@ function VisitorNavigation({ rutaActiva = '/programa-publico' }) {
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación principal" className={styles.navigation}>
-          {navigationItems.map((elemento) => (
+          {navigationItems.map(elemento => (
             <NavLink
               aria-current={elemento.to === rutaActiva ? 'page' : undefined}
               className={({ isActive: estaActiva }) =>
@@ -31,10 +31,20 @@ function VisitorNavigation({ rutaActiva = '/programa-publico' }) {
           ))}
         </nav>
         <div className={styles.actions}>
-          <Button onClick={() => navigate('/iniciar-sesion')} size="small" type="button" variant="secondary">
+          <Button
+            onClick={() => navigate('/iniciar-sesion')}
+            size="small"
+            type="button"
+            variant="secondary"
+          >
             Iniciar sesión
           </Button>
-          <Button onClick={() => navigate('/registro')} size="small" type="button" variant="primary">
+          <Button
+            onClick={() => navigate('/registro')}
+            size="small"
+            type="button"
+            variant="primary"
+          >
             Crear cuenta
           </Button>
         </div>

@@ -22,8 +22,7 @@ function SessionContentPanel({
           Contenido de la sesión
         </h2>
         <span className={styles.count}>
-          {trabajos.length} de {capacidad} espacios · {WORK_MINUTES} min por
-          trabajo
+          {trabajos.length} de {capacidad} espacios · {WORK_MINUTES} min por trabajo
         </span>
       </header>
 

@@ -1,8 +1,21 @@
 import useConference from '../../../core/utils/useConference.js'
-import { getEditionStatusLabel, getReceptionNotice } from '../../../core/utils/reception.js'
+import {
+  getEditionStatusLabel,
+  getReceptionNotice,
+} from '../../../core/utils/reception.js'
 import { useEffect, useState } from 'react'
-import { editionRepository, editionStatusRepository, thematicAxesRepository, workTypesRepository, scheduleRepository, criteriaRepository } from '../../../core/utils/repositories.js'
-import { initialEdition, initialEditionStatus } from '../../../core/utils/states/editionState.js'
+import {
+  editionRepository,
+  editionStatusRepository,
+  thematicAxesRepository,
+  workTypesRepository,
+  scheduleRepository,
+  criteriaRepository,
+} from '../../../core/utils/repositories.js'
+import {
+  initialEdition,
+  initialEditionStatus,
+} from '../../../core/utils/states/editionState.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
@@ -14,6 +27,11 @@ import ConfigurationFeedback from '../components/ConfigurationFeedback/Configura
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import CloseReceptionModal from '../components/CloseReceptionModal/CloseReceptionModal.jsx'
 import styles from './EditionSettingsPage.module.css'
+
+const statusButtonLabels = {
+  'En preparación': 'Abrir recepción',
+  'En revisión': 'Recepción cerrada',
+}
 
 function EditionSettingsPage() {
   const conference = useConference()
@@ -29,13 +47,40 @@ function EditionSettingsPage() {
   const scheduleState = useStoredState(scheduleRepository, initialSchedule)
   const criteriaState = useStoredState(criteriaRepository, initialCriteria)
   const totalWeight = criteriaState.value.reduce((sum, item) => sum + item.peso, 0)
-  const configurationLoading = [axesState, typesState, scheduleState, criteriaState].some((item) => item.loading)
-  const configurationError = [axesState, typesState, scheduleState, criteriaState].find((item) => item.error)?.error
+  const configurationLoading = [axesState, typesState, scheduleState, criteriaState].some(
+    item => item.loading
+  )
+  const configurationError = [axesState, typesState, scheduleState, criteriaState].find(
+    item => item.error
+  )?.error
   const configurationSummary = [
-    { label: 'Ejes temáticos', value: axesState.value.length, state: axesState.value.length ? 'Listo' : 'Pendiente', status: axesState.value.length ? 'complete' : 'pending' },
-    { label: 'Tipos de trabajo', value: typesState.value.length, state: typesState.value.length ? 'Listo' : 'Pendiente', status: typesState.value.length ? 'complete' : 'pending' },
-    { label: 'Fechas límite', value: 3, state: scheduleState.error ? 'Pendiente' : 'Listo', status: scheduleState.error ? 'pending' : 'complete' },
-    { label: 'Criterios de evaluación', value: criteriaState.value.length, state: totalWeight === 100 ? 'Listo: pesos suman 100' : `Pendiente: pesos suman ${totalWeight}`, status: totalWeight === 100 ? 'complete' : 'pending' },
+    {
+      label: 'Ejes temáticos',
+      value: axesState.value.length,
+      state: axesState.value.length ? 'Listo' : 'Pendiente',
+      status: axesState.value.length ? 'complete' : 'pending',
+    },
+    {
+      label: 'Tipos de trabajo',
+      value: typesState.value.length,
+      state: typesState.value.length ? 'Listo' : 'Pendiente',
+      status: typesState.value.length ? 'complete' : 'pending',
+    },
+    {
+      label: 'Fechas límite',
+      value: 3,
+      state: scheduleState.error ? 'Pendiente' : 'Listo',
+      status: scheduleState.error ? 'pending' : 'complete',
+    },
+    {
+      label: 'Criterios de evaluación',
+      value: criteriaState.value.length,
+      state:
+        totalWeight === 100
+          ? 'Listo: pesos suman 100'
+          : `Pendiente: pesos suman ${totalWeight}`,
+      status: totalWeight === 100 ? 'complete' : 'pending',
+    },
   ]
 
   useEffect(() => {
@@ -47,32 +92,53 @@ function EditionSettingsPage() {
         editionStatusRepository.get(),
       ])
 
-      if (!active) return
+      if (!active) {
+        return
+      }
 
       const [editionResult, statusResult] = results
-      if (editionResult.status === 'fulfilled') setEdition(editionResult.value)
-      if (statusResult.status === 'fulfilled') setEstado(statusResult.value)
+      if (editionResult.status === 'fulfilled') {
+        setEdition(editionResult.value)
+      }
+      if (statusResult.status === 'fulfilled') {
+        setEstado(statusResult.value)
+      }
 
-      const failure = results.find((result) => result.status === 'rejected')
-      if (failure) setFeedback({ mensaje: failure.reason.message, tipo: 'error' })
+      const failure = results.find(result => result.status === 'rejected')
+      if (failure) {
+        setFeedback({ mensaje: failure.reason.message, tipo: 'error' })
+      }
       setLoading(false)
     }
 
     loadSettings()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   function handleChange(event) {
     const { name, value } = event.target
-    setEdition((edicionActual) => ({ ...edicionActual, [name]: value }))
+    setEdition(edicionActual => ({ ...edicionActual, [name]: value }))
     setFeedback(null)
   }
 
   async function handleSave(event) {
     event.preventDefault()
-    if (loading || saving) return
-    if (!edition.editionName.trim() || !edition.editionVenue.trim() || !/^\d{4}$/.test(edition.editionYear) || edition.editionDescription.length > 400) {
-      setFeedback({ mensaje: 'Ingrese un nombre, una sede y un año de cuatro dígitos. La descripción admite hasta 400 caracteres.', tipo: 'error' })
+    if (loading || saving) {
+      return
+    }
+    if (
+      !edition.editionName.trim() ||
+      !edition.editionVenue.trim() ||
+      !/^\d{4}$/.test(edition.editionYear) ||
+      edition.editionDescription.length > 400
+    ) {
+      setFeedback({
+        mensaje:
+          'Ingrese un nombre, una sede y un año de cuatro dígitos. La descripción admite hasta 400 caracteres.',
+        tipo: 'error',
+      })
       return
     }
     setSaving(true)
@@ -87,21 +153,33 @@ function EditionSettingsPage() {
   }
 
   async function handleToggleStatus() {
-    if (loading || saving || configurationLoading || configurationError) return
+    if (loading || saving || configurationLoading || configurationError) {
+      return
+    }
     if (!axesState.value.length || !typesState.value.length) {
-      setFeedback({ mensaje: 'Configure al menos un eje temático y un tipo de trabajo antes de abrir o cerrar la recepción.', tipo: 'warning' })
+      setFeedback({
+        mensaje:
+          'Configure al menos un eje temático y un tipo de trabajo antes de abrir o cerrar la recepción.',
+        tipo: 'warning',
+      })
       return
     }
     if (estado === 'Recepción abierta') {
       if (totalWeight !== 100) {
-        setFeedback({ mensaje: 'Los criterios deben sumar 100 antes de abrir la etapa de revisión. Ajústelos en «Criterios de evaluación».', tipo: 'warning' })
+        setFeedback({
+          mensaje:
+            'Los criterios deben sumar 100 antes de abrir la etapa de revisión. Ajústelos en «Criterios de evaluación».',
+          tipo: 'warning',
+        })
         return
       }
       setCloseError('')
       setCloseModal(true)
       return
     }
-    if (estado !== 'En preparación') return
+    if (estado !== 'En preparación') {
+      return
+    }
     setSaving(true)
     try {
       await editionStatusRepository.save('Recepción abierta')
@@ -134,20 +212,29 @@ function EditionSettingsPage() {
         <div className={styles.pageHeading}>
           <div>
             <h1>Configuración de la edición</h1>
-            <p>
-              Defina la edición vigente antes de abrir la recepción de trabajos.
-            </p>
+            <p>Defina la edición vigente antes de abrir la recepción de trabajos.</p>
           </div>
           <div className={styles.actions}>
             <Button
               onClick={handleToggleStatus}
-              disabled={loading || saving || configurationLoading || Boolean(configurationError) || estado === 'En revisión'}
+              disabled={
+                loading ||
+                saving ||
+                configurationLoading ||
+                Boolean(configurationError) ||
+                estado === 'En revisión'
+              }
               type="button"
               variant="secondary"
             >
-              {estado === 'En preparación' ? 'Abrir recepción' : estado === 'En revisión' ? 'Recepción cerrada' : 'Cambiar estado de la edición'}
+              {statusButtonLabels[estado] ?? 'Cambiar estado de la edición'}
             </Button>
-            <Button disabled={loading || saving} form="edition-settings-form" type="submit" variant="primary">
+            <Button
+              disabled={loading || saving}
+              form="edition-settings-form"
+              type="submit"
+              variant="primary"
+            >
               Guardar cambios
             </Button>
           </div>
@@ -228,8 +315,8 @@ function EditionSettingsPage() {
                   maxLength={400}
                 />
                 <span className={styles.helperText}>
-                  Se muestra en la página pública del congreso. Máximo 400
-                  caracteres ({edition.editionDescription.length}/400).
+                  Se muestra en la página pública del congreso. Máximo 400 caracteres (
+                  {edition.editionDescription.length}/400).
                 </span>
               </div>
             </form>
@@ -244,7 +331,7 @@ function EditionSettingsPage() {
                 Resumen de lo configurado
               </h2>
               <ul className={styles.summaryList}>
-                {configurationSummary.map((item) => (
+                {configurationSummary.map(item => (
                   <li className={styles.summaryRow} key={item.label}>
                     <span>{item.label}</span>
                     <span className={styles.summaryValue}>
@@ -256,14 +343,11 @@ function EditionSettingsPage() {
               </ul>
             </section>
 
-            <section
-              aria-labelledby="reception-title"
-              className={styles.receptionNotice}
-            >
-              <h2 id="reception-title">{getEditionStatusLabel(estado, scheduleState.value)}</h2>
-              <p>
-                {getReceptionNotice(estado, scheduleState.value)}
-              </p>
+            <section aria-labelledby="reception-title" className={styles.receptionNotice}>
+              <h2 id="reception-title">
+                {getEditionStatusLabel(estado, scheduleState.value)}
+              </h2>
+              <p>{getReceptionNotice(estado, scheduleState.value)}</p>
             </section>
 
             <section
@@ -287,7 +371,18 @@ function EditionSettingsPage() {
           </aside>
         </div>
       </div>
-      {closeModal && <CloseReceptionModal alCerrar={() => { if (!saving) setCloseModal(false) }} alConfirmar={handleCloseReception} guardando={saving} error={closeError} />}
+      {closeModal && (
+        <CloseReceptionModal
+          alCerrar={() => {
+            if (!saving) {
+              setCloseModal(false)
+            }
+          }}
+          alConfirmar={handleCloseReception}
+          guardando={saving}
+          error={closeError}
+        />
+      )}
     </ConfigurationPageLayout>
   )
 }

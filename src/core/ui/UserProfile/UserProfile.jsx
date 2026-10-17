@@ -10,7 +10,9 @@ function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
   const [error, setError] = useState('')
 
   async function handleLogout() {
-    if (closing) return
+    if (closing) {
+      return
+    }
     setClosing(true)
     setError('')
     try {
@@ -31,8 +33,23 @@ function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
       <span aria-hidden="true" className={styles.initials}>
         {iniciales}
       </span>
-      {permitirCerrarSesion && <Button disabled={closing} loading={closing} onClick={handleLogout} size="small" type="button" variant="tertiary">Cerrar sesión</Button>}
-      {error && <span className={styles.error} role="alert">{error}</span>}
+      {permitirCerrarSesion && (
+        <Button
+          disabled={closing}
+          loading={closing}
+          onClick={handleLogout}
+          size="small"
+          type="button"
+          variant="tertiary"
+        >
+          Cerrar sesión
+        </Button>
+      )}
+      {error && (
+        <span className={styles.error} role="alert">
+          {error}
+        </span>
+      )}
     </div>
   )
 }

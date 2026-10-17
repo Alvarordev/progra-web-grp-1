@@ -11,13 +11,15 @@ const navigationItems = [
 ]
 
 function AuthorNavigation({ rutaActiva = '/autor', rutaInicio = '/autor', usuario }) {
-  const items = navigationItems.map(item => item.to === '/autor' ? { ...item, to: rutaInicio } : item)
+  const items = navigationItems.map(item =>
+    item.to === '/autor' ? { ...item, to: rutaInicio } : item
+  )
 
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del autor" className={styles.navigation}>
-          {items.map((elemento) => (
+          {items.map(elemento => (
             <NavLink
               aria-current={elemento.to === rutaActiva ? 'page' : undefined}
               className={({ isActive: estaActiva }) =>

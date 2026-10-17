@@ -7,7 +7,8 @@ export const authorUser = {
 export const workTypes = [
   {
     nombre: 'Artículo completo',
-    requisitos: 'Hasta 8 000 palabras · PDF con plantilla IEEE · admite hasta 4 coautores.',
+    requisitos:
+      'Hasta 8 000 palabras · PDF con plantilla IEEE · admite hasta 4 coautores.',
     maxCoautores: 4,
   },
   {
@@ -42,7 +43,11 @@ export const sampleWork = {
   eje: 'Inteligencia artificial y datos',
   resumen:
     'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros académicos de cinco cohortes.',
-  palabrasClave: ['deserción universitaria', 'aprendizaje supervisado', 'analítica educativa'],
+  palabrasClave: [
+    'deserción universitaria',
+    'aprendizaje supervisado',
+    'analítica educativa',
+  ],
   enlace: 'https://drive.ulima.edu.pe/trb-2026-058/articulo.pdf',
 }
 
@@ -60,20 +65,42 @@ export const works = [
     hora: '21:15',
     resumen:
       'Se evalúan tres modelos supervisados para anticipar el abandono de estudios en una universidad privada de Lima, usando registros académicos de cinco cohortes y variables socioeconómicas declaradas en la matrícula.',
-    palabrasClave: ['deserción universitaria', 'aprendizaje supervisado', 'analítica educativa'],
+    palabrasClave: [
+      'deserción universitaria',
+      'aprendizaje supervisado',
+      'analítica educativa',
+    ],
     enlace: 'https://drive.ulima.edu.pe/trb-2026-042/articulo.pdf',
     autores: [
-      { nombre: 'Rosa María Quispe Ttito', institucion: 'Universidad de Lima', rol: 'Autora de correspondencia', correspondencia: true },
-      { nombre: 'Diego Alonso Chávez Manrique', institucion: 'Universidad de Lima', rol: 'Coautor' },
-      { nombre: 'Milagros Yupanqui Ríos', institucion: 'Universidad de Lima', rol: 'Coautora' },
+      {
+        nombre: 'Rosa María Quispe Ttito',
+        institucion: 'Universidad de Lima',
+        rol: 'Autora de correspondencia',
+        correspondencia: true,
+      },
+      {
+        nombre: 'Diego Alonso Chávez Manrique',
+        institucion: 'Universidad de Lima',
+        rol: 'Coautor',
+      },
+      {
+        nombre: 'Milagros Yupanqui Ríos',
+        institucion: 'Universidad de Lima',
+        rol: 'Coautora',
+      },
     ],
     seguimiento: [
       { paso: 'Enviado al comité', fecha: '22/09/2026 · 21:15', estado: 'hecho' },
       { paso: 'Revisores asignados', fecha: '02/10/2026 · 09:40', estado: 'hecho' },
-      { paso: 'Revisión en curso · 2 de 3 entregadas', fecha: 'actualizado el 12/10/2026', estado: 'actual' },
+      {
+        paso: 'Revisión en curso · 2 de 3 entregadas',
+        fecha: 'actualizado el 12/10/2026',
+        estado: 'actual',
+      },
       { paso: 'Publicación de resultados', fecha: '28/10/2026', estado: 'pendiente' },
     ],
-    queSigue: 'El comité asignará revisores. Recibirá un correo cuando se publique la decisión, el 28/10/2026.',
+    queSigue:
+      'El comité asignará revisores. Recibirá un correo cuando se publique la decisión, el 28/10/2026.',
   },
   {
     codigo: 'TRB-2026-051',
@@ -88,8 +115,17 @@ export const works = [
     palabrasClave: ['agua reciclada', 'riego', 'campus sostenible'],
     enlace: 'https://drive.ulima.edu.pe/trb-2026-051/resumen.pdf',
     autores: [
-      { nombre: 'Rosa María Quispe Ttito', institucion: 'Universidad de Lima', rol: 'Autora de correspondencia', correspondencia: true },
-      { nombre: 'Sofía Bustamante León', institucion: 'Universidad de Lima', rol: 'Coautora' },
+      {
+        nombre: 'Rosa María Quispe Ttito',
+        institucion: 'Universidad de Lima',
+        rol: 'Autora de correspondencia',
+        correspondencia: true,
+      },
+      {
+        nombre: 'Sofía Bustamante León',
+        institucion: 'Universidad de Lima',
+        rol: 'Coautora',
+      },
     ],
     dictamen: {
       resultado: 'aceptado',
@@ -137,8 +173,17 @@ export const works = [
     palabrasClave: ['residuos sólidos', 'indicadores', 'gestión municipal'],
     enlace: 'https://drive.ulima.edu.pe/trb-2026-057/caso.pdf',
     autores: [
-      { nombre: 'Diego Alonso Chávez Manrique', institucion: 'Universidad de Lima', rol: 'Autor de correspondencia', correspondencia: true },
-      { nombre: 'Rosa María Quispe Ttito', institucion: 'Universidad de Lima', rol: 'Coautora' },
+      {
+        nombre: 'Diego Alonso Chávez Manrique',
+        institucion: 'Universidad de Lima',
+        rol: 'Autor de correspondencia',
+        correspondencia: true,
+      },
+      {
+        nombre: 'Rosa María Quispe Ttito',
+        institucion: 'Universidad de Lima',
+        rol: 'Coautora',
+      },
     ],
     dictamen: {
       resultado: 'rechazado',
@@ -187,9 +232,14 @@ export const works = [
     palabrasClave: ['procesamiento de texto', 'reclamos vecinales', 'clasificación'],
     enlace: 'https://drive.ulima.edu.pe/trb-2026-058/poster.pdf',
     autores: [
-      { nombre: 'Rosa María Quispe Ttito', institucion: 'Universidad de Lima', rol: 'Autora de correspondencia', correspondencia: true },
+      {
+        nombre: 'Rosa María Quispe Ttito',
+        institucion: 'Universidad de Lima',
+        rol: 'Autora de correspondencia',
+        correspondencia: true,
+      },
     ],
-    queSigue: 'El trabajo no se envió antes del cierre, por lo que no participa en la revisión de esta edición.',
+    queSigue:
+      'El trabajo no se envió antes del cierre, por lo que no participa en la revisión de esta edición.',
   },
 ]
-

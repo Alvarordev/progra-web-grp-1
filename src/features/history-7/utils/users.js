@@ -14,17 +14,15 @@ function getSuffix(actividad) {
 }
 
 export function buildActivity(rol, cantidad, actividadAnterior = '') {
-  if (rol === 'Comité') return '—'
+  if (rol === 'Comité') {
+    return '—'
+  }
 
   const total = Number(cantidad)
-  const noun =
-    rol === 'Autor'
-      ? total === 1
-        ? 'trabajo'
-        : 'trabajos'
-      : total === 1
-        ? 'revisión'
-        : 'revisiones'
+  let noun = total === 1 ? 'trabajo' : 'trabajos'
+  if (rol !== 'Autor') {
+    noun = total === 1 ? 'revisión' : 'revisiones'
+  }
 
   return `${total} ${noun}${getSuffix(actividadAnterior)}`
 }

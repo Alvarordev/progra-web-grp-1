@@ -18,7 +18,7 @@ function getBarStyle(sesion) {
 
 function RoomOccupancy({ fecha, salas, sesiones }) {
   const titleId = useId()
-  const sesionesDelDia = sesiones.filter((sesion) => sesion.fecha === fecha)
+  const sesionesDelDia = sesiones.filter(sesion => sesion.fecha === fecha)
 
   return (
     <section aria-labelledby={titleId} className={styles.panel}>
@@ -26,16 +26,16 @@ function RoomOccupancy({ fecha, salas, sesiones }) {
         Ocupación de salas · {formatDate(fecha)}
       </h2>
       <ul className={styles.list}>
-        {salas.map((sala) => {
+        {salas.map(sala => {
           const sesionesDeSala = sesionesDelDia.filter(
-            (sesion) => sesion.sala === sala.codigo,
+            sesion => sesion.sala === sala.codigo
           )
 
           return (
             <li className={styles.row} key={sala.codigo}>
               <span className={styles.room}>{sala.codigo}</span>
               <span aria-hidden="true" className={styles.track}>
-                {sesionesDeSala.map((sesion) => (
+                {sesionesDeSala.map(sesion => (
                   <span
                     className={styles.bar}
                     key={sesion.id}
@@ -46,7 +46,7 @@ function RoomOccupancy({ fecha, salas, sesiones }) {
               <span className={styles.time}>
                 {sesionesDeSala.length > 0
                   ? sesionesDeSala
-                      .map((sesion) => `${sesion.horaInicio}–${sesion.horaFin}`)
+                      .map(sesion => `${sesion.horaInicio}–${sesion.horaFin}`)
                       .join(', ')
                   : 'Libre'}
               </span>

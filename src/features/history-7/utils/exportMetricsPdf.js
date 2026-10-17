@@ -77,7 +77,8 @@ function drawHeader(doc) {
 
 function drawKpis(doc, indicadores, y) {
   const gap = 10
-  const width = (PAGE.width - PAGE.margin * 2 - gap * (indicadores.length - 1)) / indicadores.length
+  const width =
+    (PAGE.width - PAGE.margin * 2 - gap * (indicadores.length - 1)) / indicadores.length
   const height = 78
 
   indicadores.forEach((item, index) => {
@@ -119,7 +120,7 @@ function drawBarChart(doc, titulo, datos, y) {
   const valueWidth = 30
   const trackX = x + 16 + labelWidth
   const trackWidth = width - 32 - labelWidth - valueWidth
-  const max = Math.max(...datos.map((item) => item.value), 1)
+  const max = Math.max(...datos.map(item => item.value), 1)
 
   datos.forEach((item, index) => {
     const rowY = y + 52 + index * rowHeight
@@ -177,8 +178,10 @@ function drawDonutChart(doc, titulo, datos, nota, y) {
   const inner = 38
   let angle = -Math.PI / 2
 
-  datos.forEach((item) => {
-    if (item.value <= 0) return
+  datos.forEach(item => {
+    if (item.value <= 0) {
+      return
+    }
     const sweep = (item.value / total) * Math.PI * 2
     const points = ringSegmentPoints(cx, cy, outer, inner, angle, angle + sweep)
     const [first, ...rest] = points
@@ -195,7 +198,7 @@ function drawDonutChart(doc, titulo, datos, nota, y) {
       first[1],
       [1, 1],
       'FD',
-      true,
+      true
     )
     angle += sweep
   })
@@ -221,12 +224,9 @@ function drawDonutChart(doc, titulo, datos, nota, y) {
     doc.text(`${item.label} · ${item.value}`, legendX + 18, rowY)
     doc.setFontSize(9)
     setText(doc, COLORS.muted)
-    doc.text(
-      `${Math.round((item.value / total) * 100)} %`,
-      x + width - 16,
-      rowY,
-      { align: 'right' },
-    )
+    doc.text(`${Math.round((item.value / total) * 100)} %`, x + width - 16, rowY, {
+      align: 'right',
+    })
   })
 
   setDraw(doc, COLORS.border)
@@ -255,7 +255,7 @@ function drawFooter(doc) {
   doc.text(
     'Congreso Académico Estudiantil · Facultad de Ingeniería · Universidad de Lima',
     PAGE.margin,
-    PAGE.height - 30,
+    PAGE.height - 30
   )
   doc.text(`Generado el ${generated}`, PAGE.width - PAGE.margin, PAGE.height - 30, {
     align: 'right',

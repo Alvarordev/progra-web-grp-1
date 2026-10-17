@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import { demoCredentialsRepository } from '../../../../core/utils/repositories.js'
-import { createPasswordCredential, getPasswordRequirements } from '../../../../core/utils/passwords.js'
+import {
+  createPasswordCredential,
+  getPasswordRequirements,
+} from '../../../../core/utils/passwords.js'
 import styles from './NewPasswordForm.module.css'
 
 function NewPasswordForm({ correo }) {
@@ -25,7 +28,9 @@ function NewPasswordForm({ correo }) {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (saving) return
+    if (saving) {
+      return
+    }
     setTouched({ password: true, confirmation: true })
     if (passwordInvalid || confirmationInvalid) {
       setError('Revise los requisitos y confirme su nueva contraseña antes de continuar.')
@@ -36,15 +41,17 @@ function NewPasswordForm({ correo }) {
     setError('')
     setSaveError('')
     try {
-      const credential = await createPasswordCredential(correo, password)
+      const credential = createPasswordCredential(correo, password)
       const credentials = await demoCredentialsRepository.get()
       await demoCredentialsRepository.save([
-        ...credentials.filter(item => item.email !== credential.email), credential,
+        ...credentials.filter(item => item.email !== credential.email),
+        credential,
       ])
       navigate('/iniciar-sesion', {
         state: {
           recoveryEmail: credential.email,
-          recoveryMessage: 'Contraseña actualizada en este navegador. Ingrese con su nueva contraseña.',
+          recoveryMessage:
+            'Contraseña actualizada en este navegador. Ingrese con su nueva contraseña.',
         },
         replace: true,
       })
@@ -57,8 +64,12 @@ function NewPasswordForm({ correo }) {
 
   return (
     <>
-      <h1 id="recovery-title" ref={titleRef} tabIndex={-1}>Cree su nueva contraseña</h1>
-      <p className={styles.intro}>La nueva contraseña reemplaza a la anterior en este navegador.</p>
+      <h1 id="recovery-title" ref={titleRef} tabIndex={-1}>
+        Cree su nueva contraseña
+      </h1>
+      <p className={styles.intro}>
+        La nueva contraseña reemplaza a la anterior en este navegador.
+      </p>
       <form aria-busy={saving} className={styles.form} noValidate onSubmit={handleSubmit}>
         <label htmlFor="new-password">Nueva contraseña</label>
         <div className={styles.passwordField}>
@@ -81,7 +92,13 @@ function NewPasswordForm({ correo }) {
             type={showPassword ? 'text' : 'password'}
             value={password}
           />
-          <button aria-controls="new-password" aria-pressed={showPassword} disabled={saving} onClick={() => setShowPassword(visible => !visible)} type="button">
+          <button
+            aria-controls="new-password"
+            aria-pressed={showPassword}
+            disabled={saving}
+            onClick={() => setShowPassword(visible => !visible)}
+            type="button"
+          >
             {showPassword ? 'Ocultar' : 'Mostrar'}
           </button>
         </div>
@@ -107,13 +124,32 @@ function NewPasswordForm({ correo }) {
           value={confirmation}
         />
         {touched.confirmation && (
-          <p className={confirmationInvalid ? styles.error : styles.met} id="confirmation-help">
-            {confirmationInvalid ? 'Las contraseñas deben coincidir y no estar vacías.' : 'Las contraseñas coinciden.'}
+          <p
+            className={confirmationInvalid ? styles.error : styles.met}
+            id="confirmation-help"
+          >
+            {confirmationInvalid
+              ? 'Las contraseñas deben coincidir y no estar vacías.'
+              : 'Las contraseñas coinciden.'}
           </p>
         )}
-        {error && <p className={styles.error} id="password-error" role="alert">{error}</p>}
-        {saveError && <p className={styles.error} role="alert">{saveError}</p>}
-        <Button className={styles.submit} disabled={saving} loading={saving} size="small" type="submit">
+        {error && (
+          <p className={styles.error} id="password-error" role="alert">
+            {error}
+          </p>
+        )}
+        {saveError && (
+          <p className={styles.error} role="alert">
+            {saveError}
+          </p>
+        )}
+        <Button
+          className={styles.submit}
+          disabled={saving}
+          loading={saving}
+          size="small"
+          type="submit"
+        >
           {saving ? 'Guardando…' : 'Guardar y entrar'}
         </Button>
       </form>

@@ -13,7 +13,7 @@ function ReviewerCommentsPanel({ revisiones }) {
   return (
     <section className={styles.panel} aria-label="Comentarios de los revisores">
       <div className={styles.tabs} role="tablist">
-        {pestanas.map((pestana) => (
+        {pestanas.map(pestana => (
           <button
             aria-controls="comentarios-revisores"
             aria-selected={pestanaActiva === pestana.id}
@@ -38,8 +38,10 @@ function ReviewerCommentsPanel({ revisiones }) {
         {esConfidencial && (
           <p className={styles.notice}>Estas observaciones solo las ve el comité.</p>
         )}
-        {revisiones.map((revision) => {
-          const texto = esConfidencial ? revision.comentarioComite : revision.comentarioAutor
+        {revisiones.map(revision => {
+          const texto = esConfidencial
+            ? revision.comentarioComite
+            : revision.comentarioAutor
           const mensaje = revision.pendiente
             ? 'Pendiente: el revisor todavía no envía su evaluación.'
             : texto || 'Sin observaciones.'

@@ -13,11 +13,9 @@ function MetricsTabs({ enEncabezado = false }) {
       aria-label="Secciones del tablero"
       className={`${styles.tabs} ${enEncabezado ? styles.inline : ''}`}
     >
-      {tabs.map((tab) => (
+      {tabs.map(tab => (
         <NavLink
-          className={({ isActive }) =>
-            `${styles.tab} ${isActive ? styles.active : ''}`
-          }
+          className={({ isActive }) => `${styles.tab} ${isActive ? styles.active : ''}`}
           end
           key={tab.to}
           to={tab.to}

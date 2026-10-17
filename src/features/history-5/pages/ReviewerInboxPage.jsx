@@ -4,7 +4,10 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { reviewsRepository } from '../../../core/utils/repositories.js'
-import { getReviewerAssignments, getReviewActivity } from '../../../core/utils/reviewerAssignments.js'
+import {
+  getReviewerAssignments,
+  getReviewActivity,
+} from '../../../core/utils/reviewerAssignments.js'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import Header from '../../../core/ui/Header/Header.jsx'
@@ -22,9 +25,15 @@ const filters = [
 
 const initialReviews = {}
 function matchesFilter(assignment, filterId) {
-  if (filterId === 'todas') return true
-  if (filterId === 'pendientes') return assignment.tipoEstado !== 'entregada'
-  if (filterId === 'entregadas') return assignment.tipoEstado === 'entregada'
+  if (filterId === 'todas') {
+    return true
+  }
+  if (filterId === 'pendientes') {
+    return assignment.tipoEstado !== 'entregada'
+  }
+  if (filterId === 'entregadas') {
+    return assignment.tipoEstado === 'entregada'
+  }
   return assignment.tipoEstado === 'vencida'
 }
 
@@ -32,18 +41,33 @@ function ReviewerInboxPage() {
   const reviewsState = useStoredState(reviewsRepository, initialReviews)
   const profileState = useReviewerProfile()
   const conference = useConference()
-  const assignments = getReviewerAssignments(reviewsState.value, profileState.reviewerId, conference.works, conference.reviewers)
+  const assignments = getReviewerAssignments(
+    reviewsState.value,
+    profileState.reviewerId,
+    conference.works,
+    conference.reviewers
+  )
   const [selectedFilter, setSelectedFilter] = useState('todas')
-  const { pending: pendingCount, completed: completedCount, overdue: overdueCount } = getReviewActivity(assignments)
-  const visibleAssignments = assignments.filter((assignment) =>
-    matchesFilter(assignment, selectedFilter),
+  const {
+    pending: pendingCount,
+    completed: completedCount,
+    overdue: overdueCount,
+  } = getReviewActivity(assignments)
+  const visibleAssignments = assignments.filter(assignment =>
+    matchesFilter(assignment, selectedFilter)
   )
   const noHayAsignaciones = assignments.length === 0
 
   function getFilterCount(filterId) {
-    if (filterId === 'todas') return assignments.length
-    if (filterId === 'pendientes') return pendingCount
-    if (filterId === 'entregadas') return completedCount
+    if (filterId === 'todas') {
+      return assignments.length
+    }
+    if (filterId === 'pendientes') {
+      return pendingCount
+    }
+    if (filterId === 'entregadas') {
+      return completedCount
+    }
     return overdueCount
   }
 
@@ -57,8 +81,12 @@ function ReviewerInboxPage() {
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {(reviewsState.loading || profileState.loading) && <p role="status">Cargando revisiones…</p>}
-          {(reviewsState.error || profileState.error) && <p role="alert">{reviewsState.error || profileState.error}</p>}
+          {(reviewsState.loading || profileState.loading) && (
+            <p role="status">Cargando revisiones…</p>
+          )}
+          {(reviewsState.error || profileState.error) && (
+            <p role="alert">{reviewsState.error || profileState.error}</p>
+          )}
           {noHayAsignaciones ? (
             <>
               <div className={styles.emptyHeading}>
@@ -66,13 +94,20 @@ function ReviewerInboxPage() {
                 <p>Sin trabajos asignados por ahora</p>
               </div>
 
-              <section className={styles.emptyState} aria-label="Sin revisiones asignadas">
-                <div className={styles.emptyIcon} aria-hidden="true">✓</div>
+              <section
+                className={styles.emptyState}
+                aria-label="Sin revisiones asignadas"
+              >
+                <div className={styles.emptyIcon} aria-hidden="true">
+                  ✓
+                </div>
                 <h2>No tiene revisiones asignadas</h2>
                 <p>
-                  El comité asigna los trabajos cuando cierra la recepción, el {formatScheduleDate(conference.schedule.reception ?? '')}.
+                  El comité asigna los trabajos cuando cierra la recepción, el{' '}
+                  {formatScheduleDate(conference.schedule.reception ?? '')}.
                   <br />
-                  Mantenga sus líneas de interés actualizadas para recibir trabajos afines.
+                  Mantenga sus líneas de interés actualizadas para recibir trabajos
+                  afines.
                 </p>
                 <Link className={styles.emptyAction} to="/mi-cuenta">
                   Actualizar mis líneas de interés
@@ -85,7 +120,8 @@ function ReviewerInboxPage() {
                 <div>
                   <h1>Mi bandeja de revisión</h1>
                   <p>
-                    {assignments.length} trabajos asignados · la etapa de revisión cierra el {formatScheduleDate(conference.schedule.review ?? '')}
+                    {assignments.length} trabajos asignados · la etapa de revisión cierra
+                    el {formatScheduleDate(conference.schedule.review ?? '')}
                   </p>
                 </div>
 
@@ -102,14 +138,16 @@ function ReviewerInboxPage() {
               </div>
 
               <nav aria-label="Filtrar revisiones" className={styles.filters}>
-                {filters.map((filter) => (
+                {filters.map(filter => (
                   <button
                     aria-pressed={selectedFilter === filter.id}
                     className={[
                       styles.filter,
                       selectedFilter === filter.id && styles.filterActive,
                       filter.warning && styles.filterWarning,
-                    ].filter(Boolean).join(' ')}
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                     key={filter.id}
                     onClick={() => setSelectedFilter(filter.id)}
                     type="button"
@@ -120,9 +158,15 @@ function ReviewerInboxPage() {
               </nav>
 
               {visibleAssignments.length > 0 ? (
-                <section aria-label="Trabajos asignados" className={styles.assignmentGrid}>
-                  {visibleAssignments.map((assignment) => (
-                    <ReviewAssignmentCard asignacion={assignment} key={assignment.codigo} />
+                <section
+                  aria-label="Trabajos asignados"
+                  className={styles.assignmentGrid}
+                >
+                  {visibleAssignments.map(assignment => (
+                    <ReviewAssignmentCard
+                      asignacion={assignment}
+                      key={assignment.codigo}
+                    />
                   ))}
                 </section>
               ) : (

@@ -148,28 +148,54 @@ export const acceptedWorks = [
   },
 ]
 
-
-const initialAssignments = acceptedWorks.map(({ codigo, sesionId, orden }) => ({ codigo, sesionId, orden }))
+const initialAssignments = acceptedWorks.map(({ codigo, sesionId, orden }) => ({
+  codigo,
+  sesionId,
+  orden,
+}))
 export const initialProgram = {
   sessions: initialSessions,
   assignments: initialAssignments,
   published: true,
-  publishedSnapshot: structuredClone({ sessions: initialSessions, assignments: initialAssignments }),
+  publishedSnapshot: structuredClone({
+    sessions: initialSessions,
+    assignments: initialAssignments,
+  }),
 }
 
 function validateProgramContent(value) {
-  return Boolean(value && Array.isArray(value.sessions) && value.sessions.every(session =>
-    typeof session.id === 'string' && typeof session.nombre === 'string' && typeof session.eje === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test(session.fecha) && /^\d{2}:\d{2}$/.test(session.horaInicio) &&
-    /^\d{2}:\d{2}$/.test(session.horaFin) && session.horaInicio < session.horaFin && typeof session.sala === 'string',
-  ) && new Set(value.sessions.map(session => session.id)).size === value.sessions.length &&
-    Array.isArray(value.assignments) && value.assignments.every(item => typeof item.codigo === 'string' &&
-      (item.sesionId === null || value.sessions.some(session => session.id === item.sesionId)) &&
-      (item.orden === null || Number.isInteger(item.orden) && item.orden > 0)) &&
-    new Set(value.assignments.map(item => item.codigo)).size === value.assignments.length)
+  return Boolean(
+    value &&
+    Array.isArray(value.sessions) &&
+    value.sessions.every(
+      session =>
+        typeof session.id === 'string' &&
+        typeof session.nombre === 'string' &&
+        typeof session.eje === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(session.fecha) &&
+        /^\d{2}:\d{2}$/.test(session.horaInicio) &&
+        /^\d{2}:\d{2}$/.test(session.horaFin) &&
+        session.horaInicio < session.horaFin &&
+        typeof session.sala === 'string'
+    ) &&
+    new Set(value.sessions.map(session => session.id)).size === value.sessions.length &&
+    Array.isArray(value.assignments) &&
+    value.assignments.every(
+      item =>
+        typeof item.codigo === 'string' &&
+        (item.sesionId === null ||
+          value.sessions.some(session => session.id === item.sesionId)) &&
+        (item.orden === null || (Number.isInteger(item.orden) && item.orden > 0))
+    ) &&
+    new Set(value.assignments.map(item => item.codigo)).size === value.assignments.length
+  )
 }
 
 export function validateProgram(value) {
-  return validateProgramContent(value) && typeof value.published === 'boolean' &&
-    (value.publishedSnapshot === undefined || validateProgramContent(value.publishedSnapshot))
+  return (
+    validateProgramContent(value) &&
+    typeof value.published === 'boolean' &&
+    (value.publishedSnapshot === undefined ||
+      validateProgramContent(value.publishedSnapshot))
+  )
 }

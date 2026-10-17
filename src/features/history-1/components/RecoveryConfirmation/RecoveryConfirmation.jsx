@@ -17,7 +17,9 @@ function RecoveryConfirmation({ correo, alVerificar }) {
   const codeRef = useRef(null)
 
   useEffect(() => {
-    if (showCodeForm) codeRef.current?.focus()
+    if (showCodeForm) {
+      codeRef.current?.focus()
+    }
   }, [showCodeForm])
 
   useEffect(() => {
@@ -25,7 +27,9 @@ function RecoveryConfirmation({ correo, alVerificar }) {
   }, [])
 
   useEffect(() => {
-    if (remainingSeconds === 0) return
+    if (remainingSeconds === 0) {
+      return
+    }
 
     const timeout = window.setTimeout(() => {
       setRemainingSeconds(seconds => Math.max(0, seconds - 1))
@@ -35,7 +39,9 @@ function RecoveryConfirmation({ correo, alVerificar }) {
   }, [remainingSeconds])
 
   function handleResend() {
-    if (remainingSeconds > 0) return
+    if (remainingSeconds > 0) {
+      return
+    }
     setResendCount(count => count + 1)
     setRemainingSeconds(resendDelay)
     setRecoveryCode(createRecoveryCode())
@@ -70,23 +76,33 @@ function RecoveryConfirmation({ correo, alVerificar }) {
   return (
     <div className={styles.content}>
       <div className={styles.notice} role="status">
-        <span aria-hidden="true" className={styles.icon}>✓</span>
+        <span aria-hidden="true" className={styles.icon}>
+          ✓
+        </span>
         <div className={styles.noticeContent}>
           <p key={resendCount}>
             {resendCount > 0 ? 'Reenviamos' : 'Enviamos'} el enlace de recuperación a{' '}
             <span className={styles.email}>{correo}</span>.
           </p>
           <div className={styles.codeRow}>
-            <span>Código de demostración: <strong className={styles.code}>{recoveryCode}</strong></span>
-            <Button onClick={handleCopy} size="small" type="button" variant="secondary">Copiar código</Button>
+            <span>
+              Código de demostración:{' '}
+              <strong className={styles.code}>{recoveryCode}</strong>
+            </span>
+            <Button onClick={handleCopy} size="small" type="button" variant="secondary">
+              Copiar código
+            </Button>
           </div>
           {copyMessage && <p>{copyMessage}</p>}
         </div>
       </div>
 
-      <h1 id="recovery-title" ref={titleRef} tabIndex={-1}>Revise su correo</h1>
+      <h1 id="recovery-title" ref={titleRef} tabIndex={-1}>
+        Revise su correo
+      </h1>
       <p className={styles.description}>
-        El enlace vence en 30 minutos. Si no lo encuentra, revise la carpeta de correo no deseado antes de solicitar uno nuevo.
+        El enlace vence en 30 minutos. Si no lo encuentra, revise la carpeta de correo no
+        deseado antes de solicitar uno nuevo.
       </p>
 
       <div className={styles.resend}>
@@ -111,7 +127,9 @@ function RecoveryConfirmation({ correo, alVerificar }) {
           Continuar con código
         </Button>
         <span id="resend-help">
-          {remainingSeconds > 0 ? `Podrá reenviarlo en ${countdown} min` : 'Ya puede solicitar un nuevo enlace.'}
+          {remainingSeconds > 0
+            ? `Podrá reenviarlo en ${countdown} min`
+            : 'Ya puede solicitar un nuevo enlace.'}
         </span>
       </div>
 
@@ -133,13 +151,23 @@ function RecoveryConfirmation({ correo, alVerificar }) {
             required
             type="text"
           />
-          <p className={styles.codeHelp} id="recovery-code-help">Ingrese los 6 dígitos del aviso. El código vence en 30 minutos.</p>
-          {codeError && <p className={styles.error} id="recovery-code-error" role="alert">{codeError}</p>}
-          <Button size="small" type="submit">Verificar código</Button>
+          <p className={styles.codeHelp} id="recovery-code-help">
+            Ingrese los 6 dígitos del aviso. El código vence en 30 minutos.
+          </p>
+          {codeError && (
+            <p className={styles.error} id="recovery-code-error" role="alert">
+              {codeError}
+            </p>
+          )}
+          <Button size="small" type="submit">
+            Verificar código
+          </Button>
         </form>
       )}
 
-      <Link className={styles.loginLink} to="/iniciar-sesion">Volver al inicio de sesión</Link>
+      <Link className={styles.loginLink} to="/iniciar-sesion">
+        Volver al inicio de sesión
+      </Link>
     </div>
   )
 }
@@ -147,7 +175,7 @@ function RecoveryConfirmation({ correo, alVerificar }) {
 function createRecoveryCode() {
   const values = new Uint32Array(1)
   globalThis.crypto.getRandomValues(values)
-  return String(100000 + values[0] % 900000)
+  return String(100000 + (values[0] % 900000))
 }
 
 export default RecoveryConfirmation

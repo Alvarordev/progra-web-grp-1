@@ -3,9 +3,17 @@ import WorkStatusBadge from '../WorkStatusBadge/WorkStatusBadge.jsx'
 import styles from './WorkCard.module.css'
 
 function getAction(trabajo, recepcionAbierta) {
-  if (trabajo.estado === 'borrador' && recepcionAbierta) return { label: 'Seguir editando', to: `/autor/nuevo-trabajo?borrador=${trabajo.codigo}` }
+  if (trabajo.estado === 'borrador' && recepcionAbierta) {
+    return {
+      label: 'Seguir editando',
+      to: `/autor/nuevo-trabajo?borrador=${trabajo.codigo}`,
+    }
+  }
   if (trabajo.estado === 'borrador' || trabajo.modoLectura) {
-    return { label: 'Ver en modo lectura', to: `/autor/trabajos/${trabajo.codigo}/lectura` }
+    return {
+      label: 'Ver en modo lectura',
+      to: `/autor/trabajos/${trabajo.codigo}/lectura`,
+    }
   }
   if (trabajo.estado === 'aceptado' || trabajo.estado === 'rechazado') {
     return { label: 'Ver dictamen', to: `/autor/trabajos/${trabajo.codigo}` }
@@ -35,7 +43,11 @@ function WorkCard({ trabajo, recepcionAbierta }) {
       </div>
 
       <div className={styles.cardFooter}>
-        <span className={trabajo.noEnviado ? styles.dateAlert : styles.date}>{trabajo.estado === 'borrador' && recepcionAbierta ? 'No enviado · borrador' : trabajo.fecha}</span>
+        <span className={trabajo.noEnviado ? styles.dateAlert : styles.date}>
+          {trabajo.estado === 'borrador' && recepcionAbierta
+            ? 'No enviado · borrador'
+            : trabajo.fecha}
+        </span>
         <Link className={styles.actionLink} to={accion.to}>
           {accion.label}
         </Link>

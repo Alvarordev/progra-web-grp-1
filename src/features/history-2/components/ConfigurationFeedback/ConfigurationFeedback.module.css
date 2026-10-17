@@ -29,4 +29,6 @@
   line-height: var(--line-height-help);
 }
 
-.compact { margin: 0; }
+.compact {
+  margin: 0;
+}

@@ -34,14 +34,14 @@ function Footer() {
             </p>
           </div>
 
-          {footerGroups.map((group) => (
+          {footerGroups.map(group => (
             <nav
               aria-label={group.title}
               className={styles.footerGroup}
               key={group.title}
             >
               <h3>{group.title}</h3>
-              {group.links.map((link) => (
+              {group.links.map(link => (
                 <Link key={link.to} to={link.to}>
                   {link.label}
                 </Link>
@@ -51,9 +51,7 @@ function Footer() {
 
           <div className={styles.footerGroup}>
             <h3>Contacto</h3>
-            <a href="mailto:congreso@ulima.edu.pe">
-              congreso@ulima.edu.pe
-            </a>
+            <a href="mailto:congreso@ulima.edu.pe">congreso@ulima.edu.pe</a>
             <a href="tel:+5114376767">(01) 437 6767 anexo 30450</a>
           </div>
         </div>

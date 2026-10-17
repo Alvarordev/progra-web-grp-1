@@ -25,9 +25,7 @@ function ProgramSession({ sesion, trabajos }) {
       </header>
 
       {trabajos.length === 0 ? (
-        <p className={styles.empty}>
-          Esta sesión aún no tiene trabajos asignados.
-        </p>
+        <p className={styles.empty}>Esta sesión aún no tiene trabajos asignados.</p>
       ) : (
         <ol className={styles.list} role="list">
           {trabajos.map((trabajo, indice) => (

@@ -30,41 +30,63 @@ function MyPresentationPage() {
   const [params] = useSearchParams()
   const published = publicProgram(conference.program)
   const acceptedWorks = getProgramWorks(conference.works, published)
-  const ownWorks = acceptedWorks.filter(work => work.ownerId === conference.account?.userId || work.ownerEmail === conference.account?.email)
-  const trabajo = ownWorks.find(work => work.codigo === params.get('trabajo')) ?? ownWorks.find(work => work.sesionId)
+  const ownWorks = acceptedWorks.filter(
+    work =>
+      work.ownerId === conference.account?.userId ||
+      work.ownerEmail === conference.account?.email
+  )
+  const trabajo =
+    ownWorks.find(work => work.codigo === params.get('trabajo')) ??
+    ownWorks.find(work => work.sesionId)
   const sesion = published.sessions.find(session => session.id === trabajo?.sesionId)
-  if (conference.loading || conference.error || !trabajo || !sesion) return <AuthorPageLayout rutaActiva="/autor/presentacion"><h1>Mi presentación</h1><p role="status">{conference.error || (conference.loading ? 'Cargando presentación…' : 'Todavía no tiene una presentación publicada. Consulte el dictamen y la asignación de sesión de sus trabajos aceptados.')}</p><Link to="/autor/trabajos">Volver a mis trabajos</Link></AuthorPageLayout>
-  const authorUser = { nombre: conference.account.name, iniciales: `${conference.account.names[0]}${conference.account.surnames[0]}`, rol: 'Rol: Autor' }
-const trabajosDeLaSesion = getSessionWorks(acceptedWorks, sesion.id)
-const indiceEnSesion = trabajosDeLaSesion.findIndex(
-  (item) => item.codigo === trabajo.codigo,
-)
-const horario = getWorkTimes(sesion, indiceEnSesion)
-const sala = rooms.find((item) => item.codigo === sesion.sala)
+  if (conference.loading || conference.error || !trabajo || !sesion) {
+    return (
+      <AuthorPageLayout rutaActiva="/autor/presentacion">
+        <h1>Mi presentación</h1>
+        <p role="status">
+          {conference.error ||
+            (conference.loading
+              ? 'Cargando presentación…'
+              : 'Todavía no tiene una presentación publicada. Consulte el dictamen y la asignación de sesión de sus trabajos aceptados.')}
+        </p>
+        <Link to="/autor/trabajos">Volver a mis trabajos</Link>
+      </AuthorPageLayout>
+    )
+  }
+  const authorUser = {
+    nombre: conference.account.name,
+    iniciales: `${conference.account.names[0]}${conference.account.surnames[0]}`,
+    rol: 'Rol: Autor',
+  }
+  const trabajosDeLaSesion = getSessionWorks(acceptedWorks, sesion.id)
+  const indiceEnSesion = trabajosDeLaSesion.findIndex(
+    item => item.codigo === trabajo.codigo
+  )
+  const horario = getWorkTimes(sesion, indiceEnSesion)
+  const sala = rooms.find(item => item.codigo === sesion.sala)
 
-const presentationDetails = [
-  {
-    etiqueta: 'Fecha',
-    valor: formatDate(sesion.fecha),
-    detalle: formatWeekday(sesion.fecha),
-  },
-  {
-    etiqueta: 'Hora',
-    valor: `${horario.horaInicio} – ${horario.horaFin}`,
-    detalle: `${WORK_MINUTES} minutos`,
-  },
-  {
-    etiqueta: 'Sala',
-    valor: sesion.sala,
-    detalle: sala?.ubicacion ?? sesion.sala,
-  },
-  {
-    etiqueta: 'Orden en la sesión',
-    valor: `${indiceEnSesion + 1} de ${trabajosDeLaSesion.length}`,
-    detalle: `Sesión: ${sesion.nombre}`,
-  },
-]
-
+  const presentationDetails = [
+    {
+      etiqueta: 'Fecha',
+      valor: formatDate(sesion.fecha),
+      detalle: formatWeekday(sesion.fecha),
+    },
+    {
+      etiqueta: 'Hora',
+      valor: `${horario.horaInicio} – ${horario.horaFin}`,
+      detalle: `${WORK_MINUTES} minutos`,
+    },
+    {
+      etiqueta: 'Sala',
+      valor: sesion.sala,
+      detalle: sala?.ubicacion ?? sesion.sala,
+    },
+    {
+      etiqueta: 'Orden en la sesión',
+      valor: `${indiceEnSesion + 1} de ${trabajosDeLaSesion.length}`,
+      detalle: `Sesión: ${sesion.nombre}`,
+    },
+  ]
 
   return (
     <div className={styles.page}>
@@ -79,10 +101,7 @@ const presentationDetails = [
           </header>
 
           <div className={styles.layout}>
-            <article
-              aria-labelledby="presentation-title"
-              className={styles.workCard}
-            >
+            <article aria-labelledby="presentation-title" className={styles.workCard}>
               <div className={styles.workTopline}>
                 <span className={styles.workCode}>{trabajo.codigo}</span>
                 <span className={styles.status}>Aceptado</span>
@@ -90,7 +109,7 @@ const presentationDetails = [
               <h2 id="presentation-title">{trabajo.titulo}</h2>
 
               <dl className={styles.details}>
-                {presentationDetails.map((detalle) => (
+                {presentationDetails.map(detalle => (
                   <div className={styles.detail} key={detalle.etiqueta}>
                     <dt>{detalle.etiqueta}</dt>
                     <dd className={styles.detailValue}>{detalle.valor}</dd>
@@ -111,24 +130,23 @@ const presentationDetails = [
             </article>
 
             <aside className={styles.sideColumn}>
-              <section
-                aria-labelledby="guidelines-title"
-                className={styles.guidelines}
-              >
+              <section aria-labelledby="guidelines-title" className={styles.guidelines}>
                 <h2 id="guidelines-title">Indicaciones para el expositor</h2>
                 <ul>
-                  {speakerGuidelines.map((indicacion) => (
+                  {speakerGuidelines.map(indicacion => (
                     <li key={indicacion}>{indicacion}</li>
                   ))}
                 </ul>
               </section>
 
-              <section
-                aria-labelledby="actions-title"
-                className={styles.actions}
-              >
+              <section aria-labelledby="actions-title" className={styles.actions}>
                 <h2 id="actions-title">Acciones</h2>
-                <Button className={styles.fullWidth} type="button" variant="primary" onClick={() => downloadCalendar(trabajo, sesion, horario)}>
+                <Button
+                  className={styles.fullWidth}
+                  type="button"
+                  variant="primary"
+                  onClick={() => downloadCalendar(trabajo, sesion, horario)}
+                >
                   Agregar a mi calendario
                 </Button>
                 <Link className={styles.secondaryLink} to="/programa-publico">

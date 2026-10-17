@@ -10,7 +10,22 @@ function PasswordRecoveryPage() {
   const location = useLocation()
   const [sentEmail, setSentEmail] = useState('')
   const [isCodeVerified, setIsCodeVerified] = useState(false)
-  const currentStep = isCodeVerified ? 3 : sentEmail ? 2 : 1
+  let currentStep = 1
+  if (isCodeVerified) {
+    currentStep = 3
+  } else if (sentEmail) {
+    currentStep = 2
+  }
+
+  function getStepClass(step) {
+    if (currentStep === step) {
+      return styles.activeStep
+    }
+    if (currentStep > step) {
+      return styles.completedStep
+    }
+    return undefined
+  }
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -26,7 +41,7 @@ function PasswordRecoveryPage() {
             {['Correo', 'Envío', 'Nueva contraseña'].map((label, index) => (
               <li
                 aria-current={currentStep === index + 1 ? 'step' : undefined}
-                className={currentStep === index + 1 ? styles.activeStep : currentStep > index + 1 ? styles.completedStep : undefined}
+                className={getStepClass(index + 1)}
                 key={label}
               >
                 {index + 1}. {label}
@@ -34,13 +49,21 @@ function PasswordRecoveryPage() {
             ))}
           </ol>
 
-          {isCodeVerified ? <NewPasswordForm correo={sentEmail} /> : sentEmail ? (
-            <RecoveryConfirmation alVerificar={() => setIsCodeVerified(true)} correo={sentEmail} />
-          ) : (
+          {isCodeVerified && <NewPasswordForm correo={sentEmail} />}
+
+          {!isCodeVerified && sentEmail && (
+            <RecoveryConfirmation
+              alVerificar={() => setIsCodeVerified(true)}
+              correo={sentEmail}
+            />
+          )}
+
+          {currentStep === 1 && (
             <>
               <h1 id="recovery-title">Recuperar contraseña</h1>
               <p className={styles.intro}>
-                Ingrese el correo con el que se registró. Le enviaremos un enlace para crear una nueva contraseña.
+                Ingrese el correo con el que se registró. Le enviaremos un enlace para
+                crear una nueva contraseña.
               </p>
 
               <form onSubmit={handleSubmit}>
@@ -48,17 +71,25 @@ function PasswordRecoveryPage() {
                 <input
                   autoComplete="email"
                   aria-describedby="recovery-help"
-                  defaultValue={location.state?.recoveryEmail || 'rosa.quispe@aloe.ulima.edu.pe'}
+                  defaultValue={
+                    location.state?.recoveryEmail || 'rosa.quispe@aloe.ulima.edu.pe'
+                  }
                   id="recovery-email"
                   name="email"
                   required
                   type="email"
                 />
-                <p className={styles.helpText} id="recovery-help">El enlace vence en 30 minutos.</p>
+                <p className={styles.helpText} id="recovery-help">
+                  El enlace vence en 30 minutos.
+                </p>
 
                 <div className={styles.actions}>
-                  <Button className={styles.submit} type="submit">Enviar enlace</Button>
-                  <Link className={styles.back} to="/iniciar-sesion">Volver</Link>
+                  <Button className={styles.submit} type="submit">
+                    Enviar enlace
+                  </Button>
+                  <Link className={styles.back} to="/iniciar-sesion">
+                    Volver
+                  </Link>
                 </div>
               </form>
             </>

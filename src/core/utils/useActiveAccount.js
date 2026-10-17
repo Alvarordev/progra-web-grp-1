@@ -12,16 +12,24 @@ export default function useActiveAccount() {
     async function loadAccount() {
       try {
         const account = await getActiveAccount()
-        if (active) setParticipant(account)
+        if (active) {
+          setParticipant(account)
+        }
       } catch (cause) {
-        if (active) setError(cause.message)
+        if (active) {
+          setError(cause.message)
+        }
       } finally {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
     loadAccount()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   return { participant, loading, error }

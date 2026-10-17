@@ -10,7 +10,12 @@ const actions = [
 function NotFoundPage() {
   const account = useActiveAccount()
   return (
-    <PublicNavigation cargando={account.loading} error={account.error} participante={account.participant} rutaActiva="">
+    <PublicNavigation
+      cargando={account.loading}
+      error={account.error}
+      participante={account.participant}
+      rutaActiva=""
+    >
       <AccessMessage
         acciones={actions}
         codigo={404}

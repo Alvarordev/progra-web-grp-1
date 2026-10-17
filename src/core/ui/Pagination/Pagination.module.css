@@ -11,4 +11,8 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-label);
 }
-.pagination > div { display: flex; align-items: center; gap: var(--space-3); }
+.pagination > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}

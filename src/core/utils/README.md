@@ -17,11 +17,11 @@ navegador; el contrato asíncrono permite sustituirlo por una API.
 
 Todos los métodos devuelven una promesa:
 
-| Método | Resultado |
-| --- | --- |
-| `get()` | Datos guardados o una copia del valor inicial si no existen. |
+| Método        | Resultado                                                    |
+| ------------- | ------------------------------------------------------------ |
+| `get()`       | Datos guardados o una copia del valor inicial si no existen. |
 | `save(value)` | Datos guardados después de validar y completar la escritura. |
-| `remove()` | Elimina únicamente los datos de ese repositorio. |
+| `remove()`    | Elimina únicamente los datos de ese repositorio.             |
 
 Las operaciones fallidas rechazan la promesa. La pantalla debe mostrar el error
 y anunciar éxito únicamente después de `await save(...)`. Durante la carga o
@@ -103,6 +103,7 @@ correos duplicados y guarda una credencial derivada por cuenta.
 Las cuentas de ejemplo usan su credencial inicial de demostración; las demás fichas antiguas sin credencial deben establecerla mediante recuperación.
 Solo se navega al terminar las escrituras: autor a `/autor`, revisor a
 `/mi-cuenta` (Historia 1.5), ambos a `/autor` con enlace a la cuenta de revisor.
+
 ### Recordarme en este equipo
 
 `startAccountSession(participant, remember)` inicia la identidad mediante
@@ -206,12 +207,12 @@ Historia 6, cuya pantalla aún no está registrada en este router.
 
 ## Contraseñas locales de demostración
 
-La recuperación actualiza `demoCredentialsRepository` (`congress:demo-credentials`)
-por correo normalizado. Se guardan una sal aleatoria y una derivación
-PBKDF2-SHA-256 de 210 000 iteraciones, sin la contraseña original. Este estado
+La recuperación actualiza `demoCredentialsRepository` (`congress:credentials`)
+por correo normalizado. Se guarda la contraseña tal como se escribió
+(`{ email, password }`), porque es solo una demostración local: este estado
 está separado de la ficha y de la sesión, y no constituye autenticación real.
-El inicio de sesión verifica esta derivación contra la ficha del mismo correo
-en la colección de participantes y recupera su identidad y rol. Una derivación
+El inicio de sesión compara la contraseña con la ficha del mismo correo en la
+colección de participantes y recupera su identidad y rol. Una credencial
 aislada, sin ficha registrada, no inicia una sesión. Registro, recuperación y
 cambio de contraseña utilizan el mismo repositorio de credenciales.
 
@@ -235,7 +236,7 @@ Ejemplo de registro:
 export const preferencesRepository = createStateRepository({
   name: 'preferences',
   defaultValue: { theme: 'light' },
-  validate: (value) => ['light', 'dark'].includes(value?.theme),
+  validate: value => ['light', 'dark'].includes(value?.theme),
 })
 ```
 
@@ -280,8 +281,8 @@ de pruebas en el repositorio.
 La aplicación incluye `admin@aloe.ulima.edu.pe`, con contraseña inicial
 `Admin1234` y rol `committee` («Comité organizador»). Al iniciar sesión abre
 `/configuracion`, desde donde se accede a las pantallas de Historia 2.
-`states/defaultCommitteeState.js` contiene la ficha y la credencial derivada
-con PBKDF2, sin almacenar la contraseña en la sesión.
+`states/defaultCommitteeState.js` contiene la ficha y la credencial. La
+contraseña no se guarda en la sesión.
 
 `getParticipantAccounts()` incorpora la ficha reservada a las cuentas existentes
 sin eliminar los demás participantes. El registro público solo admite autor,

@@ -14,7 +14,9 @@ function SubmissionRequirements({ tipos }) {
     <section aria-labelledby="requirements-title" className={styles.section}>
       <h2 id="requirements-title">Requisitos de participación y envío</h2>
       <ul className={styles.requirements}>
-        {requirements.map(requirement => <li key={requirement}>{requirement}</li>)}
+        {requirements.map(requirement => (
+          <li key={requirement}>{requirement}</li>
+        ))}
       </ul>
       <h3>Tipos de trabajo admitidos</h3>
       <div className={styles.types}>
@@ -23,7 +25,11 @@ function SubmissionRequirements({ tipos }) {
             <h4>{type.nombre}</h4>
             <p>Extensión máxima: {type.extensionMaxima}.</p>
             <p>Formato: {type.formatoEsperado}.</p>
-            <p>{type.admiteCoautores ? `Admite hasta ${type.maxCoautores} coautores.` : 'No admite coautores.'}</p>
+            <p>
+              {type.admiteCoautores
+                ? `Admite hasta ${type.maxCoautores} coautores.`
+                : 'No admite coautores.'}
+            </p>
           </article>
         ))}
       </div>

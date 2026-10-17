@@ -16,13 +16,18 @@ import styles from './UsersPage.module.css'
 const PAGE_SIZE = 8
 
 function countByRole(users, role) {
-  return users.filter((user) => user.rol === role).length
+  return users.filter(user => user.rol === role).length
 }
 
 function UsersPage() {
   const idPrefix = useId()
-  const { value: users, loading, saving, error, save } =
-    useStoredState(directoryRepository, initialUsers)
+  const {
+    value: users,
+    loading,
+    saving,
+    error,
+    save,
+  } = useStoredState(directoryRepository, initialUsers)
   const busy = loading || saving
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -35,14 +40,14 @@ function UsersPage() {
   const [toast, setToast] = useState('')
 
   const institutions = useMemo(
-    () => [...new Set(users.map((user) => user.institucion))],
-    [users],
+    () => [...new Set(users.map(user => user.institucion))],
+    [users]
   )
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase()
 
-    return users.filter((user) => {
+    return users.filter(user => {
       const matchesSearch =
         !term ||
         user.nombre.toLowerCase().includes(term) ||
@@ -70,14 +75,14 @@ function UsersPage() {
       allLabel: 'todos',
       value: roleFilter,
       onChange: setRoleFilter,
-      options: roles.map((role) => ({ value: role, label: role })),
+      options: roles.map(role => ({ value: role, label: role })),
     },
     {
       label: 'Institución',
       allLabel: 'todas',
       value: institutionFilter,
       onChange: setInstitutionFilter,
-      options: institutions.map((name) => ({ value: name, label: name })),
+      options: institutions.map(name => ({ value: name, label: name })),
     },
     {
       label: 'Estado',
@@ -94,12 +99,10 @@ function UsersPage() {
   }
 
   async function updateUser(userId, changes) {
-    if (busy) return
-    await save(
-      users.map((user) =>
-        user.id === userId ? { ...user, ...changes } : user,
-      ),
-    )
+    if (busy) {
+      return
+    }
+    await save(users.map(user => (user.id === userId ? { ...user, ...changes } : user)))
   }
 
   async function confirmBlock(user, { motivo }) {
@@ -120,7 +123,9 @@ function UsersPage() {
   }
 
   async function saveUser(data) {
-    if (busy) return
+    if (busy) {
+      return
+    }
     const editing = userForm.usuario
 
     try {
@@ -134,14 +139,14 @@ function UsersPage() {
           actividad: buildActivity(
             data.rol,
             data.cantidad,
-            editing.rol === data.rol ? editing.actividad : '',
+            editing.rol === data.rol ? editing.actividad : ''
           ),
         })
         setToast('Cambios guardados')
       } else {
         await save([
           {
-            id: Math.max(0, ...users.map((user) => user.id)) + 1,
+            id: Math.max(0, ...users.map(user => user.id)) + 1,
             nombre: data.nombre,
             correo: data.correo,
             rol: data.rol,
@@ -187,22 +192,20 @@ function UsersPage() {
 
       <form
         className={styles.filters}
-        onSubmit={(event) => event.preventDefault()}
+        onSubmit={event => event.preventDefault()}
         role="search"
       >
-        {selectFilters.map((filter) => (
+        {selectFilters.map(filter => (
           <select
             aria-label={filter.label}
             className={styles.select}
             id={`${idPrefix}-${filter.label}`}
             key={filter.label}
-            onChange={(event) =>
-              changeFilter(filter.onChange, event.target.value)
-            }
+            onChange={event => changeFilter(filter.onChange, event.target.value)}
             value={filter.value}
           >
             <option value="">{`${filter.label}: ${filter.allLabel}`}</option>
-            {filter.options.map((option) => (
+            {filter.options.map(option => (
               <option key={option.value} value={option.value}>
                 {`${filter.label}: ${option.label}`}
               </option>
@@ -213,7 +216,7 @@ function UsersPage() {
           aria-label="Buscar usuario por nombre o correo"
           className={styles.search}
           id={`${idPrefix}-search`}
-          onChange={(event) => changeFilter(setSearch, event.target.value)}
+          onChange={event => changeFilter(setSearch, event.target.value)}
           placeholder="Buscar por nombre o correo…"
           type="search"
           value={search}
@@ -223,7 +226,7 @@ function UsersPage() {
       <UsersTable
         deshabilitado={busy}
         alBloquear={setUserToBlock}
-        alEditar={(usuario) => setUserForm({ usuario })}
+        alEditar={usuario => setUserForm({ usuario })}
         alReactivar={reactivateUser}
         usuarios={pageUsers}
       />
@@ -246,7 +249,7 @@ function UsersPage() {
           >
             Anterior
           </Button>
-          {pageNumbers.map((number) => (
+          {pageNumbers.map(number => (
             <Button
               aria-current={number === currentPage ? 'page' : undefined}
               key={number}
@@ -272,7 +275,11 @@ function UsersPage() {
 
       {userForm && (
         <UserFormModal
-          alCerrar={() => { if (!busy) setUserForm(null) }}
+          alCerrar={() => {
+            if (!busy) {
+              setUserForm(null)
+            }
+          }}
           guardando={saving}
           errorGuardado={error}
           alGuardar={saveUser}
@@ -286,7 +293,11 @@ function UsersPage() {
 
       {userToBlock && (
         <BlockUserModal
-          alCerrar={() => { if (!busy) setUserToBlock(null) }}
+          alCerrar={() => {
+            if (!busy) {
+              setUserToBlock(null)
+            }
+          }}
           guardando={saving}
           errorGuardado={error}
           alConfirmar={confirmBlock}

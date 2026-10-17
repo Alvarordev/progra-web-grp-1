@@ -9,5 +9,5 @@ createRoot(document.getElementById('root')).render(
     <Suspense fallback={<p role="status">Cargando pantalla…</p>}>
       <RouterProvider router={router} />
     </Suspense>
-  </StrictMode>,
+  </StrictMode>
 )

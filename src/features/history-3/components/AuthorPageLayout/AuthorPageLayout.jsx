@@ -6,7 +6,13 @@ import styles from './AuthorPageLayout.module.css'
 
 function AuthorPageLayout({ children, estado = 'Recepción abierta', rutaActiva }) {
   const { participant } = useActiveAccount()
-  const authorUser = participant ? { nombre: participant.name, iniciales: `${participant.names[0]}${participant.surnames[0]}`.toUpperCase(), rol: 'Rol: Autor' } : undefined
+  const authorUser = participant
+    ? {
+        nombre: participant.name,
+        iniciales: `${participant.names[0]}${participant.surnames[0]}`.toUpperCase(),
+        rol: 'Rol: Autor',
+      }
+    : undefined
   return (
     <div className={styles.page}>
       <Header estado={estado} />

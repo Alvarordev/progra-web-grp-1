@@ -27,21 +27,15 @@ function SessionsTable({ alEditar, idsEnConflicto, sesiones }) {
           </tr>
         </thead>
         <tbody>
-          {sesiones.map((sesion) => {
+          {sesiones.map(sesion => {
             const enConflicto = idsEnConflicto.has(sesion.id)
 
             return (
-              <tr
-                className={enConflicto ? styles.conflict : undefined}
-                key={sesion.id}
-              >
+              <tr className={enConflicto ? styles.conflict : undefined} key={sesion.id}>
                 <th className={styles.sessionName} scope="row">
                   {sesion.nombre}
                   {enConflicto && (
-                    <span className={styles.visuallyHidden}>
-                      {' '}
-                      (solapamiento de sala)
-                    </span>
+                    <span className={styles.visuallyHidden}> (solapamiento de sala)</span>
                   )}
                 </th>
                 <td>{sesion.eje}</td>

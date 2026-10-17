@@ -146,7 +146,10 @@
 .tableHeader,
 .criterionRow {
   display: grid;
-  grid-template-columns: minmax(130px, 1fr) 62px minmax(82px, 0.48fr) minmax(180px, 1.35fr);
+  grid-template-columns: minmax(130px, 1fr) 62px minmax(82px, 0.48fr) minmax(
+      180px,
+      1.35fr
+    );
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
@@ -448,4 +451,8 @@ textarea:disabled {
   border: 0;
 }
 
-.commentsLayout > .field { padding: 0; border: 0; background: transparent; }
+.commentsLayout > .field {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}

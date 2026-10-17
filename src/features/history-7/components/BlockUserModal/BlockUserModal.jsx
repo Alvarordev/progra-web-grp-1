@@ -3,7 +3,13 @@ import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import styles from './BlockUserModal.module.css'
 
-function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alConfirmar, usuario }) {
+function BlockUserModal({
+  guardando = false,
+  errorGuardado = '',
+  alCerrar,
+  alConfirmar,
+  usuario,
+}) {
   const reasonId = useId()
   const errorId = useId()
   const [motivo, setMotivo] = useState('')
@@ -12,7 +18,9 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
 
   function handleSubmit(event) {
     event.preventDefault()
-    if (guardando) return
+    if (guardando) {
+      return
+    }
 
     if (!motivo.trim()) {
       setError('Ingrese el motivo del bloqueo.')
@@ -36,9 +44,8 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
           <div className={styles.effects} role="note">
             <strong>Efectos del bloqueo</strong>
             <p>
-              El usuario no podrá iniciar sesión. Si tiene revisiones
-              pendientes, quedarán sin responsable y deberán reasignarse desde
-              el seguimiento.
+              El usuario no podrá iniciar sesión. Si tiene revisiones pendientes, quedarán
+              sin responsable y deberán reasignarse desde el seguimiento.
             </p>
           </div>
 
@@ -48,7 +55,7 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
               aria-describedby={error ? errorId : undefined}
               aria-invalid={error ? 'true' : undefined}
               id={reasonId}
-              onChange={(event) => {
+              onChange={event => {
                 setMotivo(event.target.value)
                 setError('')
               }}
@@ -65,7 +72,7 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
           <label className={styles.checkbox}>
             <input
               checked={notificar}
-              onChange={(event) => setNotificar(event.target.checked)}
+              onChange={event => setNotificar(event.target.checked)}
               type="checkbox"
             />
             Notificar al usuario por correo electrónico.
@@ -74,7 +81,12 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
 
         {errorGuardado && <p role="alert">{errorGuardado}</p>}
         <div className={styles.footer}>
-          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
+          <Button
+            disabled={guardando}
+            onClick={alCerrar}
+            type="button"
+            variant="secondary"
+          >
             Cancelar
           </Button>
           <Button loading={guardando} type="submit" variant="destructive">

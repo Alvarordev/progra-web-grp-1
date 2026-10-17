@@ -23,7 +23,7 @@ function ThematicAxesTable({ alEditar, alEliminar, ejes, deshabilitado = false }
           </tr>
         </thead>
         <tbody>
-          {ejes.map((eje) => (
+          {ejes.map(eje => (
             <tr key={eje.id}>
               <th className={styles.axisName} scope="row">
                 {eje.nombre}

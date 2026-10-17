@@ -11,7 +11,13 @@ import WorkTypesTable from '../components/WorkTypesTable/WorkTypesTable.jsx'
 import styles from './WorkTypesPage.module.css'
 
 function WorkTypesPage() {
-  const { value: tiposTrabajo, loading, saving, error, save } = useStoredState(workTypesRepository, initialWorkTypes)
+  const {
+    value: tiposTrabajo,
+    loading,
+    saving,
+    error,
+    save,
+  } = useStoredState(workTypesRepository, initialWorkTypes)
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
 
@@ -26,17 +32,24 @@ function WorkTypesPage() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('¿Eliminar este tipo de trabajo?')) return
+    if (!window.confirm('¿Eliminar este tipo de trabajo?')) {
+      return
+    }
     try {
-      await save(tiposTrabajo.filter((item) => item.id !== id))
+      await save(tiposTrabajo.filter(item => item.id !== id))
       setFeedback('Tipo de trabajo eliminado correctamente.')
-    } catch { setFeedback('') }
+    } catch {
+      setFeedback('')
+    }
   }
 
   async function handleSave(updatedWorkType) {
-    const nextTypes = modal.modo === 'edit'
-      ? tiposTrabajo.map((item) => item.id === modal.tipoTrabajo.id ? { ...item, ...updatedWorkType } : item)
-      : [...tiposTrabajo, { ...updatedWorkType, id: crypto.randomUUID() }]
+    const nextTypes =
+      modal.modo === 'edit'
+        ? tiposTrabajo.map(item =>
+            item.id === modal.tipoTrabajo.id ? { ...item, ...updatedWorkType } : item
+          )
+        : [...tiposTrabajo, { ...updatedWorkType, id: crypto.randomUUID() }]
     try {
       await save(nextTypes)
       setModal(null)
@@ -54,15 +67,27 @@ function WorkTypesPage() {
             <h1>Tipos de trabajo</h1>
             <p>{tiposTrabajo.length} tipos habilitados para esta edición</p>
           </div>
-          <Button disabled={loading || saving} onClick={handleCreate} type="button" variant="primary">
+          <Button
+            disabled={loading || saving}
+            onClick={handleCreate}
+            type="button"
+            variant="primary"
+          >
             Nuevo tipo de trabajo
           </Button>
         </header>
 
         <ConfigurationTabs />
-        <ConfigurationFeedback cargando={loading ? 'Cargando tipos de trabajo…' : ''} error={modal ? '' : error} mensaje={feedback} />
+        <ConfigurationFeedback
+          cargando={loading ? 'Cargando tipos de trabajo…' : ''}
+          error={modal ? '' : error}
+          mensaje={feedback}
+        />
 
-        <section aria-label="Tipos de trabajo de la edición" className={styles.tableSection}>
+        <section
+          aria-label="Tipos de trabajo de la edición"
+          className={styles.tableSection}
+        >
           <WorkTypesTable
             alEditar={handleEdit}
             alEliminar={handleDelete}
@@ -72,14 +97,18 @@ function WorkTypesPage() {
         </section>
 
         <p className={styles.notice}>
-          Los requisitos de cada tipo se muestran al registrar un trabajo.
-          Revise la extensión y el máximo de coautores antes de guardar.
+          Los requisitos de cada tipo se muestran al registrar un trabajo. Revise la
+          extensión y el máximo de coautores antes de guardar.
         </p>
       </div>
 
       {modal && (
         <WorkTypeModal
-          alCerrar={() => { if (!saving) setModal(null) }}
+          alCerrar={() => {
+            if (!saving) {
+              setModal(null)
+            }
+          }}
           alGuardar={handleSave}
           guardando={saving}
           errorGuardado={error}

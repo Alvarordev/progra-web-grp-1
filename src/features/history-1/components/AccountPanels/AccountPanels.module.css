@@ -127,8 +127,12 @@
   font-weight: 600;
 }
 
-.completed { color: var(--color-success); }
-.pending { color: var(--color-warning); }
+.completed {
+  color: var(--color-success);
+}
+.pending {
+  color: var(--color-warning);
+}
 
 .error {
   margin: 0;
@@ -154,7 +158,13 @@
 }
 
 @media (max-width: 600px) {
-  .panel { padding: var(--space-4); }
-  .fields { grid-template-columns: 1fr; }
-  .panelHeading { flex-wrap: wrap; }
+  .panel {
+    padding: var(--space-4);
+  }
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .panelHeading {
+    flex-wrap: wrap;
+  }
 }

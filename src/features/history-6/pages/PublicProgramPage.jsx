@@ -16,7 +16,6 @@ import {
 } from '../utils/sessionSchedule.js'
 import styles from './PublicProgramPage.module.css'
 
-
 function PublicProgramPage() {
   const conference = useConference()
   const published = publicProgram(conference.program)
@@ -30,18 +29,30 @@ function PublicProgramPage() {
   const [exporting, setExporting] = useState(false)
   async function exportProgram() {
     setExporting(true)
-    try { await downloadPdf('Programa del congreso', initialSessions.flatMap(session => [session.nombre, `${formatDate(session.fecha)} · ${session.horaInicio}–${session.horaFin} · ${session.sala}`, ...getSessionWorks(acceptedWorks, session.id).map(work => `${work.orden}. ${work.titulo} — ${work.autores}`)]), 'programa-del-congreso.pdf') } catch { setExportError('No se pudo generar el programa. Inténtelo nuevamente.') } finally { setExporting(false) }
+    try {
+      await downloadPdf(
+        'Programa del congreso',
+        initialSessions.flatMap(session => [
+          session.nombre,
+          `${formatDate(session.fecha)} · ${session.horaInicio}–${session.horaFin} · ${session.sala}`,
+          ...getSessionWorks(acceptedWorks, session.id).map(
+            work => `${work.orden}. ${work.titulo} — ${work.autores}`
+          ),
+        ]),
+        'programa-del-congreso.pdf'
+      )
+    } catch {
+      setExportError('No se pudo generar el programa. Inténtelo nuevamente.')
+    } finally {
+      setExporting(false)
+    }
   }
   const [ejeFiltro, setEjeFiltro] = useState('')
 
   const sesionesVisibles = initialSessions
-    .filter(
-      (sesion) =>
-        sesion.fecha === dia && (!ejeFiltro || sesion.eje === ejeFiltro),
-    )
+    .filter(sesion => sesion.fecha === dia && (!ejeFiltro || sesion.eje === ejeFiltro))
     .sort(
-      (primera, segunda) =>
-        toMinutes(primera.horaInicio) - toMinutes(segunda.horaInicio),
+      (primera, segunda) => toMinutes(primera.horaInicio) - toMinutes(segunda.horaInicio)
     )
 
   return (
@@ -55,21 +66,28 @@ function PublicProgramPage() {
             <div>
               <h1>Programa del congreso</h1>
               <p>
-                {acceptedWorks.length} trabajos aceptados ·{' '}
-                {initialSessions.length} sesiones · Auditorio Central y aulas A
-                y B
+                {acceptedWorks.length} trabajos aceptados · {initialSessions.length}{' '}
+                sesiones · Auditorio Central y aulas A y B
               </p>
             </div>
-            <Button disabled={conference.busy || !initialSessions.length} loading={exporting} onClick={exportProgram} type="button" variant="secondary">
+            <Button
+              disabled={conference.busy || !initialSessions.length}
+              loading={exporting}
+              onClick={exportProgram}
+              type="button"
+              variant="secondary"
+            >
               Descargar programa en PDF
             </Button>
           </header>
 
-          {(conference.error || exportError) && <p role="alert">{conference.error || exportError}</p>}
+          {(conference.error || exportError) && (
+            <p role="alert">{conference.error || exportError}</p>
+          )}
           {conference.loading && <p role="status">Cargando programa…</p>}
           <div className={styles.toolbar}>
             <div aria-label="Días del congreso" className={styles.days} role="group">
-              {programDays.map((fecha) => (
+              {programDays.map(fecha => (
                 <button
                   aria-pressed={fecha === dia}
                   className={`${styles.day} ${fecha === dia ? styles.dayActive : ''}`}
@@ -88,11 +106,11 @@ function PublicProgramPage() {
               <select
                 className={styles.select}
                 id="axis-filter"
-                onChange={(event) => setEjeFiltro(event.target.value)}
+                onChange={event => setEjeFiltro(event.target.value)}
                 value={ejeFiltro}
               >
                 <option value="">Filtrar por eje: todos</option>
-                {thematicAxes.map((eje) => (
+                {thematicAxes.map(eje => (
                   <option key={eje} value={eje}>
                     {eje}
                   </option>
@@ -103,7 +121,7 @@ function PublicProgramPage() {
 
           {sesionesVisibles.length > 0 ? (
             <div className={styles.sessions}>
-              {sesionesVisibles.map((sesion) => (
+              {sesionesVisibles.map(sesion => (
                 <ProgramSession
                   key={sesion.id}
                   sesion={sesion}

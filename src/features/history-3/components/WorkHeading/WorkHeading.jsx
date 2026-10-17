@@ -16,7 +16,7 @@ function WorkHeading({ acciones, estados, migaDePan = true, trabajo }) {
         <div>
           <p className={styles.meta}>
             <span className={styles.code}>{trabajo.codigo}</span>
-            {estados.map((estado) => (
+            {estados.map(estado => (
               <WorkStatusBadge estado={estado} key={estado} />
             ))}
           </p>

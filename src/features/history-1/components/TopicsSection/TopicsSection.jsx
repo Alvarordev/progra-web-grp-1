@@ -9,7 +9,7 @@ function TopicsSection({ ejes = [] }) {
       </div>
 
       <div className={styles.grid}>
-        {ejes.map((topic) => (
+        {ejes.map(topic => (
           <article key={topic.nombre}>
             <h3>{topic.nombre}</h3>
             <p>{topic.descripcion}</p>

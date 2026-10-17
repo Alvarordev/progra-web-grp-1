@@ -36,11 +36,26 @@ export default function PaginaTrabajosRecibidos() {
   const estadoTrabajos = usarEstadoAlmacenado(repositorioTrabajos, trabajosIniciales)
   const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
   const reviewState = usarEstadoAlmacenado(reviewsRepository, {})
-  const trabajos = estadoTrabajos.value.map(work => ({ ...work, entregadas: (work.revisoresAsignados ?? []).filter(id => { const reviewer = estadoRevisores.value.find(item => item.id === id); return reviewer && getReview(reviewState.value, reviewer, work.codigo)?.status === 'submitted' }).length }))
+  const trabajos = estadoTrabajos.value.map(work => ({
+    ...work,
+    entregadas: (work.revisoresAsignados ?? []).filter(id => {
+      const reviewer = estadoRevisores.value.find(item => item.id === id)
+      return (
+        reviewer &&
+        getReview(reviewState.value, reviewer, work.codigo)?.status === 'submitted'
+      )
+    }).length,
+  }))
   const revisores = estadoRevisores.value
 
-  const ocupado = estadoTrabajos.loading || estadoRevisores.loading || estadoTrabajos.saving || estadoRevisores.saving || reviewState.loading
-  const errorAlmacenamiento = estadoTrabajos.error || estadoRevisores.error || reviewState.error
+  const ocupado =
+    estadoTrabajos.loading ||
+    estadoRevisores.loading ||
+    estadoTrabajos.saving ||
+    estadoRevisores.saving ||
+    reviewState.loading
+  const errorAlmacenamiento =
+    estadoTrabajos.error || estadoRevisores.error || reviewState.error
 
   const [vistaVaciaActiva, cambiarVistaVaciaActiva] = usarEstado(
     () => parametrosBusqueda.get('vacio') === '1'
@@ -59,7 +74,7 @@ export default function PaginaTrabajosRecibidos() {
   const [notificacion, cambiarNotificacion] = usarEstado('')
 
   const trabajosSinBorrador = usarMemo(
-    () => trabajos.filter((trabajo) => trabajo.estado !== 'Borrador'),
+    () => trabajos.filter(trabajo => trabajo.estado !== 'Borrador'),
     [trabajos]
   )
 
@@ -67,18 +82,26 @@ export default function PaginaTrabajosRecibidos() {
     if (vistaVaciaActiva) {
       return []
     }
-    return trabajosSinBorrador.filter((trabajo) => {
-      if (ejeSeleccionado !== 'todos' && trabajo.eje !== ejeSeleccionado) return false
-      if (estadoSeleccionado !== 'todos' && trabajo.estado !== estadoSeleccionado) return false
-      if (tipoSeleccionado !== 'todos' && trabajo.tipo !== tipoSeleccionado) return false
+    return trabajosSinBorrador.filter(trabajo => {
+      if (ejeSeleccionado !== 'todos' && trabajo.eje !== ejeSeleccionado) {
+        return false
+      }
+      if (estadoSeleccionado !== 'todos' && trabajo.estado !== estadoSeleccionado) {
+        return false
+      }
+      if (tipoSeleccionado !== 'todos' && trabajo.tipo !== tipoSeleccionado) {
+        return false
+      }
       if (consultaBusqueda.trim()) {
         const termino = consultaBusqueda.toLowerCase().trim()
         const coincideCodigo = trabajo.codigo.toLowerCase().includes(termino)
         const coincideTitulo = trabajo.titulo.toLowerCase().includes(termino)
-        const coincideAutor = trabajo.autores?.some((autor) =>
+        const coincideAutor = trabajo.autores?.some(autor =>
           autor.toLowerCase().includes(termino)
         )
-        if (!coincideCodigo && !coincideTitulo && !coincideAutor) return false
+        if (!coincideCodigo && !coincideTitulo && !coincideAutor) {
+          return false
+        }
       }
       return true
     })
@@ -91,31 +114,34 @@ export default function PaginaTrabajosRecibidos() {
     consultaBusqueda,
   ])
 
-  const totalPaginas = Math.max(1, Math.ceil(trabajosFiltrados.length / elementosPorPagina))
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(trabajosFiltrados.length / elementosPorPagina)
+  )
 
   const trabajosPaginados = trabajosFiltrados.slice(
     (paginaActual - 1) * elementosPorPagina,
     paginaActual * elementosPorPagina
   )
 
-  const seleccionarTodosPagina = (evento) => {
+  const seleccionarTodosPagina = evento => {
     if (evento.target.checked) {
-      const codigosPagina = trabajosPaginados.map((trabajo) => trabajo.codigo)
+      const codigosPagina = trabajosPaginados.map(trabajo => trabajo.codigo)
       cambiarCodigosSeleccionados(
         Array.from(new Set([...codigosSeleccionados, ...codigosPagina]))
       )
     } else {
-      const conjuntoPagina = new Set(trabajosPaginados.map((trabajo) => trabajo.codigo))
+      const conjuntoPagina = new Set(trabajosPaginados.map(trabajo => trabajo.codigo))
       cambiarCodigosSeleccionados(
-        codigosSeleccionados.filter((codigo) => !conjuntoPagina.has(codigo))
+        codigosSeleccionados.filter(codigo => !conjuntoPagina.has(codigo))
       )
     }
   }
 
-  const alternarSeleccionTrabajo = (codigo) => {
+  const alternarSeleccionTrabajo = codigo => {
     if (codigosSeleccionados.includes(codigo)) {
       cambiarCodigosSeleccionados(
-        codigosSeleccionados.filter((codigoActual) => codigoActual !== codigo)
+        codigosSeleccionados.filter(codigoActual => codigoActual !== codigo)
       )
     } else {
       cambiarCodigosSeleccionados([...codigosSeleccionados, codigo])
@@ -123,22 +149,31 @@ export default function PaginaTrabajosRecibidos() {
   }
 
   const abrirAsignacionLote = () => {
-    const seleccionados = trabajos.filter((trabajo) =>
+    const seleccionados = trabajos.filter(trabajo =>
       codigosSeleccionados.includes(trabajo.codigo)
     )
-    if (seleccionados.length === 0) return
+    if (seleccionados.length === 0) {
+      return
+    }
     cambiarTrabajosParaModal(seleccionados)
     cambiarModalAsignarAbierto(true)
   }
 
-  const abrirAsignacionIndividual = (trabajo) => {
+  const abrirAsignacionIndividual = trabajo => {
     cambiarTrabajosParaModal([trabajo])
     cambiarModalAsignarAbierto(true)
   }
 
-  const confirmarAsignacion = async ({ codigosTrabajo, idsRevisores, fechaLimite, justificacion }) => {
-    if (ocupado || errorAlmacenamiento) return false
-    const trabajosActualizados = trabajos.map((trabajo) => {
+  const confirmarAsignacion = async ({
+    codigosTrabajo,
+    idsRevisores,
+    fechaLimite,
+    justificacion,
+  }) => {
+    if (ocupado || errorAlmacenamiento) {
+      return false
+    }
+    const trabajosActualizados = trabajos.map(trabajo => {
       if (codigosTrabajo.includes(trabajo.codigo)) {
         const entregadasPrevias = trabajo.entregadas || 0
         return {
@@ -155,20 +190,28 @@ export default function PaginaTrabajosRecibidos() {
       return trabajo
     })
 
-    const revisoresActualizados = revisores.map((revisor) => {
+    const revisoresActualizados = revisores.map(revisor => {
       if (idsRevisores.includes(revisor.id)) {
         return {
           ...revisor,
-          asignadas: trabajosActualizados.filter(work => work.revisoresAsignados?.includes(revisor.id)).length,
+          asignadas: trabajosActualizados.filter(work =>
+            work.revisoresAsignados?.includes(revisor.id)
+          ).length,
         }
       }
       return revisor
     })
 
-    if (!(await estadoTrabajos.save(trabajosActualizados).catch(() => false))) return false
-    if (!(await estadoRevisores.save(revisoresActualizados).catch(() => false))) return false
+    if (!(await estadoTrabajos.save(trabajosActualizados).catch(() => false))) {
+      return false
+    }
+    if (!(await estadoRevisores.save(revisoresActualizados).catch(() => false))) {
+      return false
+    }
 
-    cambiarNotificacion(`Revisores asignados correctamente a ${codigosTrabajo.length} trabajo(s).`)
+    cambiarNotificacion(
+      `Revisores asignados correctamente a ${codigosTrabajo.length} trabajo(s).`
+    )
     setTimeout(() => cambiarNotificacion(''), 4000)
     return true
   }
@@ -184,20 +227,18 @@ export default function PaginaTrabajosRecibidos() {
   }
 
   const quitarFiltroEje = () => {
-
     cambiarEjeSeleccionado('todos')
     cambiarPaginaActual(1)
   }
 
   const quitarFiltroEstado = () => {
-
     cambiarEstadoSeleccionado('todos')
     cambiarPaginaActual(1)
   }
 
   const todosMarcadosEnPagina =
     trabajosPaginados.length > 0 &&
-    trabajosPaginados.every((trabajo) => codigosSeleccionados.includes(trabajo.codigo))
+    trabajosPaginados.every(trabajo => codigosSeleccionados.includes(trabajo.codigo))
 
   const sinTrabajos = trabajosFiltrados.length === 0
   const tieneFiltrosActivos =
@@ -206,7 +247,7 @@ export default function PaginaTrabajosRecibidos() {
     tipoSeleccionado !== 'todos' ||
     Boolean(consultaBusqueda.trim())
 
-  const obtenerTextoRevisores = (trabajo) => {
+  const obtenerTextoRevisores = trabajo => {
     if (trabajo.revisoresAsignados && trabajo.revisoresAsignados.length > 0) {
       const cantidadEntregadas = trabajo.entregadas || 0
       const palabraEntregada = cantidadEntregadas === 1 ? 'entregada' : 'entregadas'
@@ -243,11 +284,28 @@ export default function PaginaTrabajosRecibidos() {
               </div>
               {!sinTrabajos && (
                 <div className={estilos.accionesSuperiores}>
-                  <Boton variant="secondary" type="button" onClick={() => {
-                    const quote = value => `"${String(value).replaceAll('"', '""')}"`
-                    const rows = [['Código', 'Título', 'Eje', 'Tipo', 'Estado'], ...trabajosFiltrados.map(work => [work.codigo, work.titulo, work.eje, work.tipo, work.estado])]
-                    downloadFile('trabajos-recibidos.csv', '\uFEFF' + rows.map(row => row.map(quote).join(',')).join('\r\n'), 'text/csv;charset=utf-8')
-                  }}>
+                  <Boton
+                    variant="secondary"
+                    type="button"
+                    onClick={() => {
+                      const quote = value => `"${String(value).replaceAll('"', '""')}"`
+                      const rows = [
+                        ['Código', 'Título', 'Eje', 'Tipo', 'Estado'],
+                        ...trabajosFiltrados.map(work => [
+                          work.codigo,
+                          work.titulo,
+                          work.eje,
+                          work.tipo,
+                          work.estado,
+                        ]),
+                      ]
+                      downloadFile(
+                        'trabajos-recibidos.csv',
+                        '\uFEFF' + rows.map(row => row.map(quote).join(',')).join('\r\n'),
+                        'text/csv;charset=utf-8'
+                      )
+                    }}
+                  >
                     Exportar listado
                   </Boton>
                   <Boton
@@ -269,22 +327,40 @@ export default function PaginaTrabajosRecibidos() {
             )}
 
             {!sinTrabajos && (
-              <section aria-label="Resumen de trabajos" className={estilos.rejillaMetricas}>
+              <section
+                aria-label="Resumen de trabajos"
+                className={estilos.rejillaMetricas}
+              >
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeAzul}`}>
                   <span className={estilos.etiquetaMetrica}>ENVIADOS</span>
-                  <span className={estilos.valorMetrica}>{trabajosSinBorrador.length}</span>
+                  <span className={estilos.valorMetrica}>
+                    {trabajosSinBorrador.length}
+                  </span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeAmbar}`}>
                   <span className={estilos.etiquetaMetrica}>EN REVISIÓN</span>
-                  <span className={estilos.valorMetrica}>{trabajos.filter(work => work.estado === 'En revisión').length}</span>
+                  <span className={estilos.valorMetrica}>
+                    {trabajos.filter(work => work.estado === 'En revisión').length}
+                  </span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeRojo}`}>
                   <span className={estilos.etiquetaMetrica}>SIN REVISORES</span>
-                  <span className={estilos.valorMetrica}>{trabajosSinBorrador.filter(work => !work.revisoresAsignados.length).length}</span>
+                  <span className={estilos.valorMetrica}>
+                    {
+                      trabajosSinBorrador.filter(work => !work.revisoresAsignados.length)
+                        .length
+                    }
+                  </span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeVerde}`}>
                   <span className={estilos.etiquetaMetrica}>CON DECISIÓN</span>
-                  <span className={estilos.valorMetrica}>{trabajos.filter(work => ['Aceptado', 'Rechazado'].includes(work.estado)).length}</span>
+                  <span className={estilos.valorMetrica}>
+                    {
+                      trabajos.filter(work =>
+                        ['Aceptado', 'Rechazado'].includes(work.estado)
+                      ).length
+                    }
+                  </span>
                 </div>
               </section>
             )}
@@ -296,7 +372,7 @@ export default function PaginaTrabajosRecibidos() {
                     aria-label="Filtrar por eje temático"
                     className={estilos.selectorFiltro}
                     value={ejeSeleccionado}
-                    onChange={(evento) => {
+                    onChange={evento => {
                       cambiarVistaVaciaActiva(false)
 
                       cambiarEjeSeleccionado(evento.target.value)
@@ -304,11 +380,15 @@ export default function PaginaTrabajosRecibidos() {
                     }}
                   >
                     <option value="todos">Eje: todos</option>
-                    <option value="Ingeniería de software">Eje: Ingeniería de software</option>
+                    <option value="Ingeniería de software">
+                      Eje: Ingeniería de software
+                    </option>
                     <option value="Inteligencia artificial y datos">
                       Eje: Inteligencia artificial y datos
                     </option>
-                    <option value="Sostenibilidad y ciudad">Eje: Sostenibilidad y ciudad</option>
+                    <option value="Sostenibilidad y ciudad">
+                      Eje: Sostenibilidad y ciudad
+                    </option>
                     <option value="Innovación y emprendimiento">
                       Eje: Innovación y emprendimiento
                     </option>
@@ -320,7 +400,7 @@ export default function PaginaTrabajosRecibidos() {
                     aria-label="Filtrar por estado"
                     className={estilos.selectorFiltro}
                     value={estadoSeleccionado}
-                    onChange={(evento) => {
+                    onChange={evento => {
                       cambiarVistaVaciaActiva(false)
 
                       cambiarEstadoSeleccionado(evento.target.value)
@@ -339,7 +419,7 @@ export default function PaginaTrabajosRecibidos() {
                       aria-label="Filtrar por tipo de trabajo"
                       className={estilos.selectorFiltro}
                       value={tipoSeleccionado}
-                      onChange={(evento) => {
+                      onChange={evento => {
                         cambiarVistaVaciaActiva(false)
 
                         cambiarTipoSeleccionado(evento.target.value)
@@ -362,7 +442,7 @@ export default function PaginaTrabajosRecibidos() {
                     placeholder="Buscar por código, título o autor…"
                     className={estilos.campoBuscador}
                     value={consultaBusqueda}
-                    onChange={(evento) => {
+                    onChange={evento => {
                       cambiarVistaVaciaActiva(false)
 
                       cambiarConsultaBusqueda(evento.target.value)
@@ -405,7 +485,6 @@ export default function PaginaTrabajosRecibidos() {
                       <button
                         type="button"
                         onClick={() => {
-
                           cambiarTipoSeleccionado('todos')
                           cambiarPaginaActual(1)
                         }}
@@ -421,7 +500,6 @@ export default function PaginaTrabajosRecibidos() {
                       <button
                         type="button"
                         onClick={() => {
-
                           cambiarConsultaBusqueda('')
                           cambiarPaginaActual(1)
                         }}
@@ -447,7 +525,7 @@ export default function PaginaTrabajosRecibidos() {
                 <EstadoVacio
                   icono="▤"
                   titulo="Todavía no hay trabajos enviados"
-                  descripcion="La recepción está abierta hasta el 30/09/2026. Cuando los autores envíen sus trabajos aparecerán aquí para asignar revisores."
+                  descripcion="La recepción está abierta hasta el 15/12/2026. Cuando los autores envíen sus trabajos aparecerán aquí para asignar revisores."
                   accion={
                     <Boton
                       variant="secondary"
@@ -483,12 +561,14 @@ export default function PaginaTrabajosRecibidos() {
                       </tr>
                     </thead>
                     <tbody>
-                      {trabajosPaginados.map((trabajo) => {
+                      {trabajosPaginados.map(trabajo => {
                         const tieneConsolidado = trabajo.estado !== 'Borrador'
                         const rutaConsolidado = `/trabajos-recibidos/${encodeURIComponent(
                           trabajo.codigo
                         )}/consolidado`
-                        const estaSeleccionado = codigosSeleccionados.includes(trabajo.codigo)
+                        const estaSeleccionado = codigosSeleccionados.includes(
+                          trabajo.codigo
+                        )
                         const textoRevisores = obtenerTextoRevisores(trabajo)
 
                         return (
@@ -508,7 +588,10 @@ export default function PaginaTrabajosRecibidos() {
                             <td className={estilos.celdaCodigo}>{trabajo.codigo}</td>
                             <td className={estilos.celdaTitulo}>
                               {tieneConsolidado ? (
-                                <Enlace className={estilos.enlaceTitulo} to={rutaConsolidado}>
+                                <Enlace
+                                  className={estilos.enlaceTitulo}
+                                  to={rutaConsolidado}
+                                >
                                   {trabajo.titulo}
                                 </Enlace>
                               ) : (
@@ -549,7 +632,10 @@ export default function PaginaTrabajosRecibidos() {
                 <div className={estilos.filaPaginacion}>
                   <span className={estilos.infoPaginacion}>
                     Mostrando {(paginaActual - 1) * elementosPorPagina + 1}–
-                    {Math.min(paginaActual * elementosPorPagina, trabajosFiltrados.length)}{' '}
+                    {Math.min(
+                      paginaActual * elementosPorPagina,
+                      trabajosFiltrados.length
+                    )}{' '}
                     de {trabajosFiltrados.length} trabajos
                     {codigosSeleccionados.length > 0 &&
                       ` · ${codigosSeleccionados.length} seleccionados`}
@@ -559,12 +645,12 @@ export default function PaginaTrabajosRecibidos() {
                       type="button"
                       className={estilos.botonPagina}
                       disabled={paginaActual === 1}
-                      onClick={() => cambiarPaginaActual((pagina) => pagina - 1)}
+                      onClick={() => cambiarPaginaActual(pagina => pagina - 1)}
                     >
                       Anterior
                     </button>
                     {Array.from({ length: totalPaginas }, (_, indice) => indice + 1).map(
-                      (numero) => (
+                      numero => (
                         <button
                           key={numero}
                           type="button"
@@ -581,7 +667,7 @@ export default function PaginaTrabajosRecibidos() {
                       type="button"
                       className={estilos.botonPagina}
                       disabled={paginaActual === totalPaginas}
-                      onClick={() => cambiarPaginaActual((pagina) => pagina + 1)}
+                      onClick={() => cambiarPaginaActual(pagina => pagina + 1)}
                     >
                       Siguiente
                     </button>
@@ -596,7 +682,7 @@ export default function PaginaTrabajosRecibidos() {
       <PiePagina />
 
       <ModalAsignarRevisores
-        key={trabajosParaModal.map((trabajo) => trabajo.codigo).join(',')}
+        key={trabajosParaModal.map(trabajo => trabajo.codigo).join(',')}
         guardando={ocupado}
         error={errorAlmacenamiento}
         abierto={modalAsignarAbierto}

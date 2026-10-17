@@ -65,8 +65,12 @@
   color: var(--color-surface);
 }
 
-.primaryAction:hover { background: var(--color-primary-dark); }
-.secondaryAction:hover { background: var(--color-primary-soft); }
+.primaryAction:hover {
+  background: var(--color-primary-dark);
+}
+.secondaryAction:hover {
+  background: var(--color-primary-soft);
+}
 
 .context {
   margin: var(--space-4) 0 0;
@@ -76,6 +80,10 @@
 }
 
 @media (max-width: 520px) {
-  .main { min-height: 440px; }
-  .actions { flex-direction: column; }
+  .main {
+    min-height: 440px;
+  }
+  .actions {
+    flex-direction: column;
+  }
 }

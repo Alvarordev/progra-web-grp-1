@@ -1,8 +1,18 @@
-.content { composes: content from './EditionSettingsPage.module.css'; }
-.pageHeading { composes: pageHeading from './EditionSettingsPage.module.css'; }
-.dashboard { composes: dashboard from './EditionSettingsPage.module.css'; }
-.field { composes: field from './EditionSettingsPage.module.css'; }
-.helperText { composes: helperText from './EditionSettingsPage.module.css'; }
+.content {
+  composes: content from './EditionSettingsPage.module.css';
+}
+.pageHeading {
+  composes: pageHeading from './EditionSettingsPage.module.css';
+}
+.dashboard {
+  composes: dashboard from './EditionSettingsPage.module.css';
+}
+.field {
+  composes: field from './EditionSettingsPage.module.css';
+}
+.helperText {
+  composes: helperText from './EditionSettingsPage.module.css';
+}
 
 .panel {
   padding: var(--space-5);
@@ -31,14 +41,37 @@
   gap: var(--space-3);
 }
 
-.fieldError { margin: var(--space-1) 0 0; color: var(--color-danger); font-size: var(--font-size-label); }
-.field input[aria-invalid='true'] { border-color: var(--color-danger); }
+.fieldError {
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-label);
+}
+.field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
 
-.preview { margin: 0 0 var(--space-4); }
-.preview > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); font-size: var(--font-size-help); }
-.preview dd { margin: 0; font-weight: 600; }
-.visuallyHidden { composes: visuallyHidden from '../components/WorkTypesTable/WorkTypesTable.module.css'; }
+.preview {
+  margin: 0 0 var(--space-4);
+}
+.preview > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-help);
+}
+.preview dd {
+  margin: 0;
+  font-weight: 600;
+}
+.visuallyHidden {
+  composes: visuallyHidden from '../components/WorkTypesTable/WorkTypesTable.module.css';
+}
 
 @media (max-width: 420px) {
-  .dateRow { grid-template-columns: minmax(0, 1fr); }
+  .dateRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
