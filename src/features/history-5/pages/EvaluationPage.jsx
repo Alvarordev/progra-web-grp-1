@@ -334,7 +334,7 @@ function EvaluationScreen({ codigo }) {
             </div>
           </section>
 
-          <form onSubmit={sendRecommendation}>
+          <form className={submitted ? styles.readOnlyForm : undefined} onSubmit={sendRecommendation}>
             <fieldset className={styles.formFields} disabled={loading || saving || Boolean(loadError)}>
             <div className={styles.evaluationLayout}>
               <section className={styles.criteriaPanel} aria-labelledby="criteria-title">
@@ -396,7 +396,7 @@ function EvaluationScreen({ codigo }) {
                 })}
 
                 <div className={styles.averageRow}>
-                  <span>Promedio ponderado provisional ({scoredCriteria.length} de {criteria.length} criterios)</span>
+                  <span>{submitted ? 'Promedio ponderado' : `Promedio ponderado provisional (${scoredCriteria.length} de ${criteria.length} criterios)`}</span>
                   <strong>{average}</strong>
                 </div>
               </section>
@@ -436,7 +436,9 @@ function EvaluationScreen({ codigo }) {
                   </dl>
                 )}
                 <p className={styles.confidentialNote}>
-                  Los comentarios al autor se publican con el dictamen. Las observaciones al comité son confidenciales.
+                  {submitted
+                    ? 'Los campos se muestran como texto: en modo lectura no hay controles de edición ni botón de envío.'
+                    : 'Los comentarios al autor se publican con el dictamen. Las observaciones al comité son confidenciales.'}
                 </p>
               </aside>
             </div>

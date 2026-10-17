@@ -280,6 +280,24 @@
   line-height: var(--line-height-label);
 }
 
+/* Modo lectura: puntajes y comentarios se ven como texto, y no se muestran los radios de recomendación. */
+.readOnlyForm .criterionRow .scoreInput:disabled,
+.readOnlyForm .criterionRow .criterionComment:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text);
+  opacity: 1;
+  resize: none;
+}
+
+.readOnlyForm .criterionRow .scoreInput:disabled {
+  font-weight: 600;
+}
+
+.readOnlyForm .recommendationPanel {
+  display: none;
+}
+
 .commentsLayout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
