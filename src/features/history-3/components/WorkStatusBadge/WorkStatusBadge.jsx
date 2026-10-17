@@ -6,6 +6,7 @@ const statusLabels = {
   revision: 'En revisión',
   aceptado: 'Aceptado',
   rechazado: 'Rechazado',
+  lectura: 'Solo lectura',
 }
 
 function WorkStatusBadge({ estado }) {
