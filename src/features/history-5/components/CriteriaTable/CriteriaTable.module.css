@@ -1,0 +1,136 @@
+.criteriaPanel {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.tableHeader,
+.criterionRow {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) 62px minmax(82px, 0.48fr) minmax(180px, 1.35fr);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.tableHeader {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.criterionRow {
+  min-height: 58px;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.weight {
+  text-align: center;
+}
+
+.scoreInput,
+.criterionComment {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.scoreField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.scoreInput {
+  min-height: 34px;
+  padding: var(--space-1);
+  text-align: center;
+}
+
+.criterionComment {
+  min-height: 38px;
+  padding: var(--space-1) var(--space-2);
+  resize: vertical;
+}
+
+.fieldError {
+  color: var(--color-danger);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+}
+
+.averageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+}
+
+.averageRow strong {
+  color: var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: 22px;
+}
+
+/* modo lectura: los puntajes y comentarios se ven como texto. */
+.readOnlyTable .scoreInput:disabled,
+.readOnlyTable .criterionComment:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text);
+  opacity: 1;
+  resize: none;
+}
+
+.readOnlyTable .scoreInput:disabled {
+  font-weight: 600;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 680px) {
+  .tableHeader {
+    display: none;
+  }
+
+  .criterionRow {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    padding: var(--space-3);
+  }
+
+  .criterionRow > strong {
+    grid-column: 1 / -1;
+  }
+
+  .weight {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .scoreField {
+    grid-column: 2;
+  }
+
+  .criterionComment {
+    grid-column: 1 / -1;
+  }
+}
