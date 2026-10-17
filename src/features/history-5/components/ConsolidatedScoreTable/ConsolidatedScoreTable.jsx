@@ -2,6 +2,9 @@ import { formatTenth } from '../../utils/scoring.js'
 import { getRecommendationLabel } from '../../utils/recommendations.js'
 import styles from './ConsolidatedScoreTable.module.css'
 
+// Nombres cortos de la maqueta 5.3; el nombre completo de cada criterio sigue en la configuración.
+const nombresCortos = { originality: 'Originalidad', rigor: 'Rigor', clarity: 'Claridad', relevance: 'Relevancia' }
+
 function ConsolidatedScoreTable({ filas, criteriosPromedio, promedioGeneral }) {
   return (
     <div className={styles.wrapper}>
@@ -14,7 +17,7 @@ function ConsolidatedScoreTable({ filas, criteriosPromedio, promedioGeneral }) {
             <th scope="col">Revisor</th>
             {criteriosPromedio.map((criterio) => (
               <th scope="col" key={criterio.id}>
-                {criterio.nombre} <span className={styles.weight}>{criterio.peso} %</span>
+                {nombresCortos[criterio.id] ?? criterio.nombre} <span className={styles.weight}>{criterio.peso} %</span>
               </th>
             ))}
             <th scope="col">Ponderado</th>
