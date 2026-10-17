@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import { formatTenth } from '../../utils/scoring.js'
+import { buildFeedbackText, feedbackNote } from '../../utils/decisionText.js'
 import styles from './DecisionModal.module.css'
 
 const opciones = [
@@ -9,27 +10,10 @@ const opciones = [
   { value: 'rechazar', label: 'Rechazar', descripcion: 'No participa en esta edición.' },
 ]
 
-// Clase de la opción elegida: verde para Aceptar y rojo para Rechazar, como pide la maqueta.
+// clase de la opción elegida: verde para aceptar y rojo para rechazar, como pide la maqueta.
 const clasesSeleccion = { aceptar: styles.seleccionadaAceptar, rechazar: styles.seleccionadaRechazar }
 
-// Texto sugerido con la forma de la maqueta: la decisión y, numeradas, las observaciones de cada revisor.
-function construirTexto(decision, enviados) {
-  const frases = []
-  if (decision === 'aceptar') frases.push('El comité acepta el trabajo para presentación oral.')
-  if (decision === 'rechazar') frases.push('El comité no acepta el trabajo en esta edición.')
-  if (enviados.length) {
-    const inicio = decision === 'rechazar'
-      ? 'Las observaciones de los revisores son:'
-      : 'Antes de la versión final, atienda las siguientes observaciones:'
-    const observaciones = enviados.map(
-      (fila, indice) => `${indice + 1}. ${fila.comentarioAutor.trim().replace(/\.$/, '')}.`,
-    )
-    frases.push([inicio, ...observaciones].join('\n'))
-  }
-  return frases.join(' ')
-}
-
-// Recuadro del 5.4. Guarda un borrador o publica la decisión con alGuardar,
+// recuadro del 5.4. guarda un borrador o publica la decisión con alGuardar,
 // que la página escribe en el repositorio de decisiones.
 function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, resumen }) {
   const publicada = decisionGuardada?.status === 'published'
@@ -38,24 +22,14 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
   const cantidadTexto = enviados.length === filas.length
     ? `los ${filas.length} revisores`
     : `${enviados.length} de ${filas.length} revisores`
-  // Sin decisión guardada, la maqueta muestra Aceptar marcado; el comité puede cambiarlo.
+  // sin decisión guardada, la maqueta muestra aceptar marcado; el comité puede cambiarlo.
   const decisionInicial = decisionGuardada?.decision || 'aceptar'
   const [decision, setDecision] = useState(decisionInicial)
-  // Al entrar, el texto está en blanco; si ya hay un borrador o una decisión publicada, se muestra su texto.
+  // al entrar, el texto está en blanco; si ya hay un borrador o una decisión publicada, se muestra su texto.
   const [feedback, setFeedback] = useState(decisionGuardada?.feedback ?? '')
-  // Solo después de pulsar «Restaurar», el texto cambia según la decisión elegida.
+  // solo después de pulsar «Restaurar», el texto cambia según la decisión elegida.
   const [textoAutomatico, setTextoAutomatico] = useState(false)
-  // La nota dice de dónde sale el texto. Si la decisión ya está publicada, no hay nada que editar.
-  let nota = ''
-  if (!publicada) {
-    if (feedback.trim()) {
-      nota = `Precargado con los comentarios al autor de ${cantidadTexto}. Puede editarlo antes de publicar.`
-    } else {
-      nota = enviados.length
-        ? `Pulse «Restaurar texto de los revisores» para cargar los comentarios de ${cantidadTexto}.`
-        : 'Pendiente: los revisores todavía no envían sus comentarios.'
-    }
-  }
+  const nota = feedbackNote({ publicada, feedback, enviados, cantidadTexto })
   const [confirmando, setConfirmando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errores, setErrores] = useState([])
@@ -63,15 +37,15 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
 
   function elegirDecision(valor) {
     setDecision(valor)
-    if (textoAutomatico) setFeedback(construirTexto(valor, enviados))
+    if (textoAutomatico) setFeedback(buildFeedbackText(valor, enviados))
   }
 
   function restaurarTexto() {
-    setFeedback(construirTexto(decision, enviados))
+    setFeedback(buildFeedbackText(decision, enviados))
     setTextoAutomatico(true)
   }
 
-  // Publicar exige decisión y retroalimentación; luego pide confirmar.
+  // publicar exige decisión y retroalimentación; luego pide confirmar.
   function pedirPublicar() {
     const faltantes = []
     if (!decision) faltantes.push('Elija Aceptar o Rechazar.')
@@ -80,7 +54,7 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
     setConfirmando(faltantes.length === 0)
   }
 
-  // El borrador no pide nada. Si el guardado falla, se conserva el formulario y se muestra el error.
+  // el borrador no pide nada. si el guardado falla, se conserva el formulario y se muestra el error.
   async function guardar(status) {
     setGuardando(true)
     setErrores([])
