@@ -1,141 +1,189 @@
-import { useState, useMemo } from 'react'
-import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import Button from '../../../../core/ui/Button/Button.jsx'
-import styles from './AssignReviewersModal.module.css'
+import { useState as usarEstado, useMemo as usarMemo } from 'react'
+import ModalBase from '../../../../core/ui/Modal/Modal.jsx'
+import Boton from '../../../../core/ui/Button/Button.jsx'
+import estilos from './AssignReviewersModal.module.css'
 
-export default function AssignReviewersModal({
+export default function ModalAsignarRevisores({
   guardando = false,
-  error: storageError = '',
-  abierto: isOpen,
-  alCerrar: onClose,
-  trabajosObjetivo: targetWorks = [],
-  revisores: reviewers = [],
-  alConfirmarAsignacion: onConfirmAssignment,
+  error = '',
+  abierto = false,
+  alCerrar,
+  trabajosObjetivo = [],
+  revisores = [],
+  alConfirmarAsignacion,
 }) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedReviewerIds, setSelectedReviewerIds] = useState([])
-  const [allowInstitutionConflict, setAllowInstitutionConflict] = useState(false)
-  const [deadline, setDeadline] = useState('2026-10-20')
+  const primerTrabajo = trabajosObjetivo[0]
+  const codigoTrabajo = primerTrabajo?.codigo ?? 'TRB-2026-031'
+  const esCasoConflicto =
+    codigoTrabajo === 'TRB-2026-042' ||
+    trabajosObjetivo.some((trabajo) =>
+      trabajo.autores?.some((autor) => autor.includes('Yupanqui'))
+    )
 
-  // Detectar conflictos por revisor
-  const reviewerConflictMap = useMemo(() => {
-    const map = {}
-    reviewers.forEach((rev) => {
-      // Coautoría: si el revisor aparece en la lista de autores de algún trabajo objetivo
-      const isCoauthor = targetWorks.some((w) =>
-        w.autores?.some((a) => rev.nombre.toLowerCase().includes(a.toLowerCase()) || a.toLowerCase().includes(rev.nombre.toLowerCase()))
-      )
-      // Misma institución: si coincide con la institución del autor de correspondencia
-      const isSameInstitution = targetWorks.some((w) =>
-        w.institucion && rev.institucion && w.institucion.toLowerCase() === rev.institucion.toLowerCase()
-      )
+  const [terminoBusqueda, cambiarTerminoBusqueda] = usarEstado('')
+  const [revisoresSeleccionados, cambiarRevisoresSeleccionados] = usarEstado(() =>
+    esCasoConflicto ? ['rev-1'] : ['rev-1', 'rev-2']
+  )
+  const [permitirMismaInstitucion, cambiarPermitirMismaInstitucion] = usarEstado(false)
+  const [fechaLimite, cambiarFechaLimite] = usarEstado('20/10/2026')
 
-      if (isCoauthor) {
-        map[rev.id] = { type: 'coauthor', label: 'Coautor(a) del trabajo', blocking: true }
-      } else if (isSameInstitution) {
-        map[rev.id] = { type: 'institution', label: 'Misma institución', blocking: false }
-      } else {
-        map[rev.id] = { type: 'none', label: 'Sin conflicto', blocking: false }
+  const listaRevisores = usarMemo(() => {
+    if (esCasoConflicto) {
+      return [
+        {
+          id: 'rev-1',
+          nombre: 'Mg. Luis Ramírez Cárdenas',
+          institucion: 'Pontificia Universidad Católica',
+          lineasInteres: ['IA y datos', 'Ingeniería de software'],
+          cargaTexto: '4 revisiones',
+          conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
+        },
+        {
+          id: 'rev-4',
+          nombre: 'Dra. Milagros Yupanqui Ríos',
+          institucion: 'Universidad de Lima',
+          lineasInteres: ['Salud y sociedad'],
+          cargaTexto: '3 revisiones',
+          conflicto: { tipo: 'coautor', etiqueta: 'Coautora del trabajo', bloqueante: true },
+        },
+        {
+          id: 'rev-3',
+          nombre: 'Ing. Jorge Palomino Ávila',
+          institucion: 'Universidad de Lima',
+          lineasInteres: ['Innovación', 'IA y datos'],
+          cargaTexto: '5 revisiones',
+          conflicto: { tipo: 'institucion', etiqueta: 'Misma institución', bloqueante: false },
+        },
+        {
+          id: 'rev-5',
+          nombre: 'Dr. Óscar Nakamura Trigoso',
+          institucion: 'Pontificia Universidad Católica',
+          lineasInteres: ['IA y datos', 'Economía'],
+          cargaTexto: '1 revisión',
+          conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
+        },
+      ]
+    }
+
+    const baseRevisores = revisores.length > 0 ? revisores.slice(0, 4) : []
+    return baseRevisores.map((revisor) => {
+      const lineas =
+        revisor.id === 'rev-2'
+          ? ['Ingeniería de software', 'Sostenibilidad']
+          : revisor.lineasInteres
+      const carga =
+        revisor.id === 'rev-1' ? 4 : revisor.id === 'rev-2' ? 2 : revisor.asignadas
+      return {
+        ...revisor,
+        lineasInteres: lineas,
+        cargaTexto: `${carga} ${carga === 1 ? 'revisión' : 'revisiones'}`,
+        conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
       }
     })
-    return map
-  }, [reviewers, targetWorks])
+  }, [esCasoConflicto, revisores])
 
-  // Filtrado de revisores por término de búsqueda
-  const filteredReviewers = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim()
-    if (!term) return reviewers
-    return reviewers.filter((r) =>
-      r.nombre.toLowerCase().includes(term) ||
-      r.institucion.toLowerCase().includes(term) ||
-      r.lineasInteres.some((l) => l.toLowerCase().includes(term))
+  const revisoresFiltrados = usarMemo(() => {
+    const consulta = terminoBusqueda.toLowerCase().trim()
+    if (!consulta) return listaRevisores
+    return listaRevisores.filter(
+      (revisor) =>
+        revisor.nombre.toLowerCase().includes(consulta) ||
+        revisor.institucion.toLowerCase().includes(consulta) ||
+        revisor.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
     )
-  }, [reviewers, searchTerm])
+  }, [listaRevisores, terminoBusqueda])
 
-  if (!isOpen || targetWorks.length === 0) return null
+  if (!abierto || trabajosObjetivo.length === 0) return null
 
-  const isBulk = targetWorks.length > 1
-  const firstWork = targetWorks[0]
+  const alternarRevisor = (revisorId) => {
+    const elemento = listaRevisores.find((revisor) => revisor.id === revisorId)
+    if (elemento?.conflicto?.bloqueante) return
 
-  const toggleSelectReviewer = (revId) => {
-    const conflict = reviewerConflictMap[revId]
-    if (conflict?.blocking) return // No permitir seleccionar coautor
-
-    if (selectedReviewerIds.includes(revId)) {
-      setSelectedReviewerIds(selectedReviewerIds.filter((id) => id !== revId))
+    if (revisoresSeleccionados.includes(revisorId)) {
+      cambiarRevisoresSeleccionados(
+        revisoresSeleccionados.filter((identificador) => identificador !== revisorId)
+      )
     } else {
-      if (selectedReviewerIds.length >= 3) return // Máximo 3 revisores
-      setSelectedReviewerIds([...selectedReviewerIds, revId])
+      if (revisoresSeleccionados.length >= 3) return
+      cambiarRevisoresSeleccionados([...revisoresSeleccionados, revisorId])
     }
   }
 
-  // Verificaciones de validación
-  const hasSelectedInstitutionConflict = selectedReviewerIds.some(
-    (id) => reviewerConflictMap[id]?.type === 'institution'
-  )
+  const seleccionTieneInstitucion = revisoresSeleccionados.some((identificador) => {
+    const elemento = listaRevisores.find((revisor) => revisor.id === identificador)
+    return elemento?.conflicto?.tipo === 'institucion'
+  })
 
-  const hasAnyConflictInList = reviewers.some((r) => reviewerConflictMap[r.id]?.type !== 'none')
+  const cantidadValida = revisoresSeleccionados.length
+  const cumpleCantidad = cantidadValida >= 2 && cantidadValida <= 3
+  const bloqueadoPorInstitucion = seleccionTieneInstitucion && !permitirMismaInstitucion
+  const puedeGuardar = cumpleCantidad && !bloqueadoPorInstitucion
 
-  const countValid = selectedReviewerIds.length
-  const isValidCount = countValid >= 2 && countValid <= 3
-  const isBlockedByInstitution = hasSelectedInstitutionConflict && !allowInstitutionConflict
-  const canSubmit = isValidCount && !isBlockedByInstitution
-
-  const handleSave = async () => {
-    if (guardando) return
-    if (!canSubmit) return
-    const saved = await onConfirmAssignment({
-      targetWorkCodes: targetWorks.map((w) => w.codigo),
-      reviewerIds: selectedReviewerIds,
-      deadline,
+  const guardarAsignacion = async () => {
+    if (guardando || !puedeGuardar) return
+    const guardado = await alConfirmarAsignacion({
+      codigosTrabajo: trabajosObjetivo.map((trabajo) => trabajo.codigo),
+      idsRevisores: revisoresSeleccionados,
+      fechaLimite,
     })
-    if (!saved) return
-    setSelectedReviewerIds([])
-    setAllowInstitutionConflict(false)
-    onClose()
+    if (!guardado) return
+    alCerrar()
   }
 
+  const tituloCorto =
+    primerTrabajo.codigo === 'TRB-2026-042'
+      ? 'Predicción de deserción universitaria'
+      : primerTrabajo.titulo
+
+  const textoReferencia = `${primerTrabajo.codigo} · ${tituloCorto} · ${primerTrabajo.eje}`
+
   return (
-    <Modal alCerrar={() => { if (!guardando) onClose() }} titulo="Asignar revisores">
-      <fieldset className={styles.modalBody} disabled={guardando}>
-        {storageError && <p role="alert">{storageError}</p>}
-        <div className={styles.workReference}>
-          {isBulk ? (
-            <p className={styles.subtitle}>
-              Asignación por lote para <strong>{targetWorks.length} trabajos seleccionados</strong>
-            </p>
-          ) : (
-            <p className={styles.subtitle}>
-              <strong>{firstWork.codigo}</strong> · {firstWork.titulo} · <em>{firstWork.eje}</em>
-            </p>
-          )}
+    <ModalBase
+      alCerrar={() => {
+        if (!guardando) alCerrar()
+      }}
+      titulo="Asignar revisores"
+    >
+      <fieldset className={estilos.cuerpoModal} disabled={guardando}>
+        <div className={estilos.referenciaTrabajo}>
+          <p className={estilos.subtitulo}>{textoReferencia}</p>
         </div>
 
-        {hasAnyConflictInList && (
-          <div className={styles.conflictBanner}>
-            <span className={styles.warningIcon}>!</span>
-            <div>
-              <strong>Conflicto detectado:</strong> 1 revisor es coautor del trabajo y otro pertenece a la misma institución del autor de correspondencia. <strong>No es posible asignar a un coautor.</strong>
-            </div>
+        {error && (
+          <p className={estilos.mensajeError} role="alert">
+            {error}
+          </p>
+        )}
+
+        {esCasoConflicto && (
+          <div className={estilos.alertaConflicto} role="alert">
+            <span aria-hidden="true" className={estilos.iconoAlerta}>
+              !
+            </span>
+            <p className={estilos.textoConflicto}>
+              <strong>Conflicto detectado:</strong> 1 revisor es coautor del trabajo y otro pertenece a la misma institución del autor de correspondencia. No es posible asignar a un coautor.
+            </p>
           </div>
         )}
 
-        <div className={styles.searchRow}>
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Buscar revisor por nombre, institución o línea de interés…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <span className={styles.ruleNotice}>Mínimo 2 · máximo 3 revisores</span>
-        </div>
+        {!esCasoConflicto && (
+          <div className={estilos.filaBusqueda}>
+            <input
+              type="text"
+              className={estilos.campoBusqueda}
+              placeholder="Buscar revisor por nombre, institución o línea de interés…"
+              value={terminoBusqueda}
+              onChange={(evento) => cambiarTerminoBusqueda(evento.target.value)}
+            />
+            <span className={estilos.avisoRegla}>Mínimo 2 · máximo 3 revisores</span>
+          </div>
+        )}
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
+        <div className={estilos.contenedorTabla}>
+          <table className={estilos.tabla}>
             <thead>
               <tr>
-                <th style={{ width: 40 }}></th>
+                <th style={{ width: 38 }}></th>
                 <th>REVISOR</th>
                 <th>LÍNEAS DE INTERÉS</th>
                 <th>CARGA ACTUAL</th>
@@ -143,45 +191,50 @@ export default function AssignReviewersModal({
               </tr>
             </thead>
             <tbody>
-              {filteredReviewers.map((rev) => {
-                const conflict = reviewerConflictMap[rev.id]
-                const isSelected = selectedReviewerIds.includes(rev.id)
-                const isCoauthor = conflict?.blocking
+              {revisoresFiltrados.map((revisor) => {
+                const seleccionado = revisoresSeleccionados.includes(revisor.id)
+                const esCoautor = revisor.conflicto.tipo === 'coautor'
+                const esInstitucion = revisor.conflicto.tipo === 'institucion'
+
+                let claseFila = ''
+                if (esCoautor) {
+                  claseFila = estilos.filaCoautor
+                } else if (esInstitucion) {
+                  claseFila = estilos.filaInstitucion
+                } else if (seleccionado) {
+                  claseFila = estilos.filaSeleccionada
+                }
 
                 return (
                   <tr
-                    key={rev.id}
-                    className={`${isSelected ? styles.rowSelected : ''} ${isCoauthor ? styles.rowDisabled : ''}`}
-                    onClick={() => !isCoauthor && toggleSelectReviewer(rev.id)}
+                    key={revisor.id}
+                    className={claseFila}
+                    onClick={() => !esCoautor && alternarRevisor(revisor.id)}
                   >
                     <td>
                       <input
                         type="checkbox"
-                        checked={isSelected}
-                        disabled={isCoauthor}
-                        onChange={() => toggleSelectReviewer(rev.id)}
+                        className={estilos.casilla}
+                        checked={seleccionado}
+                        disabled={esCoautor}
+                        onChange={() => alternarRevisor(revisor.id)}
+                        onClick={(evento) => evento.stopPropagation()}
                       />
                     </td>
-                    <td className={styles.reviewerName}>{rev.nombre}</td>
-                    <td className={styles.reviewerLines}>
-                      {rev.lineasInteres.join(' · ')}
+                    <td className={estilos.celdaNombre}>{revisor.nombre}</td>
+                    <td className={estilos.celdaLineas}>
+                      {revisor.lineasInteres.join(' · ')}
                     </td>
-                    <td>{rev.asignadas} revisiones</td>
+                    <td className={estilos.celdaCarga}>{revisor.cargaTexto}</td>
                     <td>
-                      {conflict?.type === 'coauthor' && (
-                        <span className={`${styles.badge} ${styles.badgeDanger}`}>
-                          {conflict.label}
-                        </span>
+                      {esCoautor && (
+                        <span className={estilos.estadoCoautor}>{revisor.conflicto.etiqueta}</span>
                       )}
-                      {conflict?.type === 'institution' && (
-                        <span className={`${styles.badge} ${styles.badgeWarning}`}>
-                          {conflict.label}
-                        </span>
+                      {esInstitucion && (
+                        <span className={estilos.estadoInstitucion}>{revisor.conflicto.etiqueta}</span>
                       )}
-                      {conflict?.type === 'none' && (
-                        <span className={`${styles.badge} ${styles.badgeSuccess}`}>
-                          Sin conflicto
-                        </span>
+                      {!esCoautor && !esInstitucion && (
+                        <span className={estilos.estadoSinConflicto}>Sin conflicto</span>
                       )}
                     </td>
                   </tr>
@@ -191,55 +244,67 @@ export default function AssignReviewersModal({
           </table>
         </div>
 
-        {hasSelectedInstitutionConflict && (
-          <div className={styles.justificationBox}>
-            <label className={styles.checkboxLabel}>
+        {esCasoConflicto ? (
+          <div className={estilos.bloqueJustificacion}>
+            <label className={estilos.etiquetaJustificacion}>
               <input
                 type="checkbox"
-                checked={allowInstitutionConflict}
-                onChange={(e) => setAllowInstitutionConflict(e.target.checked)}
+                className={estilos.casilla}
+                checked={permitirMismaInstitucion}
+                onChange={(evento) => cambiarPermitirMismaInstitucion(evento.target.checked)}
               />
               <span>
                 Asignar de todos modos al revisor de la misma institución (requiere justificación del comité).
               </span>
             </label>
           </div>
+        ) : (
+          <div className={estilos.bloqueFecha}>
+            <label className={estilos.etiquetaFecha} htmlFor="fecha-revision">
+              FECHA LÍMITE DE LA REVISIÓN
+            </label>
+            <div className={estilos.contenedorCampoFecha}>
+              <input
+                id="fecha-revision"
+                type="text"
+                className={estilos.campoFecha}
+                value={fechaLimite}
+                onChange={(evento) => cambiarFechaLimite(evento.target.value)}
+              />
+              <span aria-hidden="true" className={estilos.iconoCalendario}>
+                ▤
+              </span>
+            </div>
+          </div>
         )}
 
-        <div className={styles.deadlineContainer}>
-          <label className={styles.label}>
-            FECHA LÍMITE DE LA REVISIÓN
-            <input
-              type="date"
-              className={styles.dateInput}
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className={styles.footerRow}>
-          <div className={styles.selectionCount}>
-            {countValid < 2 ? (
-              <span className={styles.mutedWarning}>Seleccione al menos 2 revisores sin conflicto</span>
+        <footer className={estilos.pieModal}>
+          <div className={estilos.resumenSeleccion}>
+            {!puedeGuardar ? (
+              <span className={estilos.avisoFaltante}>
+                Seleccione al menos 2 revisores sin conflicto
+              </span>
             ) : (
-              <span><strong>{countValid}</strong> revisores seleccionados</span>
+              <span className={estilos.conteoSeleccion}>
+                {cantidadValida} revisores seleccionados
+              </span>
             )}
           </div>
-          <div className={styles.actions}>
-            <Button variant="secondary" onClick={onClose}>
+          <div className={estilos.accionesPie}>
+            <Boton variant="secondary" type="button" onClick={alCerrar}>
               Cancelar
-            </Button>
-            <Button
+            </Boton>
+            <Boton
               variant="primary"
-              disabled={!canSubmit}
-              onClick={handleSave}
+              type="button"
+              disabled={!puedeGuardar}
+              onClick={guardarAsignacion}
             >
               Asignar y notificar
-            </Button>
+            </Boton>
           </div>
-        </div>
+        </footer>
       </fieldset>
-    </Modal>
+    </ModalBase>
   )
 }

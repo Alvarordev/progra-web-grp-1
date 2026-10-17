@@ -1,120 +1,132 @@
-import { useState } from 'react'
-import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import Button from '../../../../core/ui/Button/Button.jsx'
-import styles from './ReassignModal.module.css'
+import { useState as usarEstado } from 'react'
+import ModalBase from '../../../../core/ui/Modal/Modal.jsx'
+import Boton from '../../../../core/ui/Button/Button.jsx'
+import estilos from './ReassignModal.module.css'
 
-export default function ReassignModal({
+export default function ModalReasignar({
   guardando = false,
-  error: storageError = '',
-  abierto: isOpen,
-  alCerrar: onClose,
-  revisionPendiente: pendingItem,
-  revisores: reviewers = [],
-  alConfirmarReasignacion: onConfirmReassignment,
+  error = '',
+  abierto = false,
+  alCerrar,
+  itemPendiente,
+  revisores = [],
+  alConfirmarReasignacion,
 }) {
-  const [selectedNewReviewerId, setSelectedNewReviewerId] = useState('')
-  const [reason, setReason] = useState('')
-  const [error, setError] = useState('')
+  const [nuevoRevisorId, cambiarNuevoRevisorId] = usarEstado('')
+  const [motivo, cambiarMotivo] = usarEstado('')
+  const [errorValidacion, cambiarErrorValidacion] = usarEstado('')
 
-  if (!isOpen || !pendingItem) return null
+  if (!abierto || !itemPendiente) return null
 
-  // Filtrar revisores candidatos excluyendo el revisor actual
-  const candidateReviewers = reviewers.filter((r) => r.id !== pendingItem.revisorId)
+  const candidatos = revisores.filter((revisor) => revisor.id !== itemPendiente.revisorId)
 
-  const handleSubmit = async () => {
+  const enviarReasignacion = async (evento) => {
+    evento.preventDefault()
     if (guardando) return
-    if (!reason.trim()) {
-      setError('El motivo de la reasignación es obligatorio.')
+    if (!nuevoRevisorId) {
+      cambiarErrorValidacion('Debe seleccionar un nuevo revisor.')
       return
     }
-    if (!selectedNewReviewerId) {
-      setError('Debe seleccionar un nuevo revisor.')
+    if (!motivo.trim()) {
+      cambiarErrorValidacion('El motivo de la reasignación es obligatorio.')
       return
     }
 
-    const newReviewer = reviewers.find((r) => r.id === selectedNewReviewerId)
+    const nuevoRevisor = revisores.find((revisor) => revisor.id === nuevoRevisorId)
 
-    const saved = await onConfirmReassignment({
-      pendingId: pendingItem.id,
-      codigo: pendingItem.codigo,
-      previousReviewer: pendingItem.revisor,
-      newReviewerId: selectedNewReviewerId,
-      newReviewerName: newReviewer?.nombre || '',
-      reason: reason.trim(),
+    const guardado = await alConfirmarReasignacion({
+      pendienteId: itemPendiente.id,
+      codigo: itemPendiente.codigo,
+      revisorAnterior: itemPendiente.revisor,
+      nuevoRevisorId,
+      nuevoRevisorNombre: nuevoRevisor?.nombre || '',
+      motivo: motivo.trim(),
     })
 
-    if (!saved) return
-    setReason('')
-    setSelectedNewReviewerId('')
-    setError('')
-    onClose()
+    if (!guardado) return
+    cambiarMotivo('')
+    cambiarNuevoRevisorId('')
+    cambiarErrorValidacion('')
+    alCerrar()
   }
 
   return (
-    <Modal alCerrar={() => { if (!guardando) onClose() }} titulo="Reasignar revisor">
-      <fieldset className={styles.modalBody} disabled={guardando}>
-        {storageError && <p role="alert">{storageError}</p>}
-        <div className={styles.itemSummary}>
-          <p className={styles.workTitle}>
-            <strong>{pendingItem.codigo}</strong> · {pendingItem.trabajo}
-          </p>
-          <p className={styles.currentReviewer}>
-            Revisor actual: <strong>{pendingItem.revisor}</strong>
-            <span className={styles.badgeDanger}> ({pendingItem.estado})</span>
-          </p>
-        </div>
+    <ModalBase
+      alCerrar={() => {
+        if (!guardando) alCerrar()
+      }}
+      titulo="Reasignar revisor"
+    >
+      <form onSubmit={enviarReasignacion}>
+        <fieldset className={estilos.cuerpoModal} disabled={guardando}>
+          <div className={estilos.resumenElemento}>
+            <p className={estilos.tituloTrabajo}>
+              <strong>{itemPendiente.codigo}</strong> · {itemPendiente.trabajo}
+            </p>
+            <p className={estilos.revisorActual}>
+              Revisor actual: <strong>{itemPendiente.revisor}</strong>
+              <span className={estilos.alertaVencida}> ({itemPendiente.estado})</span>
+            </p>
+          </div>
 
-        {error && <div className={styles.errorAlert}>{error}</div>}
+          {(error || errorValidacion) && (
+            <p className={estilos.mensajeError} role="alert">
+              {error || errorValidacion}
+            </p>
+          )}
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            SELECCIONAR NUEVO REVISOR *
+          <div className={estilos.grupoCampo}>
+            <label className={estilos.etiqueta} htmlFor="selector-nuevo-revisor">
+              SELECCIONAR NUEVO REVISOR *
+            </label>
             <select
-              className={styles.select}
-              value={selectedNewReviewerId}
-              onChange={(e) => {
-                setSelectedNewReviewerId(e.target.value)
-                setError('')
+              id="selector-nuevo-revisor"
+              className={estilos.selector}
+              value={nuevoRevisorId}
+              onChange={(evento) => {
+                cambiarNuevoRevisorId(evento.target.value)
+                cambiarErrorValidacion('')
               }}
             >
               <option value="">Seleccione un revisor disponible…</option>
-              {candidateReviewers.map((rev) => (
-                <option key={rev.id} value={rev.id}>
-                  {rev.nombre} ({rev.institucion} — {rev.asignadas} revisiones asignadas)
+              {candidatos.map((revisor) => (
+                <option key={revisor.id} value={revisor.id}>
+                  {revisor.nombre} ({revisor.institucion} — {revisor.asignadas} revisiones asignadas)
                 </option>
               ))}
             </select>
-          </label>
-        </div>
+          </div>
 
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            MOTIVO DE LA REASIGNACIÓN *
+          <div className={estilos.grupoCampo}>
+            <label className={estilos.etiqueta} htmlFor="motivo-cambio">
+              MOTIVO DE LA REASIGNACIÓN *
+            </label>
             <textarea
-              className={styles.textarea}
+              id="motivo-cambio"
+              className={estilos.areaTexto}
               rows={3}
               placeholder="Explique el motivo del cambio (ej. incumplimiento de plazo, sobrecarga o indisponibilidad)…"
-              value={reason}
-              onChange={(e) => {
-                setReason(e.target.value)
-                setError('')
+              value={motivo}
+              onChange={(evento) => {
+                cambiarMotivo(evento.target.value)
+                cambiarErrorValidacion('')
               }}
             />
-          </label>
-          <span className={styles.helperText}>
-            Este motivo quedará registrado en el historial de la edición.
-          </span>
-        </div>
+            <span className={estilos.textoAyuda}>
+              Este motivo quedará registrado en el historial de la edición.
+            </span>
+          </div>
 
-        <div className={styles.actions}>
-          <Button variant="secondary" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            Confirmar reasignación
-          </Button>
-        </div>
-      </fieldset>
-    </Modal>
+          <footer className={estilos.pieModal}>
+            <Boton variant="secondary" type="button" onClick={alCerrar}>
+              Cancelar
+            </Boton>
+            <Boton variant="primary" type="submit">
+              Confirmar reasignación
+            </Boton>
+          </footer>
+        </fieldset>
+      </form>
+    </ModalBase>
   )
 }

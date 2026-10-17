@@ -1,218 +1,254 @@
-import useStoredState from '../../../core/utils/useStoredState.js'
-import { useState } from 'react'
-import Header from '../../../core/ui/Header/Header.jsx'
-import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
-import Footer from '../../../core/ui/Footer/Footer.jsx'
-import Button from '../../../core/ui/Button/Button.jsx'
-import ReassignModal from '../components/ReassignModal/ReassignModal.jsx'
-import { pendingReviewsRepository, reviewersRepository } from '../../../core/utils/repositories.js'
-import styles from './ReviewsTrackingPage.module.css'
+import { useState as usarEstado } from 'react'
+import Encabezado from '../../../core/ui/Header/Header.jsx'
+import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
+import PiePagina from '../../../core/ui/Footer/Footer.jsx'
+import Boton from '../../../core/ui/Button/Button.jsx'
+import ModalReasignar from '../components/ReassignModal/ReassignModal.jsx'
+import usarEstadoAlmacenado from '../../../core/utils/useStoredState.js'
+import {
+  pendingReviewsRepository as repositorioRevisionesPendientes,
+  reviewersRepository as repositorioRevisores,
+} from '../../../core/utils/repositories.js'
+import {
+  revisionesPendientesIniciales,
+  revisoresIniciales,
+} from '../../../core/utils/states/worksAssignmentState.js'
+import estilos from './ReviewsTrackingPage.module.css'
 
-const committeeUser = {
+const usuarioComite = {
   nombre: 'Dra. Ana Salazar Bermúdez',
-  rol: 'Comité organizador',
+  rol: 'Rol: Comité organizador',
   iniciales: 'AS',
 }
 
-export default function ReviewsTrackingPage() {
-  const pendingReviewsState = useStoredState(pendingReviewsRepository, [])
-  const pendingReviews = pendingReviewsState.value
-  const reviewersState = useStoredState(reviewersRepository, [])
-  const reviewers = reviewersState.value
-  const busy = [pendingReviewsState, reviewersState].some((state) => state.loading || state.saving)
-  const storageError = [pendingReviewsState, reviewersState].find((state) => state.error)?.error
+export default function PaginaSeguimientoRevisiones() {
+  const estadoPendientes = usarEstadoAlmacenado(
+    repositorioRevisionesPendientes,
+    revisionesPendientesIniciales
+  )
+  const revisionesPendientes = estadoPendientes.value
+  const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
+  const listaRevisores = estadoRevisores.value
 
-  const [filterOnlyOverdue, setFilterOnlyOverdue] = useState(false)
-  const [notification, setNotification] = useState('')
+  const ocupado = [estadoPendientes, estadoRevisores].some(
+    (estado) => estado.loading || estado.saving
+  )
+  const errorAlmacenamiento = [estadoPendientes, estadoRevisores].find(
+    (estado) => estado.error
+  )?.error
 
-  // Modal de reasignación
-  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false)
-  const [selectedItemToReassign, setSelectedItemToReassign] = useState(null)
+  const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = usarEstado(false)
+  const [notificacion, cambiarNotificacion] = usarEstado('')
 
-  const countOverdue = pendingReviews.filter((p) => p.esVencida).length
-  const countInTime = pendingReviews.filter((p) => !p.esVencida).length
-  const totalDelivered = 19
-  const totalAssigned = 26
+  const [modalReasignarAbierto, cambiarModalReasignarAbierto] = usarEstado(false)
+  const [elementoSeleccionadoReasignar, cambiarElementoSeleccionadoReasignar] = usarEstado(null)
 
-  const displayedList = filterOnlyOverdue
-    ? pendingReviews.filter((p) => p.esVencida)
-    : pendingReviews
+  const cantidadVencidas = revisionesPendientes.filter((elemento) => elemento.esVencida).length
+  const cantidadEnPlazo = revisionesPendientes.filter((elemento) => !elemento.esVencida).length
+  const totalEntregadas = 19
+  const totalAsignadas = 26
 
-  const handleRemindAll = () => {
-    setNotification('Recordatorio enviado exitosamente por correo a todos los revisores con tareas pendientes.')
-    setTimeout(() => setNotification(''), 5000)
+  const listaMostrada = filtrarSoloVencidas
+    ? revisionesPendientes.filter((elemento) => elemento.esVencida)
+    : revisionesPendientes
+
+  const manejarRecordarTodos = () => {
+    cambiarNotificacion(
+      'Recordatorio enviado exitosamente por correo a todos los revisores con tareas pendientes.'
+    )
+    setTimeout(() => cambiarNotificacion(''), 5000)
   }
 
-  const handleRemindSingle = (item) => {
-    setNotification(`Recordatorio enviado al revisor ${item.revisor} para el trabajo ${item.codigo}.`)
-    setTimeout(() => setNotification(''), 5000)
+  const manejarRecordarIndividual = (elemento) => {
+    cambiarNotificacion(
+      `Recordatorio enviado al revisor ${elemento.revisor} para el trabajo ${elemento.codigo}.`
+    )
+    setTimeout(() => cambiarNotificacion(''), 5000)
   }
 
-  const handleOpenReassign = (item) => {
-    setSelectedItemToReassign(item)
-    setIsReassignModalOpen(true)
+  const manejarAbrirReasignacion = (elemento) => {
+    cambiarElementoSeleccionadoReasignar(elemento)
+    cambiarModalReasignarAbierto(true)
   }
 
-  const handleConfirmReassignment = async ({ pendingId, previousReviewer, newReviewerId, newReviewerName, reason }) => {
-    if (busy || storageError) return false
-    const updated = pendingReviews.map((item) => {
-      if (item.id === pendingId) {
+  const manejarConfirmarReasignacion = async ({
+    pendienteId,
+    revisorAnterior,
+    nuevoRevisorId,
+    nuevoRevisorNombre,
+    motivo,
+  }) => {
+    if (ocupado || errorAlmacenamiento) return false
+
+    const actualizadas = revisionesPendientes.map((elemento) => {
+      if (elemento.id === pendienteId) {
         return {
-          ...item,
-          revisorId: newReviewerId,
-          revisor: newReviewerName,
-          estado: 'Pendiente · 7 días',
+          ...elemento,
+          revisorId: nuevoRevisorId,
+          revisor: nuevoRevisorNombre,
+          estado: 'Pendiente · 8 días',
           esVencida: false,
           fechaLimite: '20/10/2026',
         }
       }
-      return item
+      return elemento
     })
 
-    // Actualizar estados
-    if (!await pendingReviewsState.save(updated).catch(() => false)) return false
+    const guardado = await estadoPendientes.save(actualizadas).catch(() => false)
+    if (!guardado) return false
 
-    setNotification(
-      `Trabajo reasignado de ${previousReviewer} a ${newReviewerName}. Motivo registrado: "${reason}".`
+    cambiarNotificacion(
+      `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
     )
-    setTimeout(() => setNotification(''), 6000)
+    setTimeout(() => cambiarNotificacion(''), 6000)
     return true
   }
 
   return (
-    <div className={styles.page}>
-      <Header />
-      <CommitteeNavigation rutaActiva="/seguimiento" usuario={committeeUser} />
+    <div className={estilos.pagina}>
+      <Encabezado estado="En revisión" />
+      <NavegacionComite rutaActiva="/seguimiento" usuario={usuarioComite} />
 
-      <main className={styles.mainContent}>
-        {busy && <p role="status">Cargando o guardando datos…</p>}
-        {storageError && <p role="alert">{storageError}</p>}
-        <fieldset className={styles.contentFields} disabled={busy || Boolean(storageError)}>
-        <div className={styles.headerRow}>
-          <div>
-            <h1 className={styles.title}>Seguimiento de revisiones</h1>
-            <p className={styles.subtitle}>
-              Pendientes ordenadas por fecha límite · cierre de la etapa: 20/10/2026
-            </p>
-          </div>
-          <div>
-            <Button variant="secondary" onClick={handleRemindAll}>
-              Recordatorio a todos los pendientes
-            </Button>
-          </div>
-        </div>
+      <main className={estilos.contenidoPrincipal}>
+        {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
 
-        {notification && (
-          <div className={styles.notificationBanner}>
-            <span>✓ {notification}</span>
+        <fieldset
+          className={estilos.grupoCampos}
+          disabled={ocupado || Boolean(errorAlmacenamiento)}
+        >
+          <div className={estilos.filaEncabezado}>
+            <div>
+              <h1 className={estilos.titulo}>Seguimiento de revisiones</h1>
+              <p className={estilos.subtitulo}>
+                Pendientes ordenadas por fecha límite · cierre de la etapa: 20/10/2026
+              </p>
+            </div>
+            <div>
+              <Boton variant="secondary" type="button" onClick={manejarRecordarTodos}>
+                Recordatorio a todos los pendientes
+              </Boton>
+            </div>
           </div>
-        )}
 
-        {/* Alerta de vencidas */}
-        {countOverdue > 0 && (
-          <div className={styles.overdueAlertBox}>
-            <div className={styles.alertLeft}>
-              <span className={styles.alertIcon}>!</span>
-              <span>
-                <strong>{countOverdue} revisiones vencidas.</strong> Considere reasignar para no retrasar la publicación de resultados.
+          {notificacion ? (
+            <div className={estilos.bannerNotificacion}>
+              <span>✓ {notificacion}</span>
+            </div>
+          ) : null}
+
+          {cantidadVencidas > 0 ? (
+            <div className={estilos.cajaAlertaVencidas}>
+              <div className={estilos.alertaIzquierda}>
+                <span className={estilos.iconoAlerta} aria-hidden="true">
+                  !
+                </span>
+                <span>
+                  <strong>{cantidadVencidas} revisiones vencidas.</strong> Considere reasignar para no retrasar la publicación de resultados.
+                </span>
+              </div>
+              <button
+                type="button"
+                className={estilos.botonAlternarAlerta}
+                onClick={() => cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)}
+              >
+                {filtrarSoloVencidas ? 'Ver todas las pendientes' : 'Ver solo vencidas'}
+              </button>
+            </div>
+          ) : null}
+
+          <div className={estilos.contenedorTabla}>
+            <table className={estilos.tablaSeguimiento}>
+              <thead>
+                <tr>
+                  <th>CÓDIGO</th>
+                  <th>TRABAJO</th>
+                  <th>REVISOR</th>
+                  <th>FECHA LÍMITE</th>
+                  <th>ESTADO</th>
+                  <th className={estilos.columnaAccion}>ACCIÓN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {listaMostrada.map((elemento) => (
+                  <tr
+                    key={elemento.id}
+                    className={elemento.esVencida ? estilos.filaVencida : ''}
+                  >
+                    <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
+                    <td className={estilos.celdaTitulo}>
+                      <strong>{elemento.trabajo}</strong>
+                    </td>
+                    <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
+                    <td
+                      className={
+                        elemento.esVencida
+                          ? estilos.celdaFechaVencida
+                          : estilos.celdaFechaNormal
+                      }
+                    >
+                      {elemento.fechaLimite}
+                    </td>
+                    <td>
+                      {elemento.esVencida ? (
+                        <span className={estilos.insigniaVencida}>{elemento.estado}</span>
+                      ) : (
+                        <span className={estilos.insigniaPendiente}>{elemento.estado}</span>
+                      )}
+                    </td>
+                    <td className={estilos.celdaAccion}>
+                      {elemento.esVencida ? (
+                        <button
+                          type="button"
+                          className={estilos.botonAccionTexto}
+                          onClick={() => manejarAbrirReasignacion(elemento)}
+                        >
+                          Reasignar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={estilos.botonAccionTexto}
+                          onClick={() => manejarRecordarIndividual(elemento)}
+                        >
+                          Recordar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={estilos.cuadriculaResumenInferior}>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Revisiones entregadas</span>
+              <span className={estilos.valorResumenExito}>
+                {totalEntregadas} de {totalAsignadas}
               </span>
             </div>
-            <button
-              className={styles.alertToggleBtn}
-              onClick={() => setFilterOnlyOverdue(!filterOnlyOverdue)}
-            >
-              {filterOnlyOverdue ? 'Ver todas las pendientes' : 'Ver solo vencidas'}
-            </button>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Pendientes en plazo</span>
+              <span className={estilos.valorResumenAdvertencia}>{cantidadEnPlazo}</span>
+            </div>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Vencidas</span>
+              <span className={estilos.valorResumenPeligro}>{cantidadVencidas}</span>
+            </div>
           </div>
-        )}
-
-        {/* Tabla de seguimiento */}
-        <div className={styles.tableWrapper}>
-          <table className={styles.trackingTable}>
-            <thead>
-              <tr>
-                <th>CÓDIGO</th>
-                <th>TRABAJO</th>
-                <th>REVISOR</th>
-                <th>FECHA LÍMITE</th>
-                <th>ESTADO</th>
-                <th style={{ textAlign: 'center' }}>ACCIÓN</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayedList.map((item) => (
-                <tr key={item.id} className={item.esVencida ? styles.rowOverdue : ''}>
-                  <td className={styles.codeCell}>{item.codigo}</td>
-                  <td className={styles.titleCell}>
-                    <strong>{item.trabajo}</strong>
-                  </td>
-                  <td className={styles.reviewerCell}>{item.revisor}</td>
-                  <td className={styles.dateCell}>{item.fechaLimite}</td>
-                  <td>
-                    {item.esVencida ? (
-                      <span className={styles.badgeOverdue}>{item.estado}</span>
-                    ) : (
-                      <span className={styles.badgePending}>{item.estado}</span>
-                    )}
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    {item.esVencida ? (
-                      <button
-                        className={styles.reassignBtn}
-                        onClick={() => handleOpenReassign(item)}
-                      >
-                        Reasignar
-                      </button>
-                    ) : (
-                      <button
-                        className={styles.remindBtn}
-                        onClick={() => handleRemindSingle(item)}
-                      >
-                        Recordar
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Resumen inferior métrico */}
-        <div className={styles.bottomStatsRow}>
-          <div className={styles.bottomStat}>
-            <span className={styles.bottomStatLabel}>Revisiones entregadas</span>
-            <span className={styles.bottomStatValue}>
-              <strong>{totalDelivered}</strong> de {totalAssigned}
-            </span>
-          </div>
-          <div className={styles.bottomStat}>
-            <span className={styles.bottomStatLabel}>Pendientes en plazo</span>
-            <span className={styles.bottomStatValue}>
-              <strong>{countInTime}</strong>
-            </span>
-          </div>
-          <div className={styles.bottomStat}>
-            <span className={styles.bottomStatLabel}>Vencidas</span>
-            <span className={`${styles.bottomStatValue} ${styles.statDanger}`}>
-              <strong>{countOverdue}</strong>
-            </span>
-          </div>
-        </div>
         </fieldset>
       </main>
 
-      <Footer />
+      <PiePagina />
 
-      {/* Modal para reasignar revisor */}
-      <ReassignModal
-        guardando={busy}
-        error={storageError}
-        abierto={isReassignModalOpen}
-        alCerrar={() => setIsReassignModalOpen(false)}
-        revisionPendiente={selectedItemToReassign}
-        revisores={reviewers}
-        alConfirmarReasignacion={handleConfirmReassignment}
+      <ModalReasignar
+        guardando={ocupado}
+        error={errorAlmacenamiento}
+        abierto={modalReasignarAbierto}
+        alCerrar={() => cambiarModalReasignarAbierto(false)}
+        itemPendiente={elementoSeleccionadoReasignar}
+        revisores={listaRevisores}
+        alConfirmarReasignacion={manejarConfirmarReasignacion}
       />
     </div>
   )
