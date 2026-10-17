@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+import { assignmentsByWork } from '../../history-5/data/assignmentsByWork.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { useState, useMemo } from 'react'
 import Header from '../../../core/ui/Header/Header.jsx'
@@ -25,8 +27,8 @@ export default function ReceivedWorksPage() {
   const storageError = [worksState, reviewersState].find((state) => state.error)?.error
 
   // Filtros
-  const [selectedEje, setSelectedEje] = useState('Ingeniería de software')
-  const [selectedEstado, setSelectedEstado] = useState('Enviado')
+  const [selectedEje, setSelectedEje] = useState('todos')
+  const [selectedEstado, setSelectedEstado] = useState('todos')
   const [selectedTipo, setSelectedTipo] = useState('todos')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -337,6 +339,8 @@ export default function ReceivedWorksPage() {
                 </thead>
                 <tbody>
                   {paginatedWorks.map((work) => {
+                    const hasConsolidation = Object.hasOwn(assignmentsByWork, work.codigo)
+                    const consolidationPath = `/trabajos-recibidos/${encodeURIComponent(work.codigo)}/consolidado`
                     const isSelected = selectedCodes.includes(work.codigo)
                     const hasReviewers = work.revisoresAsignados && work.revisoresAsignados.length > 0
 
@@ -354,7 +358,13 @@ export default function ReceivedWorksPage() {
                         </td>
                         <td className={styles.codeCell}>{work.codigo}</td>
                         <td className={styles.titleCell}>
-                          <strong>{work.titulo}</strong>
+                          <strong>
+                            {hasConsolidation ? (
+                              <Link className={styles.consolidationLink} to={consolidationPath} aria-label={`Ver consolidado de ${work.codigo}: ${work.titulo}`}>
+                                {work.titulo}
+                              </Link>
+                            ) : work.titulo}
+                          </strong>
                           <div className={styles.authorsSub}>
                             {work.autores?.join(', ')}
                           </div>
@@ -376,12 +386,21 @@ export default function ReceivedWorksPage() {
                           </span>
                         </td>
                         <td>
-                          <button
-                            className={styles.assignRowButton}
-                            onClick={() => handleOpenSingleAssign(work)}
-                          >
-                            Asignar
-                          </button>
+                          <div className={styles.rowActions}>
+                            {hasConsolidation && (
+                              <Link className={styles.consolidationLink} to={consolidationPath} aria-label={`Ver consolidado de ${work.codigo}`}>
+                                Ver consolidado
+                              </Link>
+                            )}
+                            <Button
+                              variant="secondary"
+                              size="small"
+                              type="button"
+                              onClick={() => handleOpenSingleAssign(work)}
+                            >
+                              Asignar
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     )

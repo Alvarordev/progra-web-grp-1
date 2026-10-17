@@ -82,6 +82,14 @@
   line-height: var(--line-height-help);
 }
 
+.sendError {
+  margin: 0 0 var(--space-3);
+  color: var(--color-danger);
+  font-size: var(--font-size-help);
+  font-weight: 600;
+  line-height: var(--line-height-help);
+}
+
 .tablePanel {
   position: relative;
   overflow-x: auto;

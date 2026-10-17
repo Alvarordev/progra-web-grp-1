@@ -1,4 +1,4 @@
-const participantRoles = ['author', 'reviewer', 'both']
+const participantRoles = ['author', 'reviewer', 'both', 'committee']
 
 export function requiresAcademicDetails(role) {
   return role === 'author' || role === 'both'

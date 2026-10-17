@@ -2,3 +2,4 @@
 .field { composes: field from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
 .footer { composes: footer from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
 .error { composes: error from '../ThematicAxisModal/ThematicAxisModal.module.css'; }
+.fields { composes: fields from '../ThematicAxisModal/ThematicAxisModal.module.css'; }

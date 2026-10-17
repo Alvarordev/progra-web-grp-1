@@ -2,15 +2,17 @@ import { Link } from 'react-router'
 import Header from '../../../../core/ui/Header/Header.jsx'
 import Footer from '../../../../core/ui/Footer/Footer.jsx'
 import AuthorNavigation from '../../../../core/ui/AuthorNavigation/AuthorNavigation.jsx'
+import CommitteeNavigation from '../../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import ReviewerNavigation from '../../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import styles from './PublicNavigation.module.css'
 
 function PublicNavigation({ children, estado, rutaBase = '/', participante = null, cargando = false, error = '', rutaActiva = '/' }) {
+  const isCommittee = participante?.role === 'committee'
   const isReviewer = participante?.role === 'reviewer'
   const user = participante ? {
     nombre: participante.name,
     iniciales: `${participante.names.trim()[0]}${participante.surnames.trim()[0]}`.toUpperCase(),
-    rol: participante.role === 'both' ? 'Rol: Autor y revisor' : isReviewer ? 'Rol: Revisor' : 'Rol: Autor',
+    rol: isCommittee ? 'Rol: Comité organizador' : participante.role === 'both' ? 'Rol: Autor y revisor' : isReviewer ? 'Rol: Revisor' : 'Rol: Autor',
   } : null
 
   return (
@@ -19,7 +21,9 @@ function PublicNavigation({ children, estado, rutaBase = '/', participante = nul
       {cargando ? <p className={styles.sessionStatus} role="status">Cargando su sesión…</p> : error ? (
         <p className={styles.sessionStatus} role="alert">No se pudo cargar su sesión: {error}</p>
       ) : participante ? (
-        isReviewer
+        isCommittee
+          ? <CommitteeNavigation rutaActiva={rutaActiva} usuario={user} />
+          : isReviewer
           ? <ReviewerNavigation rutaActiva={rutaActiva} usuario={user} />
           : <AuthorNavigation rutaActiva={rutaActiva} rutaInicio="/" usuario={user} />
       ) : (

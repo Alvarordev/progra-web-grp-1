@@ -6,8 +6,10 @@ navegador; el contrato asíncrono permite sustituirlo por una API.
 
 ## Organización
 
-- `persistence/localStorageAdapter.js`: acceso al navegador y serialización JSON.
-- `persistence/createStateRepository.js`: claves, versiones y validación.
+- `persistence/createStateRepository.js`: lectura, escritura y eliminación de JSON
+  en el navegador, con una clave y un validador por estado.
+- `persistence/createSessionRepository.js`: elección entre sesión de pestaña y
+  sesión persistente para «Recordarme».
 - `states/`: valores iniciales y validadores de cada estado persistente.
 - `repositories.js`: composición y exportación de los repositorios disponibles.
 
@@ -31,9 +33,10 @@ guardan con «Guardar cambios» y el estado con «Cambiar estado de la edición�
 Cambiar el estado no guarda las ediciones pendientes del formulario.
 
 La configuración cuenta con repositorios de ejes, tipos de trabajo, cronograma
-y criterios. Ejes y tipos se guardan al confirmar su modal. Fechas y criterios
-se guardan con su botón principal; las modificaciones pendientes de criterios
-no se guardan al cancelar un modal o abandonar la pantalla. Una lista guardada
+y criterios. Ejes, tipos y criterios se guardan al confirmar su modal; sus
+eliminaciones también se guardan inmediatamente después de confirmar. Fechas
+se guardan con su botón principal. Cancelar un modal no modifica los datos
+guardados. Una lista guardada
 vacía se conserva como tal y no se reemplaza por los datos de ejemplo.
 
 `useStoredState` evita repetir la carga y el guardado en cada pantalla. Devuelve
@@ -227,29 +230,31 @@ recuperación y la verificación al backend.
 3. Importar ese repositorio en la feature y usar `await get/save/remove`.
 4. Manejar carga, errores y confirmación de guardado en la pantalla.
 
-Ejemplo de registro, reutilizando el adaptador común:
+Ejemplo de registro:
 
 ```js
 export const preferencesRepository = createStateRepository({
-  adapter,
   name: 'preferences',
   defaultValue: { theme: 'light' },
   validate: (value) => ['light', 'dark'].includes(value?.theme),
 })
 ```
 
-Solo se admiten datos serializables como JSON: objetos simples, arreglos,
-cadenas, números finitos, booleanos y `null`. Representar fechas como cadenas
-ISO; no guardar funciones, archivos, `Date`, `Map` ni referencias circulares.
-El validador de cada estado debe comprobar su estructura completa.
+Guarda objetos, arreglos, cadenas, números, booleanos o `null`. Representa las
+fechas como cadenas; no guardes funciones, archivos ni referencias circulares.
+El validador de cada estado comprueba los datos al leer y antes de guardar.
 
-Las claves usan el prefijo `congress:` y guardan `{ version: 1, data: ... }`.
-No usar `localStorage.clear()`, porque eliminaría datos ajenos. Si el JSON es
-inválido, falla la validación, cambia la versión o el navegador bloquea el
-almacenamiento, se informa el error sin borrar automáticamente los datos. Un
-guardado explícito válido puede reemplazar datos incompatibles. Una nueva
-versión del formato requiere una migración explícita o un restablecimiento
-deliberado con `remove()`; cambiar el número por sí solo no migra los datos.
+La implementación usa directamente `getItem`, `setItem`, `removeItem`,
+`JSON.parse` y `JSON.stringify` en una única función compartida. No necesita
+adaptadores ni validación JSON recursiva. Por defecto usa `localStorage`;
+la opción `storage: 'sessionStorage'` se reserva para la sesión de pestaña.
+El acceso a `window` ocurre al llamar los métodos, no al importar el módulo.
+
+Las claves conservan el prefijo `congress:` y el formato `{ version: 1, data }`
+para recuperar los datos existentes. No hay un sistema configurable de versiones:
+si en el futuro cambia el formato, habrá que migrar los datos explícitamente.
+Un JSON inválido, un formato incompatible o un bloqueo del navegador producen
+un error sin borrar los datos. `remove()` elimina solo la clave del repositorio.
 
 ## Migración a SQL mediante una API
 
@@ -270,3 +275,21 @@ Ejecutar `npm run lint`, `npm run build` y `git diff --check`.
 Verificar de forma puntual el guardado, la recuperación después de recargar y
 la eliminación de datos. No conservar archivos de tests ni infraestructura
 de pruebas en el repositorio.
+
+## Cuenta predeterminada del comité organizador
+
+La aplicación incluye `admin@aloe.ulima.edu.pe`, con contraseña inicial
+`Admin1234` y rol `committee` («Comité organizador»). Al iniciar sesión abre
+`/configuracion`, desde donde se accede a las pantallas de Historia 2.
+`states/defaultCommitteeState.js` contiene la ficha y la credencial derivada
+con PBKDF2, sin almacenar la contraseña en la sesión.
+
+`getParticipantAccounts()` incorpora la ficha reservada a las cuentas existentes
+sin eliminar los demás participantes. El registro público solo admite autor,
+revisor o ambos y no permite registrar este correo nuevamente. El login usa la
+credencial incluida cuando no hay una credencial guardada para ese correo;
+una contraseña cambiada mediante recuperación tiene prioridad. Al eliminar
+las credenciales locales vuelve a estar disponible la contraseña inicial.
+Cerrar sesión elimina solo la identidad activa, conservando las demás cuentas.
+Esta cuenta forma parte de la demostración local; los permisos reales
+corresponderán al backend.

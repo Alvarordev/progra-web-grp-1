@@ -25,6 +25,8 @@ import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
 import NewWorkPage from '../features/history-3/pages/NewWorkPage.jsx'
 import CoauthorsPage from '../features/history-3/pages/CoauthorsPage.jsx'
 import MyWorksPage from '../features/history-3/pages/MyWorksPage.jsx'
+import WorkDetailPage from '../features/history-3/pages/WorkDetailPage.jsx'
+import ReadOnlyWorkPage from '../features/history-3/pages/ReadOnlyWorkPage.jsx'
 import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
 import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
 import ConsolidatedReviewPage from '../features/history-5/pages/ConsolidatedReviewPage.jsx'
@@ -67,6 +69,8 @@ const router = createBrowserRouter([
       { path: '/autor/nuevo-trabajo', element: <NewWorkPage /> },
       { path: '/autor/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
       { path: '/autor/trabajos', element: <MyWorksPage /> },
+      { path: '/autor/trabajos/:codigo', element: <WorkDetailPage /> },
+      { path: '/autor/trabajos/:codigo/lectura', element: <ReadOnlyWorkPage /> },
       { path: '/nuevo-trabajo', element: <NewWorkPage /> },
       { path: '/nuevo-trabajo/coautores', element: <CoauthorsPage /> },
     ],
@@ -115,6 +119,10 @@ const router = createBrowserRouter([
   {
     path: '/trabajos-recibidos/:codigo/consolidado',
     element: <ConsolidatedReviewPage />,
+  },
+  {
+    path: '/trabajos-recibidos/:codigo/decision',
+    element: <ConsolidatedReviewPage mostrarDecision />,
   },
   {
     path: '/trabajos-recibidos',

@@ -7,7 +7,10 @@ import {
 import { createPasswordCredential, verifyPasswordCredential } from './passwords.js'
 import { isInstitutionalEmail, validateRegistrationDetails } from './states/participantState.js'
 
+import { defaultCommitteeAccount, defaultCommitteeCredential } from './states/defaultCommitteeState.js'
+
 export function getAccountHome(role) {
+  if (role === 'committee') return '/configuracion'
   return role === 'reviewer' ? '/mi-cuenta' : '/autor'
 }
 
@@ -22,13 +25,20 @@ export async function getActiveAccount() {
 
 // Migración aditiva: conserva la ficha anterior y las cuentas ya registradas.
 export async function getParticipantAccounts() {
-  const [accounts, legacy] = await Promise.all([
+  const [storedAccounts, legacy] = await Promise.all([
     participantsRepository.get(), participantRepository.get(),
   ])
+  const accounts = storedAccounts.filter(account =>
+    account.userId !== defaultCommitteeAccount.userId &&
+    account.email.trim().toLowerCase() !== defaultCommitteeAccount.email,
+  )
+  accounts.push({ ...defaultCommitteeAccount })
   if (legacy && !accounts.some(account => account.userId === legacy.userId || account.email.toLowerCase() === legacy.email.toLowerCase())) {
-    return await participantsRepository.save([...accounts, legacy])
+    accounts.push(legacy)
   }
-  return accounts
+  return JSON.stringify(accounts) === JSON.stringify(storedAccounts)
+    ? accounts
+    : await participantsRepository.save(accounts)
 }
 
 export async function startAccountSession(participant, remember = false) {
@@ -39,7 +49,7 @@ export async function startAccountSession(participant, remember = false) {
 }
 
 export async function registerParticipant(participant, password) {
-  if (!validateRegistrationDetails(participant) || !isInstitutionalEmail(participant.email)) {
+  if (!['author', 'reviewer', 'both'].includes(participant?.role) || !validateRegistrationDetails(participant) || !isInstitutionalEmail(participant.email)) {
     throw new Error('Complete los datos obligatorios de su rol y acepte las bases y el tratamiento de datos.')
   }
   const accounts = await getParticipantAccounts()
@@ -59,7 +69,8 @@ export async function authenticateParticipant(email, password) {
   const participant = accounts.find(account => account.email.trim().toLowerCase() === normalizedEmail)
   if (!participant) return null
   const credentials = await demoCredentialsRepository.get()
-  const credential = credentials.find(item => item.email === normalizedEmail)
+  const credential = credentials.find(item => item.email === normalizedEmail) ??
+    (normalizedEmail === defaultCommitteeAccount.email ? defaultCommitteeCredential : null)
   if (!credential || !await verifyPasswordCredential(password, credential)) return null
   return participant
 }

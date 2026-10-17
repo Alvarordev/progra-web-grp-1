@@ -40,11 +40,14 @@ function ReviewerCommentsPanel({ revisiones }) {
         )}
         {revisiones.map((revision) => {
           const texto = esConfidencial ? revision.comentarioComite : revision.comentarioAutor
+          const mensaje = revision.pendiente
+            ? 'Pendiente: el revisor todavía no envía su evaluación.'
+            : texto || 'Sin observaciones.'
 
           return (
             <article className={styles.note} key={revision.revisor}>
               <h3>{revision.revisor}</h3>
-              <p>{texto || 'Sin observaciones.'}</p>
+              <p>{mensaje}</p>
             </article>
           )
         })}

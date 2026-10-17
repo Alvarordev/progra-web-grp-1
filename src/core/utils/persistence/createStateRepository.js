@@ -1,64 +1,54 @@
-function isJsonValue(value, ancestors = new Set()) {
-  if (value === null) return true
-  if (typeof value === 'number') return Number.isFinite(value)
-  if (typeof value !== 'object') return ['string', 'boolean'].includes(typeof value)
-  if (ancestors.has(value)) return false
-
-  const prototype = Object.getPrototypeOf(value)
-  if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) return false
-  if (Object.getOwnPropertySymbols(value).length > 0) return false
-
-  ancestors.add(value)
-  const values = Array.isArray(value) ? Array.from(value) : Object.values(value)
-  const valid = values.every((item) => isJsonValue(item, ancestors))
-  ancestors.delete(value)
-  return valid
-}
-
+// Cada repositorio guarda un estado bajo una clave propia del navegador.
 export default function createStateRepository({
-  adapter,
   name,
   defaultValue,
   validate,
-  version = 1,
+  storage = 'localStorage',
 }) {
   const key = `congress:${name}`
 
   function assertValid(value) {
-    if (!isJsonValue(value)) {
-      throw new Error('Los datos deben ser serializables como JSON.')
-    }
     if (!validate(value)) {
       throw new Error('Los datos no tienen el formato esperado.')
     }
   }
 
-  assertValid(defaultValue)
-
   return {
     async get() {
-      const stored = await adapter.get(key)
-
-      if (stored === null) {
-        return structuredClone(defaultValue)
+      let stored
+      try {
+        const text = window[storage].getItem(key)
+        if (text === null) return structuredClone(defaultValue)
+        stored = JSON.parse(text)
+      } catch (cause) {
+        throw new Error('No se pudieron leer los datos guardados en este navegador.', { cause })
       }
 
-      if (stored.version !== version) {
+      // Conservamos el formato existente para recuperar los datos ya guardados.
+      if (stored?.version !== 1) {
         throw new Error('La versión de los datos guardados no es compatible.')
       }
-
       assertValid(stored.data)
       return stored.data
     },
     async save(value) {
       assertValid(value)
-      // Una copia evita que una mutación posterior cambie lo que se guarda.
-      const data = structuredClone(value)
-      await adapter.save(key, { version, data })
-      return data
+      try {
+        const text = JSON.stringify({ version: 1, data: value })
+        const stored = JSON.parse(text)
+        assertValid(stored.data)
+        window[storage].setItem(key, text)
+        return stored.data
+      } catch (cause) {
+        throw new Error('No se pudieron guardar los datos en este navegador.', { cause })
+      }
     },
     async remove() {
-      await adapter.remove(key)
+      try {
+        window[storage].removeItem(key)
+      } catch (cause) {
+        throw new Error('No se pudieron eliminar los datos de este navegador.', { cause })
+      }
     },
   }
 }
