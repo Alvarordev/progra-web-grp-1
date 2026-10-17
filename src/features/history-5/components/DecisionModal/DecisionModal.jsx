@@ -91,13 +91,11 @@ function DecisionModal({ alCerrar, alGuardar, codigo, decisionGuardada, filas, r
     }
   }
 
-  return (
-    <Modal alCerrar={alCerrar} claseTitulo={styles.titulo} titulo="Decisión final del comité">
-      <div className={styles.body}>
-        <p className={styles.subtitulo}>
-          {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
-        </p>
+  const subtitulo = `${codigo} · promedio ${formatTenth(resumen.promedioGeneral)} · ${resumen.entregadas} de ${resumen.totalRevisiones} revisiones entregadas`
 
+  return (
+    <Modal alCerrar={alCerrar} claseTitulo={styles.titulo} subtitulo={subtitulo} tamano="amplio" titulo="Decisión final del comité">
+      <div className={styles.body}>
         {publicada && (
           <p className={styles.publicada} role="status">
             Decisión publicada el {formatDate(decisionGuardada.updatedAt)}. Ya no se puede modificar.

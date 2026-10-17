@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import Button from '../Button/Button.jsx'
 import styles from './Modal.module.css'
 
-function Modal({ alCerrar, children, claseTitulo = '', titulo }) {
+function Modal({ alCerrar, children, claseTitulo = '', subtitulo, tamano = 'normal', titulo }) {
   const dialogId = useId()
   const dialogRef = useRef(null)
   const closeHandlerRef = useRef(alCerrar)
@@ -79,16 +79,19 @@ function Modal({ alCerrar, children, claseTitulo = '', titulo }) {
       <section
         aria-labelledby={dialogId}
         aria-modal="true"
-        className={styles.dialog}
+        className={[styles.dialog, tamano === 'amplio' ? styles.dialogWide : ''].filter(Boolean).join(' ')}
         onKeyDown={handleKeyDown}
         ref={dialogRef}
         role="dialog"
         tabIndex="-1"
       >
         <header className={styles.header}>
-          <h2 className={[styles.title, claseTitulo].filter(Boolean).join(' ')} id={dialogId}>
-            {titulo}
-          </h2>
+          <div>
+            <h2 className={[styles.title, claseTitulo].filter(Boolean).join(' ')} id={dialogId}>
+              {titulo}
+            </h2>
+            {subtitulo && <p className={styles.subtitle}>{subtitulo}</p>}
+          </div>
           <Button
             aria-label="Cerrar ventana"
             className={styles.closeButton}
