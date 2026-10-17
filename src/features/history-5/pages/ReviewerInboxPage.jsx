@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { reviewsRepository } from '../../../core/utils/repositories.js'
 import { getReviewerAssignments, getReviewActivity } from '../../../core/utils/reviewerAssignments.js'
@@ -9,6 +8,7 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import ReviewAssignmentCard from '../components/ReviewAssignmentCard/ReviewAssignmentCard.jsx'
+import InboxEmptyState from '../components/InboxEmptyState/InboxEmptyState.jsx'
 import styles from './ReviewerInboxPage.module.css'
 
 const filters = [
@@ -17,6 +17,13 @@ const filters = [
   { id: 'entregadas', label: 'Entregadas' },
   { id: 'vencidas', label: 'Vencidas', warning: true },
 ]
+
+// Texto de la tarjeta cuando el filtro elegido no tiene trabajos.
+const mensajesSinResultados = {
+  pendientes: { titulo: 'No tiene revisiones pendientes', descripcion: 'Todas sus revisiones asignadas están entregadas.' },
+  entregadas: { titulo: 'Todavía no tiene revisiones entregadas', descripcion: 'Las evaluaciones que envíe aparecerán aquí.' },
+  vencidas: { titulo: 'No tiene revisiones vencidas', descripcion: 'Ninguna de sus revisiones pasó la fecha límite.' },
+}
 
 const initialReviews = {}
 function matchesFilter(assignment, filterId) {
@@ -46,7 +53,7 @@ function ReviewerInboxPage() {
 
   return (
     <div className={styles.page}>
-      <Header estado="En revisión" />
+      <Header estado={noHayAsignaciones ? 'Recepción abierta' : 'En revisión'} />
       <ReviewerNavigation
         rutaActiva="/bandeja-revision"
         usuario={getReviewerUser(profileState.profile)}
@@ -63,18 +70,17 @@ function ReviewerInboxPage() {
                 <p>Sin trabajos asignados por ahora</p>
               </div>
 
-              <section className={styles.emptyState} aria-label="Sin revisiones asignadas">
-                <div className={styles.emptyIcon} aria-hidden="true">✓</div>
-                <h2>No tiene revisiones asignadas</h2>
-                <p>
-                  El comité asigna los trabajos cuando cierra la recepción, el 30/09/2026.
-                  <br />
-                  Mantenga sus líneas de interés actualizadas para recibir trabajos afines.
-                </p>
-                <Link className={styles.emptyAction} to="/mi-cuenta">
-                  Actualizar mis líneas de interés
-                </Link>
-              </section>
+              <InboxEmptyState
+                accion={{ ruta: '/mi-cuenta', texto: 'Actualizar mis líneas de interés' }}
+                descripcion={
+                  <>
+                    El comité asigna los trabajos cuando cierra la recepción, el 30/09/2026.
+                    <br />
+                    Mantenga sus líneas de interés actualizadas para recibir trabajos afines.
+                  </>
+                }
+                titulo="No tiene revisiones asignadas"
+              />
             </>
           ) : (
             <>
@@ -123,10 +129,10 @@ function ReviewerInboxPage() {
                   ))}
                 </section>
               ) : (
-                <section className={styles.filteredEmpty} aria-live="polite">
-                  <h2>No hay revisiones en esta categoría</h2>
-                  <p>Pruebe con otro filtro para ver sus trabajos asignados.</p>
-                </section>
+                <InboxEmptyState
+                  descripcion={mensajesSinResultados[selectedFilter].descripcion}
+                  titulo={mensajesSinResultados[selectedFilter].titulo}
+                />
               )}
             </>
           )}
