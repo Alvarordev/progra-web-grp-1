@@ -12,20 +12,19 @@ const opciones = [
 // Clase de la opción elegida: verde para Aceptar y rojo para Rechazar, como pide la maqueta.
 const clasesSeleccion = { aceptar: styles.seleccionadaAceptar, rechazar: styles.seleccionadaRechazar }
 
-// Texto sugerido con la forma de la maqueta: la decisión y las observaciones de los revisores.
+// Texto sugerido con la forma de la maqueta: la decisión y, numeradas, las observaciones de cada revisor.
 function construirTexto(decision, enviados) {
   const frases = []
   if (decision === 'aceptar') frases.push('El comité acepta el trabajo para presentación oral.')
   if (decision === 'rechazar') frases.push('El comité no acepta el trabajo en esta edición.')
   if (enviados.length) {
-    const observaciones = enviados
-      .map((fila) => fila.comentarioAutor.trim().replace(/\.$/, ''))
-      .map((texto) => texto.charAt(0).toLowerCase() + texto.slice(1))
-      .join('; ')
     const inicio = decision === 'rechazar'
-      ? 'Las observaciones de los revisores son'
-      : 'Antes de la versión final, atienda las siguientes observaciones'
-    frases.push(`${inicio}: ${observaciones}.`)
+      ? 'Las observaciones de los revisores son:'
+      : 'Antes de la versión final, atienda las siguientes observaciones:'
+    const observaciones = enviados.map(
+      (fila, indice) => `${indice + 1}. ${fila.comentarioAutor.trim().replace(/\.$/, '')}.`,
+    )
+    frases.push([inicio, ...observaciones].join('\n'))
   }
   return frases.join(' ')
 }
