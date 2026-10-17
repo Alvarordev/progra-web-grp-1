@@ -1,5 +1,8 @@
 .titulo {
   font-family: var(--font-heading);
+  font-size: var(--font-size-section-title);
+  line-height: var(--line-height-section-title);
+  font-weight: 700;
 }
 
 /* Relleno del contenido bajo el encabezado, igual que en los demás modales del proyecto. */
