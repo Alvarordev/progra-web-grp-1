@@ -24,7 +24,7 @@ function CriteriaPage() {
     try {
       await save(nextCriteria)
       setModal(null)
-      setFeedback('Criterio guardado en este navegador.')
+      setFeedback('Criterio guardado correctamente.')
     } catch {
       setFeedback('')
     }
@@ -35,7 +35,7 @@ function CriteriaPage() {
     if (!window.confirm('¿Eliminar este criterio?')) return
     try {
       await save(criteria.filter((item) => item.id !== id))
-      setFeedback('Criterio eliminado de este navegador.')
+      setFeedback('Criterio eliminado correctamente.')
     } catch {
       setFeedback('')
     }
@@ -45,7 +45,7 @@ function CriteriaPage() {
     if (loading || saving) return
     try {
       await save(criteria)
-      setFeedback('Criterios guardados en este navegador.')
+      setFeedback('Criterios guardados correctamente.')
     } catch { setFeedback('') }
   }
 
@@ -60,7 +60,12 @@ function CriteriaPage() {
           </div>
         </header>
         <ConfigurationTabs />
-        <p role="status" className={styles.feedback}>{loading ? 'Cargando criterios…' : error || feedback}</p>
+        {loading && <p role="status" className={styles.loading}>Cargando criterios…</p>}
+        {error ? (
+          <p role="alert" className={styles.errorNotice}>{error}</p>
+        ) : feedback && (
+          <p role="status" className={styles.feedback}>{feedback}</p>
+        )}
         <p className={total === 100 ? styles.successNotice : styles.warningNotice} role="status">
           {total === 100 ? 'Configuración válida: los pesos suman 100.' : `Los pesos suman ${total} de 100. ${total < 100 ? `Faltan ${100 - total}` : `Sobran ${total - 100}`} puntos. Ajuste los criterios antes de abrir la revisión.`}
         </p>
