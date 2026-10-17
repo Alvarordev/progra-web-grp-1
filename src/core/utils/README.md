@@ -47,7 +47,7 @@ El cronograma usa cadenas `AAAA-MM-DDTHH:mm` en horario de Lima y exige recepci�
 anterior a revisión y revisión anterior a publicación. Los criterios pueden
 guardarse con una suma pendiente; cerrar la recepción y pasar a «En revisión»
 exige una suma de 100. El cierre requiere aceptar la casilla y escribir `CERRAR`.
-El estado y el cronograma gobiernan el alta y la edición de los trabajos del autor.
+El estado y el cronograma gobiernan el alta y la edición de los trabajos del autor. La comprobación compartida de `reception.js` usa el horario de Lima. Si el estado guardado es «Recepción abierta» pero el plazo venció, el encabezado y las pantallas muestran «Recepción cerrada» e indican la fecha vencida. Esto no cambia automáticamente la edición a «En revisión»: esa transición sigue requiriendo la confirmación del comité.
 
 Las evaluaciones se guardan en `reviewsRepository`, identificadas por usuario
 y código de trabajo. La ruta exige cuenta y asignación vigentes. El borrador

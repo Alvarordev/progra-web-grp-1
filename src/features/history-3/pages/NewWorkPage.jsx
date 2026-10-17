@@ -8,6 +8,7 @@ import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
 import { sampleWork } from '../../../core/utils/states/submissionState.js'
 import useConference from '../../../core/utils/useConference.js'
 import { emptySubmission, receptionIsOpen, saveSubmission, toSubmission } from '../../../core/utils/submissions.js'
+import { getReceptionNotice } from '../../../core/utils/reception.js'
 import styles from './NewWorkPage.module.css'
 
 const MAX_SUMMARY = 1500
@@ -117,7 +118,7 @@ function NewWorkPage() {
           <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
         <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
-          El envío y la edición siguen el cronograma vigente del congreso.
+          {getReceptionNotice(conference.status, conference.schedule)}
         </DeadlineNotice>
 
         <div className={styles.pageHeading}>
@@ -179,7 +180,7 @@ function NewWorkPage() {
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
       <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
-        El envío y la edición siguen el cronograma vigente del congreso.
+        {getReceptionNotice(conference.status, conference.schedule)}
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>

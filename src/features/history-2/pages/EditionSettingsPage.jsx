@@ -1,11 +1,12 @@
 import useConference from '../../../core/utils/useConference.js'
+import { getEditionStatusLabel, getReceptionNotice } from '../../../core/utils/reception.js'
 import { useEffect, useState } from 'react'
 import { editionRepository, editionStatusRepository, thematicAxesRepository, workTypesRepository, scheduleRepository, criteriaRepository } from '../../../core/utils/repositories.js'
 import { initialEdition, initialEditionStatus } from '../../../core/utils/states/editionState.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
-import { initialSchedule, formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import { initialSchedule } from '../../../core/utils/states/scheduleState.js'
 import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
@@ -165,7 +166,7 @@ function EditionSettingsPage() {
             <div className={styles.panelHeading}>
               <h2 id="general-title">Datos generales</h2>
               <span className={styles.editionStatus}>
-                Estado: {estado.toLowerCase()}
+                Estado: {getEditionStatusLabel(estado, scheduleState.value).toLowerCase()}
               </span>
             </div>
 
@@ -256,11 +257,9 @@ function EditionSettingsPage() {
               aria-labelledby="reception-title"
               className={styles.receptionNotice}
             >
-              <h2 id="reception-title">{estado}</h2>
+              <h2 id="reception-title">{getEditionStatusLabel(estado, scheduleState.value)}</h2>
               <p>
-                {estado === 'Recepción abierta'
-                  ? `Cierra el ${formatScheduleDate(scheduleState.value.reception)} a las ${scheduleState.value.reception.slice(11)}. Mientras esté abierta, los autores pueden editar sus trabajos.`
-                  : estado === 'En revisión' ? 'La recepción está cerrada y la edición está en revisión.' : 'La recepción está en preparación.'}
+                {getReceptionNotice(estado, scheduleState.value)}
               </p>
             </section>
 

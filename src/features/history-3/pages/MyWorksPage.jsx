@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import Pagination from '../../../core/ui/Pagination/Pagination.jsx'
-import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import { getReceptionNotice } from '../../../core/utils/reception.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
@@ -60,7 +60,7 @@ function MyWorksPage() {
     return (
       <AuthorPageLayout rutaActiva="/autor/trabajos">
         <DeadlineNotice titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
-          Fecha de cierre: {formatScheduleDate(conference.schedule.reception ?? '')}.
+          {getReceptionNotice(conference.status, conference.schedule)}
         </DeadlineNotice>
         <div className={styles.pageHeading}>
           <div>
@@ -100,7 +100,7 @@ function MyWorksPage() {
         </p>
       )}
       <DeadlineNotice titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
-        Consulte el dictamen y las fechas vigentes desde el detalle y las bases.
+        {getReceptionNotice(conference.status, conference.schedule)}
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>

@@ -1,11 +1,19 @@
 import useStoredState from '../../utils/useStoredState.js'
-import { editionRepository, editionStatusRepository } from '../../utils/repositories.js'
+import { editionRepository, editionStatusRepository, scheduleRepository } from '../../utils/repositories.js'
 import { initialEdition, initialEditionStatus } from '../../utils/states/editionState.js'
+import { initialSchedule } from '../../utils/states/scheduleState.js'
+import { getEditionStatusLabel } from '../../utils/reception.js'
 import styles from './Header.module.css'
 
-function Header({ estado }) {
+function Header() {
   const edition = useStoredState(editionRepository, initialEdition)
   const status = useStoredState(editionStatusRepository, initialEditionStatus)
+  const schedule = useStoredState(scheduleRepository, initialSchedule)
+  const stateLabel = status.loading || schedule.loading
+    ? 'Cargando estado…'
+    : status.error || schedule.error
+      ? 'Estado no disponible'
+      : getEditionStatusLabel(status.value, schedule.value)
 
   return (
     <header className={styles.header}>
@@ -21,7 +29,7 @@ function Header({ estado }) {
           <p>Estado de la edición</p>
           <div className={styles.state}>
             <div aria-hidden="true" />
-            <span>{status.loading ? estado : status.value}</span>
+            <span>{stateLabel}</span>
           </div>
         </div>
       </div>

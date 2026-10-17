@@ -1,11 +1,10 @@
 import { worksRepository } from './repositories.js'
+import { receptionIsOpen } from './reception.js'
+
+export { receptionIsOpen } from './reception.js'
 
 const stateValues = { Borrador: 'borrador', Enviado: 'enviado', 'En revisión': 'revision', Aceptado: 'aceptado', Rechazado: 'rechazado' }
 export const emptySubmission = { titulo: '', tipo: '', eje: '', resumen: '', palabrasClave: [], enlace: '', autores: [] }
-
-export function receptionIsOpen(status, schedule) {
-  return status === 'Recepción abierta' && Boolean(schedule.reception) && Date.now() <= new Date(schedule.reception).getTime()
-}
 
 export function getAuthorWorks(works, account, decisions = {}) {
   if (!account) return []
