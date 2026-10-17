@@ -66,6 +66,7 @@
 
 .pendingStat {
   border-top: 2px solid var(--color-warning);
+  background: var(--color-warning-soft);
 }
 
 .pendingStat strong {
@@ -74,6 +75,7 @@
 
 .completedStat {
   border-top: 2px solid var(--color-success);
+  background: var(--color-success-soft);
 }
 
 .completedStat strong {
