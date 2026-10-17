@@ -1,13 +1,13 @@
-import { useState, useMemo } from 'react'
-import Header from '../../../core/ui/Header/Header.jsx'
-import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
-import Footer from '../../../core/ui/Footer/Footer.jsx'
-import Button from '../../../core/ui/Button/Button.jsx'
-import Modal from '../../../core/ui/Modal/Modal.jsx'
-import useStoredState from '../../../core/utils/useStoredState.js'
-import { reviewersRepository } from '../../../core/utils/repositories.js'
-import { initialReviewers } from '../../../core/utils/states/worksAssignmentState.js'
-import styles from './ReviewersListPage.module.css'
+import { useState as usarEstado, useMemo as usarMemo } from 'react'
+import Encabezado from '../../../core/ui/Header/Header.jsx'
+import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
+import PiePagina from '../../../core/ui/Footer/Footer.jsx'
+import Boton from '../../../core/ui/Button/Button.jsx'
+import ModalBase from '../../../core/ui/Modal/Modal.jsx'
+import usarEstadoAlmacenado from '../../../core/utils/useStoredState.js'
+import { reviewersRepository as repositorioRevisores } from '../../../core/utils/repositories.js'
+import { revisoresIniciales } from '../../../core/utils/states/worksAssignmentState.js'
+import estilos from './ReviewersListPage.module.css'
 
 const usuarioComite = {
   nombre: 'Dra. Ana Salazar Bermúdez',
@@ -15,47 +15,65 @@ const usuarioComite = {
   iniciales: 'AS',
 }
 
-export default function ReviewersListPage() {
-  const estadoRevisores = useStoredState(reviewersRepository, initialReviewers)
+export default function PaginaListaRevisores() {
+  const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
   const listaRevisores = estadoRevisores.value
   const ocupado = estadoRevisores.loading || estadoRevisores.saving
   const errorAlmacenamiento = estadoRevisores.error
 
-  const [lineaSeleccionada, establecerLineaSeleccionada] = useState('todas')
-  const [institucionSeleccionada, establecerInstitucionSeleccionada] = useState('todas')
-  const [soloVencidas, establecerSoloVencidas] = useState(false)
-  const [textoBusqueda, establecerTextoBusqueda] = useState('')
-  const [paginaActual, establecerPaginaActual] = useState(1)
+  const [lineaSeleccionada, cambiarLineaSeleccionada] = usarEstado('todas')
+  const [institucionSeleccionada, cambiarInstitucionSeleccionada] = usarEstado('todas')
+  const [soloVencidas, cambiarSoloVencidas] = usarEstado(false)
+  const [textoBusqueda, cambiarTextoBusqueda] = usarEstado('')
+  const [paginaActual, cambiarPaginaActual] = usarEstado(1)
   const elementosPorPagina = 8
 
-  const [modalInvitarAbierto, establecerModalInvitarAbierto] = useState(false)
-  const [formularioInvitacion, establecerFormularioInvitacion] = useState({
+  const [modalInvitarAbierto, cambiarModalInvitarAbierto] = usarEstado(false)
+  const [formularioInvitacion, cambiarFormularioInvitacion] = usarEstado({
     nombre: '',
     correo: '',
     institucion: 'Universidad de Lima',
     lineasInteres: '',
   })
-  const [mensajeExito, establecerMensajeExito] = useState('')
+  const [mensajeExito, cambiarMensajeExito] = usarEstado('')
 
   const totalAsignadas = listaRevisores.reduce((suma, revisor) => suma + revisor.asignadas, 0)
   const totalVencidas = listaRevisores.reduce((suma, revisor) => suma + revisor.vencidas, 0)
   const cantidadConVencidas = listaRevisores.filter((revisor) => revisor.vencidas > 0).length
 
-  const revisoresFiltrados = useMemo(() => {
+  const revisoresFiltrados = usarMemo(() => {
     return listaRevisores.filter((revisor) => {
       if (soloVencidas && revisor.vencidas === 0) return false
-      if (lineaSeleccionada !== 'todas' && !revisor.lineasInteres.includes(lineaSeleccionada)) return false
-      if (institucionSeleccionada !== 'todas' && revisor.institucion !== institucionSeleccionada) return false
+      if (
+        lineaSeleccionada !== 'todas' &&
+        !revisor.lineasInteres.includes(lineaSeleccionada)
+      ) {
+        return false
+      }
+      if (
+        institucionSeleccionada !== 'todas' &&
+        revisor.institucion !== institucionSeleccionada
+      ) {
+        return false
+      }
       if (textoBusqueda.trim()) {
         const consulta = textoBusqueda.toLowerCase()
         const coincideNombre = revisor.nombre.toLowerCase().includes(consulta)
         const coincideInstitucion = revisor.institucion.toLowerCase().includes(consulta)
-        const coincideLinea = revisor.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
+        const coincideLinea = revisor.lineasInteres.some((linea) =>
+          linea.toLowerCase().includes(consulta)
+        )
         if (!coincideNombre && !coincideInstitucion && !coincideLinea) return false
       }
       return true
     })
-  }, [listaRevisores, soloVencidas, lineaSeleccionada, institucionSeleccionada, textoBusqueda])
+  }, [
+    listaRevisores,
+    soloVencidas,
+    lineaSeleccionada,
+    institucionSeleccionada,
+    textoBusqueda,
+  ])
 
   const totalPaginas = Math.max(1, Math.ceil(revisoresFiltrados.length / elementosPorPagina))
   const revisoresPaginados = revisoresFiltrados.slice(
@@ -74,7 +92,7 @@ export default function ReviewersListPage() {
       institucion: formularioInvitacion.institucion,
       lineasInteres: formularioInvitacion.lineasInteres
         .split(',')
-        .map((item) => item.trim())
+        .map((elemento) => elemento.trim())
         .filter(Boolean),
       asignadas: 0,
       entregadas: 0,
@@ -85,55 +103,62 @@ export default function ReviewersListPage() {
     const guardado = await estadoRevisores.save(actualizados).catch(() => false)
     if (!guardado) return
 
-    establecerModalInvitarAbierto(false)
-    establecerFormularioInvitacion({
+    cambiarModalInvitarAbierto(false)
+    cambiarFormularioInvitacion({
       nombre: '',
       correo: '',
       institucion: 'Universidad de Lima',
       lineasInteres: '',
     })
-    establecerMensajeExito(`Invitación enviada exitosamente a ${nuevoRevisor.nombre}.`)
-    setTimeout(() => establecerMensajeExito(''), 5000)
+    cambiarMensajeExito(`Invitación enviada exitosamente a ${nuevoRevisor.nombre}.`)
+    setTimeout(() => cambiarMensajeExito(''), 5000)
   }
 
   return (
-    <div className={styles.pagina}>
-      <Header estado="En revisión" />
-      <CommitteeNavigation rutaActiva="/revisores" usuario={usuarioComite} />
+    <div className={estilos.pagina}>
+      <Encabezado estado="En revisión" />
+      <NavegacionComite rutaActiva="/revisores" usuario={usuarioComite} />
 
-      <main className={styles.contenidoPrincipal}>
+      <main className={estilos.contenidoPrincipal}>
         {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
 
-        <fieldset className={styles.grupoCampos} disabled={ocupado || Boolean(errorAlmacenamiento)}>
-          <div className={styles.filaEncabezado}>
+        <fieldset
+          className={estilos.grupoCampos}
+          disabled={ocupado || Boolean(errorAlmacenamiento)}
+        >
+          <div className={estilos.filaEncabezado}>
             <div>
-              <h1 className={styles.titulo}>Revisores</h1>
-              <p className={styles.subtitulo}>
+              <h1 className={estilos.titulo}>Revisores</h1>
+              <p className={estilos.subtitulo}>
                 {listaRevisores.length} revisores registrados · {totalAsignadas} revisiones asignadas · {totalVencidas} vencidas
               </p>
             </div>
             <div>
-              <Button variant="secondary" type="button" onClick={() => establecerModalInvitarAbierto(true)}>
+              <Boton
+                variant="secondary"
+                type="button"
+                onClick={() => cambiarModalInvitarAbierto(true)}
+              >
                 Invitar revisor
-              </Button>
+              </Boton>
             </div>
           </div>
 
           {mensajeExito ? (
-            <div className={styles.notificacionExito}>
+            <div className={estilos.notificacionExito}>
               <span>✓ {mensajeExito}</span>
             </div>
           ) : null}
 
-          <div className={styles.barraFiltros}>
-            <div className={styles.controlesFiltro}>
+          <div className={estilos.barraFiltros}>
+            <div className={estilos.controlesFiltro}>
               <select
                 aria-label="Filtrar por línea de interés"
-                className={styles.selectorFiltro}
+                className={estilos.selectorFiltro}
                 value={lineaSeleccionada}
                 onChange={(evento) => {
-                  establecerLineaSeleccionada(evento.target.value)
-                  establecerPaginaActual(1)
+                  cambiarLineaSeleccionada(evento.target.value)
+                  cambiarPaginaActual(1)
                 }}
               >
                 <option value="todas">Línea: todas</option>
@@ -141,84 +166,96 @@ export default function ReviewersListPage() {
                 <option value="IA y datos">Línea: IA y datos</option>
                 <option value="Sostenibilidad y ciudad">Línea: Sostenibilidad y ciudad</option>
                 <option value="Innovación">Línea: Innovación</option>
-                <option value="Innovación y emprendimiento">Línea: Innovación y emprendimiento</option>
+                <option value="Innovación y emprendimiento">
+                  Línea: Innovación y emprendimiento
+                </option>
                 <option value="Salud y sociedad">Línea: Salud y sociedad</option>
                 <option value="Economía y mercados">Línea: Economía y mercados</option>
               </select>
 
               <select
                 aria-label="Filtrar por institución"
-                className={styles.selectorFiltro}
+                className={estilos.selectorFiltro}
                 value={institucionSeleccionada}
                 onChange={(evento) => {
-                  establecerInstitucionSeleccionada(evento.target.value)
-                  establecerPaginaActual(1)
+                  cambiarInstitucionSeleccionada(evento.target.value)
+                  cambiarPaginaActual(1)
                 }}
               >
                 <option value="todas">Institución: todas</option>
                 <option value="Universidad de Lima">Institución: Universidad de Lima</option>
-                <option value="Pontificia Universidad Católica">Institución: Pontificia Universidad Católica</option>
-                <option value="Universidad del Pacífico">Institución: Universidad del Pacífico</option>
-                <option value="Universidad Nacional de Ingeniería">Institución: Universidad Nacional de Ingeniería</option>
-                <option value="Universidad Nacional Mayor de San Marcos">Institución: Universidad Nacional Mayor de San Marcos</option>
+                <option value="Pontificia Universidad Católica">
+                  Institución: Pontificia Universidad Católica
+                </option>
+                <option value="Universidad del Pacífico">
+                  Institución: Universidad del Pacífico
+                </option>
+                <option value="Universidad Nacional de Ingeniería">
+                  Institución: Universidad Nacional de Ingeniería
+                </option>
+                <option value="Universidad Nacional Mayor de San Marcos">
+                  Institución: Universidad Nacional Mayor de San Marcos
+                </option>
               </select>
 
               <button
                 type="button"
-                className={`${styles.botonFiltroVencidas} ${soloVencidas ? styles.filtroVencidasActivo : ''}`}
+                className={`${estilos.botonFiltroVencidas} ${
+                  soloVencidas ? estilos.filtroVencidasActivo : ''
+                }`}
                 onClick={() => {
-                  establecerSoloVencidas(!soloVencidas)
-                  establecerPaginaActual(1)
+                  cambiarSoloVencidas(!soloVencidas)
+                  cambiarPaginaActual(1)
                 }}
               >
                 Con revisiones vencidas · {cantidadConVencidas}
               </button>
             </div>
 
-            <div className={styles.contenedorBusqueda}>
+            <div className={estilos.contenedorBusqueda}>
               <input
                 type="text"
                 placeholder="Buscar revisor..."
                 aria-label="Buscar revisor"
-                className={styles.campoBusqueda}
+                className={estilos.campoBusqueda}
                 value={textoBusqueda}
                 onChange={(evento) => {
-                  establecerTextoBusqueda(evento.target.value)
-                  establecerPaginaActual(1)
+                  cambiarTextoBusqueda(evento.target.value)
+                  cambiarPaginaActual(1)
                 }}
               />
             </div>
           </div>
 
-          <div className={styles.contenedorTabla}>
-            <table className={styles.tablaRevisores}>
+          <div className={estilos.contenedorTabla}>
+            <table className={estilos.tablaRevisores}>
               <thead>
                 <tr>
                   <th>REVISOR</th>
                   <th>INSTITUCIÓN</th>
                   <th>LÍNEAS DE INTERÉS</th>
-                  <th className={styles.columnaDerecha}>ASIGNADAS</th>
-                  <th className={styles.columnaDerecha}>ENTREGADAS</th>
-                  <th className={styles.columnaDerecha}>VENCIDAS</th>
+                  <th className={estilos.columnaDerecha}>ASIGNADAS</th>
+                  <th className={estilos.columnaDerecha}>ENTREGADAS</th>
+                  <th className={estilos.columnaDerecha}>VENCIDAS</th>
                 </tr>
               </thead>
               <tbody>
                 {revisoresPaginados.map((revisor) => (
                   <tr key={revisor.id}>
-                    <td className={styles.celdaNombre}>
+                    <td className={estilos.celdaNombre}>
                       <strong>{revisor.nombre}</strong>
                     </td>
-                    <td className={styles.celdaInstitucion}>{revisor.institucion}</td>
-                    <td className={styles.celdaLineas}>
+                    <td className={estilos.celdaInstitucion}>{revisor.institucion}</td>
+                    <td className={estilos.celdaLineas}>
                       {revisor.lineasInteres.join(' · ')}
                     </td>
-                    <td className={styles.celdaNumero}>{revisor.asignadas}</td>
-                    <td className={styles.celdaEntregadas}>{revisor.entregadas}</td>
-                    <td className={styles.celdaVencidas}>
+                    <td className={estilos.celdaNumero}>{revisor.asignadas}</td>
+                    <td className={estilos.celdaEntregadas}>{revisor.entregadas}</td>
+                    <td className={estilos.celdaVencidas}>
                       {revisor.vencidas > 0 ? (
-                        <span className={styles.valorVencidasAlerta}>{revisor.vencidas}</span>
+                        <span className={estilos.valorVencidasAlerta}>{revisor.vencidas}</span>
                       ) : (
-                        <span className={styles.valorCero}>0</span>
+                        <span className={estilos.valorCero}>0</span>
                       )}
                     </td>
                   </tr>
@@ -227,34 +264,43 @@ export default function ReviewersListPage() {
             </table>
           </div>
 
-          <div className={styles.filaPaginacion}>
-            <span className={styles.infoPaginacion}>
-              Mostrando {revisoresFiltrados.length === 0 ? 0 : (paginaActual - 1) * elementosPorPagina + 1}–{Math.min(paginaActual * elementosPorPagina, revisoresFiltrados.length)} de {revisoresFiltrados.length} revisores
+          <div className={estilos.filaPaginacion}>
+            <span className={estilos.infoPaginacion}>
+              Mostrando{' '}
+              {revisoresFiltrados.length === 0
+                ? 0
+                : (paginaActual - 1) * elementosPorPagina + 1}
+              –{Math.min(paginaActual * elementosPorPagina, revisoresFiltrados.length)} de{' '}
+              {revisoresFiltrados.length} revisores
             </span>
-            <div className={styles.botonesPaginacion}>
+            <div className={estilos.botonesPaginacion}>
               <button
                 type="button"
-                className={styles.botonPagina}
+                className={estilos.botonPagina}
                 disabled={paginaActual === 1}
-                onClick={() => establecerPaginaActual((pagina) => pagina - 1)}
+                onClick={() => cambiarPaginaActual((pagina) => pagina - 1)}
               >
                 Anterior
               </button>
-              {Array.from({ length: totalPaginas }, (_, indice) => indice + 1).map((numeroPagina) => (
-                <button
-                  key={numeroPagina}
-                  type="button"
-                  className={`${styles.botonNumeroPagina} ${paginaActual === numeroPagina ? styles.paginaActiva : ''}`}
-                  onClick={() => establecerPaginaActual(numeroPagina)}
-                >
-                  {numeroPagina}
-                </button>
-              ))}
+              {Array.from({ length: totalPaginas }, (_, indice) => indice + 1).map(
+                (numeroPagina) => (
+                  <button
+                    key={numeroPagina}
+                    type="button"
+                    className={`${estilos.botonNumeroPagina} ${
+                      paginaActual === numeroPagina ? estilos.paginaActiva : ''
+                    }`}
+                    onClick={() => cambiarPaginaActual(numeroPagina)}
+                  >
+                    {numeroPagina}
+                  </button>
+                )
+              )}
               <button
                 type="button"
-                className={styles.botonPagina}
+                className={estilos.botonPagina}
                 disabled={paginaActual === totalPaginas}
-                onClick={() => establecerPaginaActual((pagina) => pagina + 1)}
+                onClick={() => cambiarPaginaActual((pagina) => pagina + 1)}
               >
                 Siguiente
               </button>
@@ -263,28 +309,28 @@ export default function ReviewersListPage() {
         </fieldset>
       </main>
 
-      <Footer />
+      <PiePagina />
 
       {modalInvitarAbierto ? (
-        <Modal
+        <ModalBase
           alCerrar={() => {
-            if (!ocupado) establecerModalInvitarAbierto(false)
+            if (!ocupado) cambiarModalInvitarAbierto(false)
           }}
           titulo="Invitar revisor al congreso"
         >
-          <form onSubmit={manejarEnvioInvitacion} className={styles.formularioInvitacion}>
+          <form onSubmit={manejarEnvioInvitacion} className={estilos.formularioInvitacion}>
             {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
-            <fieldset className={styles.grupoCampos} disabled={ocupado}>
-              <label className={styles.etiquetaModal}>
+            <fieldset className={estilos.grupoCampos} disabled={ocupado}>
+              <label className={estilos.etiquetaModal}>
                 NOMBRES Y APELLIDOS *
                 <input
                   type="text"
                   required
-                  className={styles.campoModal}
+                  className={estilos.campoModal}
                   value={formularioInvitacion.nombre}
                   placeholder="Ej. Dr. Mario Vargas Llosa"
                   onChange={(evento) =>
-                    establecerFormularioInvitacion({
+                    cambiarFormularioInvitacion({
                       ...formularioInvitacion,
                       nombre: evento.target.value,
                     })
@@ -292,16 +338,16 @@ export default function ReviewersListPage() {
                 />
               </label>
 
-              <label className={styles.etiquetaModal}>
+              <label className={estilos.etiquetaModal}>
                 CORREO ELECTRÓNICO *
                 <input
                   type="email"
                   required
-                  className={styles.campoModal}
+                  className={estilos.campoModal}
                   value={formularioInvitacion.correo}
                   placeholder="revisor@universidad.edu.pe"
                   onChange={(evento) =>
-                    establecerFormularioInvitacion({
+                    cambiarFormularioInvitacion({
                       ...formularioInvitacion,
                       correo: evento.target.value,
                     })
@@ -309,15 +355,15 @@ export default function ReviewersListPage() {
                 />
               </label>
 
-              <label className={styles.etiquetaModal}>
+              <label className={estilos.etiquetaModal}>
                 INSTITUCIÓN *
                 <input
                   type="text"
                   required
-                  className={styles.campoModal}
+                  className={estilos.campoModal}
                   value={formularioInvitacion.institucion}
                   onChange={(evento) =>
-                    establecerFormularioInvitacion({
+                    cambiarFormularioInvitacion({
                       ...formularioInvitacion,
                       institucion: evento.target.value,
                     })
@@ -325,15 +371,15 @@ export default function ReviewersListPage() {
                 />
               </label>
 
-              <label className={styles.etiquetaModal}>
+              <label className={estilos.etiquetaModal}>
                 LÍNEAS DE INTERÉS (SEPARADAS POR COMA)
                 <input
                   type="text"
-                  className={styles.campoModal}
+                  className={estilos.campoModal}
                   value={formularioInvitacion.lineasInteres}
                   placeholder="Ingeniería de software, IA y datos"
                   onChange={(evento) =>
-                    establecerFormularioInvitacion({
+                    cambiarFormularioInvitacion({
                       ...formularioInvitacion,
                       lineasInteres: evento.target.value,
                     })
@@ -341,21 +387,21 @@ export default function ReviewersListPage() {
                 />
               </label>
 
-              <div className={styles.accionesModal}>
-                <Button
+              <div className={estilos.accionesModal}>
+                <Boton
                   variant="secondary"
                   type="button"
-                  onClick={() => establecerModalInvitarAbierto(false)}
+                  onClick={() => cambiarModalInvitarAbierto(false)}
                 >
                   Cancelar
-                </Button>
-                <Button variant="primary" type="submit">
+                </Boton>
+                <Boton variant="primary" type="submit">
                   Enviar invitación
-                </Button>
+                </Boton>
               </div>
             </fieldset>
           </form>
-        </Modal>
+        </ModalBase>
       ) : null}
     </div>
   )

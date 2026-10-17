@@ -219,7 +219,7 @@
   text-transform: uppercase;
 }
 
-.contenedorInputFecha {
+.contenedorCampoFecha {
   position: relative;
   display: inline-flex;
   align-items: center;

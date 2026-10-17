@@ -1,13 +1,19 @@
-import { useState } from 'react'
-import Header from '../../../core/ui/Header/Header.jsx'
-import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
-import Footer from '../../../core/ui/Footer/Footer.jsx'
-import Button from '../../../core/ui/Button/Button.jsx'
-import ReassignModal from '../components/ReassignModal/ReassignModal.jsx'
-import useStoredState from '../../../core/utils/useStoredState.js'
-import { pendingReviewsRepository, reviewersRepository } from '../../../core/utils/repositories.js'
-import { initialPendingReviews, initialReviewers } from '../../../core/utils/states/worksAssignmentState.js'
-import styles from './ReviewsTrackingPage.module.css'
+import { useState as usarEstado } from 'react'
+import Encabezado from '../../../core/ui/Header/Header.jsx'
+import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
+import PiePagina from '../../../core/ui/Footer/Footer.jsx'
+import Boton from '../../../core/ui/Button/Button.jsx'
+import ModalReasignar from '../components/ReassignModal/ReassignModal.jsx'
+import usarEstadoAlmacenado from '../../../core/utils/useStoredState.js'
+import {
+  pendingReviewsRepository as repositorioRevisionesPendientes,
+  reviewersRepository as repositorioRevisores,
+} from '../../../core/utils/repositories.js'
+import {
+  revisionesPendientesIniciales,
+  revisoresIniciales,
+} from '../../../core/utils/states/worksAssignmentState.js'
+import estilos from './ReviewsTrackingPage.module.css'
 
 const usuarioComite = {
   nombre: 'Dra. Ana Salazar Bermúdez',
@@ -15,47 +21,54 @@ const usuarioComite = {
   iniciales: 'AS',
 }
 
-export default function ReviewsTrackingPage() {
-  const estadoPendientes = useStoredState(pendingReviewsRepository, initialPendingReviews)
+export default function PaginaSeguimientoRevisiones() {
+  const estadoPendientes = usarEstadoAlmacenado(
+    repositorioRevisionesPendientes,
+    revisionesPendientesIniciales
+  )
   const revisionesPendientes = estadoPendientes.value
-  const estadoRevisores = useStoredState(reviewersRepository, initialReviewers)
+  const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
   const listaRevisores = estadoRevisores.value
 
-  const ocupado = [estadoPendientes, estadoRevisores].some((estado) => estado.loading || estado.saving)
-  const errorAlmacenamiento = [estadoPendientes, estadoRevisores].find((estado) => estado.error)?.error
+  const ocupado = [estadoPendientes, estadoRevisores].some(
+    (estado) => estado.loading || estado.saving
+  )
+  const errorAlmacenamiento = [estadoPendientes, estadoRevisores].find(
+    (estado) => estado.error
+  )?.error
 
-  const [filtrarSoloVencidas, establecerFiltrarSoloVencidas] = useState(false)
-  const [notificacion, establecerNotificacion] = useState('')
+  const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = usarEstado(false)
+  const [notificacion, cambiarNotificacion] = usarEstado('')
 
-  const [modalReasignarAbierto, establecerModalReasignarAbierto] = useState(false)
-  const [itemSeleccionadoReasignar, establecerItemSeleccionadoReasignar] = useState(null)
+  const [modalReasignarAbierto, cambiarModalReasignarAbierto] = usarEstado(false)
+  const [elementoSeleccionadoReasignar, cambiarElementoSeleccionadoReasignar] = usarEstado(null)
 
-  const cantidadVencidas = revisionesPendientes.filter((item) => item.esVencida).length
-  const cantidadEnPlazo = revisionesPendientes.filter((item) => !item.esVencida).length
+  const cantidadVencidas = revisionesPendientes.filter((elemento) => elemento.esVencida).length
+  const cantidadEnPlazo = revisionesPendientes.filter((elemento) => !elemento.esVencida).length
   const totalEntregadas = 19
   const totalAsignadas = 26
 
   const listaMostrada = filtrarSoloVencidas
-    ? revisionesPendientes.filter((item) => item.esVencida)
+    ? revisionesPendientes.filter((elemento) => elemento.esVencida)
     : revisionesPendientes
 
   const manejarRecordarTodos = () => {
-    establecerNotificacion(
+    cambiarNotificacion(
       'Recordatorio enviado exitosamente por correo a todos los revisores con tareas pendientes.'
     )
-    setTimeout(() => establecerNotificacion(''), 5000)
+    setTimeout(() => cambiarNotificacion(''), 5000)
   }
 
-  const manejarRecordarIndividual = (item) => {
-    establecerNotificacion(
-      `Recordatorio enviado al revisor ${item.revisor} para el trabajo ${item.codigo}.`
+  const manejarRecordarIndividual = (elemento) => {
+    cambiarNotificacion(
+      `Recordatorio enviado al revisor ${elemento.revisor} para el trabajo ${elemento.codigo}.`
     )
-    setTimeout(() => establecerNotificacion(''), 5000)
+    setTimeout(() => cambiarNotificacion(''), 5000)
   }
 
-  const manejarAbrirReasignacion = (item) => {
-    establecerItemSeleccionadoReasignar(item)
-    establecerModalReasignarAbierto(true)
+  const manejarAbrirReasignacion = (elemento) => {
+    cambiarElementoSeleccionadoReasignar(elemento)
+    cambiarModalReasignarAbierto(true)
   }
 
   const manejarConfirmarReasignacion = async ({
@@ -67,10 +80,10 @@ export default function ReviewsTrackingPage() {
   }) => {
     if (ocupado || errorAlmacenamiento) return false
 
-    const actualizadas = revisionesPendientes.map((item) => {
-      if (item.id === pendienteId) {
+    const actualizadas = revisionesPendientes.map((elemento) => {
+      if (elemento.id === pendienteId) {
         return {
-          ...item,
+          ...elemento,
           revisorId: nuevoRevisorId,
           revisor: nuevoRevisorNombre,
           estado: 'Pendiente · 8 días',
@@ -78,68 +91,73 @@ export default function ReviewsTrackingPage() {
           fechaLimite: '20/10/2026',
         }
       }
-      return item
+      return elemento
     })
 
     const guardado = await estadoPendientes.save(actualizadas).catch(() => false)
     if (!guardado) return false
 
-    establecerNotificacion(
+    cambiarNotificacion(
       `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
     )
-    setTimeout(() => establecerNotificacion(''), 6000)
+    setTimeout(() => cambiarNotificacion(''), 6000)
     return true
   }
 
   return (
-    <div className={styles.pagina}>
-      <Header estado="En revisión" />
-      <CommitteeNavigation rutaActiva="/seguimiento" usuario={usuarioComite} />
+    <div className={estilos.pagina}>
+      <Encabezado estado="En revisión" />
+      <NavegacionComite rutaActiva="/seguimiento" usuario={usuarioComite} />
 
-      <main className={styles.contenidoPrincipal}>
+      <main className={estilos.contenidoPrincipal}>
         {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
 
-        <fieldset className={styles.grupoCampos} disabled={ocupado || Boolean(errorAlmacenamiento)}>
-          <div className={styles.filaEncabezado}>
+        <fieldset
+          className={estilos.grupoCampos}
+          disabled={ocupado || Boolean(errorAlmacenamiento)}
+        >
+          <div className={estilos.filaEncabezado}>
             <div>
-              <h1 className={styles.titulo}>Seguimiento de revisiones</h1>
-              <p className={styles.subtitulo}>
+              <h1 className={estilos.titulo}>Seguimiento de revisiones</h1>
+              <p className={estilos.subtitulo}>
                 Pendientes ordenadas por fecha límite · cierre de la etapa: 20/10/2026
               </p>
             </div>
             <div>
-              <Button variant="secondary" type="button" onClick={manejarRecordarTodos}>
+              <Boton variant="secondary" type="button" onClick={manejarRecordarTodos}>
                 Recordatorio a todos los pendientes
-              </Button>
+              </Boton>
             </div>
           </div>
 
           {notificacion ? (
-            <div className={styles.bannerNotificacion}>
+            <div className={estilos.bannerNotificacion}>
               <span>✓ {notificacion}</span>
             </div>
           ) : null}
 
           {cantidadVencidas > 0 ? (
-            <div className={styles.cajaAlertaVencidas}>
-              <div className={styles.alertaIzquierda}>
-                <span className={styles.iconoAlerta} aria-hidden="true">!</span>
+            <div className={estilos.cajaAlertaVencidas}>
+              <div className={estilos.alertaIzquierda}>
+                <span className={estilos.iconoAlerta} aria-hidden="true">
+                  !
+                </span>
                 <span>
                   <strong>{cantidadVencidas} revisiones vencidas.</strong> Considere reasignar para no retrasar la publicación de resultados.
                 </span>
               </div>
               <button
                 type="button"
-                className={styles.botonAlternarAlerta}
-                onClick={() => establecerFiltrarSoloVencidas(!filtrarSoloVencidas)}
+                className={estilos.botonAlternarAlerta}
+                onClick={() => cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)}
               >
                 {filtrarSoloVencidas ? 'Ver todas las pendientes' : 'Ver solo vencidas'}
               </button>
             </div>
           ) : null}
 
-          <div className={styles.contenedorTabla}>
-            <table className={styles.tablaSeguimiento}>
+          <div className={estilos.contenedorTabla}>
+            <table className={estilos.tablaSeguimiento}>
               <thead>
                 <tr>
                   <th>CÓDIGO</th>
@@ -147,41 +165,50 @@ export default function ReviewsTrackingPage() {
                   <th>REVISOR</th>
                   <th>FECHA LÍMITE</th>
                   <th>ESTADO</th>
-                  <th className={styles.columnaAccion}>ACCIÓN</th>
+                  <th className={estilos.columnaAccion}>ACCIÓN</th>
                 </tr>
               </thead>
               <tbody>
-                {listaMostrada.map((item) => (
-                  <tr key={item.id} className={item.esVencida ? styles.filaVencida : ''}>
-                    <td className={styles.celdaCodigo}>{item.codigo}</td>
-                    <td className={styles.celdaTitulo}>
-                      <strong>{item.trabajo}</strong>
+                {listaMostrada.map((elemento) => (
+                  <tr
+                    key={elemento.id}
+                    className={elemento.esVencida ? estilos.filaVencida : ''}
+                  >
+                    <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
+                    <td className={estilos.celdaTitulo}>
+                      <strong>{elemento.trabajo}</strong>
                     </td>
-                    <td className={styles.celdaRevisor}>{item.revisor}</td>
-                    <td className={item.esVencida ? styles.celdaFechaVencida : styles.celdaFechaNormal}>
-                      {item.fechaLimite}
+                    <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
+                    <td
+                      className={
+                        elemento.esVencida
+                          ? estilos.celdaFechaVencida
+                          : estilos.celdaFechaNormal
+                      }
+                    >
+                      {elemento.fechaLimite}
                     </td>
                     <td>
-                      {item.esVencida ? (
-                        <span className={styles.insigniaVencida}>{item.estado}</span>
+                      {elemento.esVencida ? (
+                        <span className={estilos.insigniaVencida}>{elemento.estado}</span>
                       ) : (
-                        <span className={styles.insigniaPendiente}>{item.estado}</span>
+                        <span className={estilos.insigniaPendiente}>{elemento.estado}</span>
                       )}
                     </td>
-                    <td className={styles.celdaAccion}>
-                      {item.esVencida ? (
+                    <td className={estilos.celdaAccion}>
+                      {elemento.esVencida ? (
                         <button
                           type="button"
-                          className={styles.botonAccionTexto}
-                          onClick={() => manejarAbrirReasignacion(item)}
+                          className={estilos.botonAccionTexto}
+                          onClick={() => manejarAbrirReasignacion(elemento)}
                         >
                           Reasignar
                         </button>
                       ) : (
                         <button
                           type="button"
-                          className={styles.botonAccionTexto}
-                          onClick={() => manejarRecordarIndividual(item)}
+                          className={estilos.botonAccionTexto}
+                          onClick={() => manejarRecordarIndividual(elemento)}
                         >
                           Recordar
                         </button>
@@ -193,33 +220,33 @@ export default function ReviewsTrackingPage() {
             </table>
           </div>
 
-          <div className={styles.cuadriculaResumenInferior}>
-            <div className={styles.tarjetaResumenInferior}>
-              <span className={styles.etiquetaResumen}>Revisiones entregadas</span>
-              <span className={styles.valorResumenExito}>
+          <div className={estilos.cuadriculaResumenInferior}>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Revisiones entregadas</span>
+              <span className={estilos.valorResumenExito}>
                 {totalEntregadas} de {totalAsignadas}
               </span>
             </div>
-            <div className={styles.tarjetaResumenInferior}>
-              <span className={styles.etiquetaResumen}>Pendientes en plazo</span>
-              <span className={styles.valorResumenAdvertencia}>{cantidadEnPlazo}</span>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Pendientes en plazo</span>
+              <span className={estilos.valorResumenAdvertencia}>{cantidadEnPlazo}</span>
             </div>
-            <div className={styles.tarjetaResumenInferior}>
-              <span className={styles.etiquetaResumen}>Vencidas</span>
-              <span className={styles.valorResumenPeligro}>{cantidadVencidas}</span>
+            <div className={estilos.tarjetaResumenInferior}>
+              <span className={estilos.etiquetaResumen}>Vencidas</span>
+              <span className={estilos.valorResumenPeligro}>{cantidadVencidas}</span>
             </div>
           </div>
         </fieldset>
       </main>
 
-      <Footer />
+      <PiePagina />
 
-      <ReassignModal
+      <ModalReasignar
         guardando={ocupado}
         error={errorAlmacenamiento}
         abierto={modalReasignarAbierto}
-        alCerrar={() => establecerModalReasignarAbierto(false)}
-        itemPendiente={itemSeleccionadoReasignar}
+        alCerrar={() => cambiarModalReasignarAbierto(false)}
+        itemPendiente={elementoSeleccionadoReasignar}
         revisores={listaRevisores}
         alConfirmarReasignacion={manejarConfirmarReasignacion}
       />

@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react'
-import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import Button from '../../../../core/ui/Button/Button.jsx'
-import styles from './AssignReviewersModal.module.css'
+import { useState as usarEstado, useMemo as usarMemo } from 'react'
+import ModalBase from '../../../../core/ui/Modal/Modal.jsx'
+import Boton from '../../../../core/ui/Button/Button.jsx'
+import estilos from './AssignReviewersModal.module.css'
 
-export default function AssignReviewersModal({
+export default function ModalAsignarRevisores({
   guardando = false,
   error = '',
   abierto = false,
@@ -14,18 +14,20 @@ export default function AssignReviewersModal({
 }) {
   const primerTrabajo = trabajosObjetivo[0]
   const codigoTrabajo = primerTrabajo?.codigo ?? 'TRB-2026-031'
-  const esCasoConflicto = codigoTrabajo === 'TRB-2026-042' || trabajosObjetivo.some((t) =>
-    t.autores?.some((autor) => autor.includes('Yupanqui'))
-  )
+  const esCasoConflicto =
+    codigoTrabajo === 'TRB-2026-042' ||
+    trabajosObjetivo.some((trabajo) =>
+      trabajo.autores?.some((autor) => autor.includes('Yupanqui'))
+    )
 
-  const [terminoBusqueda, setTerminoBusqueda] = useState('')
-  const [revisoresSeleccionados, setRevisoresSeleccionados] = useState(() =>
+  const [terminoBusqueda, cambiarTerminoBusqueda] = usarEstado('')
+  const [revisoresSeleccionados, cambiarRevisoresSeleccionados] = usarEstado(() =>
     esCasoConflicto ? ['rev-1'] : ['rev-1', 'rev-2']
   )
-  const [permitirMismaInstitucion, setPermitirMismaInstitucion] = useState(false)
-  const [fechaLimite, setFechaLimite] = useState('20/10/2026')
+  const [permitirMismaInstitucion, cambiarPermitirMismaInstitucion] = usarEstado(false)
+  const [fechaLimite, cambiarFechaLimite] = usarEstado('20/10/2026')
 
-  const listaRevisores = useMemo(() => {
+  const listaRevisores = usarMemo(() => {
     if (esCasoConflicto) {
       return [
         {
@@ -63,14 +65,16 @@ export default function AssignReviewersModal({
       ]
     }
 
-    const base = revisores.length > 0 ? revisores.slice(0, 4) : []
-    return base.map((rev) => {
-      const lineas = rev.id === 'rev-2'
-        ? ['Ingeniería de software', 'Sostenibilidad']
-        : rev.lineasInteres
-      const carga = rev.id === 'rev-1' ? 4 : rev.id === 'rev-2' ? 2 : rev.asignadas
+    const baseRevisores = revisores.length > 0 ? revisores.slice(0, 4) : []
+    return baseRevisores.map((revisor) => {
+      const lineas =
+        revisor.id === 'rev-2'
+          ? ['Ingeniería de software', 'Sostenibilidad']
+          : revisor.lineasInteres
+      const carga =
+        revisor.id === 'rev-1' ? 4 : revisor.id === 'rev-2' ? 2 : revisor.asignadas
       return {
-        ...rev,
+        ...revisor,
         lineasInteres: lineas,
         cargaTexto: `${carga} ${carga === 1 ? 'revisión' : 'revisiones'}`,
         conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
@@ -78,33 +82,36 @@ export default function AssignReviewersModal({
     })
   }, [esCasoConflicto, revisores])
 
-  const revisoresFiltrados = useMemo(() => {
+  const revisoresFiltrados = usarMemo(() => {
     const consulta = terminoBusqueda.toLowerCase().trim()
     if (!consulta) return listaRevisores
-    return listaRevisores.filter((rev) =>
-      rev.nombre.toLowerCase().includes(consulta) ||
-      rev.institucion.toLowerCase().includes(consulta) ||
-      rev.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
+    return listaRevisores.filter(
+      (revisor) =>
+        revisor.nombre.toLowerCase().includes(consulta) ||
+        revisor.institucion.toLowerCase().includes(consulta) ||
+        revisor.lineasInteres.some((linea) => linea.toLowerCase().includes(consulta))
     )
   }, [listaRevisores, terminoBusqueda])
 
   if (!abierto || trabajosObjetivo.length === 0) return null
 
   const alternarRevisor = (revisorId) => {
-    const item = listaRevisores.find((r) => r.id === revisorId)
-    if (item?.conflicto?.bloqueante) return
+    const elemento = listaRevisores.find((revisor) => revisor.id === revisorId)
+    if (elemento?.conflicto?.bloqueante) return
 
     if (revisoresSeleccionados.includes(revisorId)) {
-      setRevisoresSeleccionados(revisoresSeleccionados.filter((id) => id !== revisorId))
+      cambiarRevisoresSeleccionados(
+        revisoresSeleccionados.filter((identificador) => identificador !== revisorId)
+      )
     } else {
       if (revisoresSeleccionados.length >= 3) return
-      setRevisoresSeleccionados([...revisoresSeleccionados, revisorId])
+      cambiarRevisoresSeleccionados([...revisoresSeleccionados, revisorId])
     }
   }
 
-  const seleccionTieneInstitucion = revisoresSeleccionados.some((id) => {
-    const item = listaRevisores.find((r) => r.id === id)
-    return item?.conflicto?.tipo === 'institucion'
+  const seleccionTieneInstitucion = revisoresSeleccionados.some((identificador) => {
+    const elemento = listaRevisores.find((revisor) => revisor.id === identificador)
+    return elemento?.conflicto?.tipo === 'institucion'
   })
 
   const cantidadValida = revisoresSeleccionados.length
@@ -115,7 +122,7 @@ export default function AssignReviewersModal({
   const guardarAsignacion = async () => {
     if (guardando || !puedeGuardar) return
     const guardado = await alConfirmarAsignacion({
-      codigosTrabajo: trabajosObjetivo.map((t) => t.codigo),
+      codigosTrabajo: trabajosObjetivo.map((trabajo) => trabajo.codigo),
       idsRevisores: revisoresSeleccionados,
       fechaLimite,
     })
@@ -123,45 +130,57 @@ export default function AssignReviewersModal({
     alCerrar()
   }
 
-  const tituloCorto = primerTrabajo.codigo === 'TRB-2026-042'
-    ? 'Predicción de deserción universitaria'
-    : primerTrabajo.titulo
+  const tituloCorto =
+    primerTrabajo.codigo === 'TRB-2026-042'
+      ? 'Predicción de deserción universitaria'
+      : primerTrabajo.titulo
 
   const textoReferencia = `${primerTrabajo.codigo} · ${tituloCorto} · ${primerTrabajo.eje}`
 
   return (
-    <Modal alCerrar={() => { if (!guardando) alCerrar() }} titulo="Asignar revisores">
-      <fieldset className={styles.cuerpoModal} disabled={guardando}>
-        <div className={styles.referenciaTrabajo}>
-          <p className={styles.subtitulo}>{textoReferencia}</p>
+    <ModalBase
+      alCerrar={() => {
+        if (!guardando) alCerrar()
+      }}
+      titulo="Asignar revisores"
+    >
+      <fieldset className={estilos.cuerpoModal} disabled={guardando}>
+        <div className={estilos.referenciaTrabajo}>
+          <p className={estilos.subtitulo}>{textoReferencia}</p>
         </div>
 
-        {error && <p className={styles.mensajeError} role="alert">{error}</p>}
+        {error && (
+          <p className={estilos.mensajeError} role="alert">
+            {error}
+          </p>
+        )}
 
         {esCasoConflicto && (
-          <div className={styles.alertaConflicto} role="alert">
-            <span aria-hidden="true" className={styles.iconoAlerta}>!</span>
-            <p className={styles.textoConflicto}>
+          <div className={estilos.alertaConflicto} role="alert">
+            <span aria-hidden="true" className={estilos.iconoAlerta}>
+              !
+            </span>
+            <p className={estilos.textoConflicto}>
               <strong>Conflicto detectado:</strong> 1 revisor es coautor del trabajo y otro pertenece a la misma institución del autor de correspondencia. No es posible asignar a un coautor.
             </p>
           </div>
         )}
 
         {!esCasoConflicto && (
-          <div className={styles.filaBusqueda}>
+          <div className={estilos.filaBusqueda}>
             <input
               type="text"
-              className={styles.campoBusqueda}
+              className={estilos.campoBusqueda}
               placeholder="Buscar revisor por nombre, institución o línea de interés…"
               value={terminoBusqueda}
-              onChange={(e) => setTerminoBusqueda(e.target.value)}
+              onChange={(evento) => cambiarTerminoBusqueda(evento.target.value)}
             />
-            <span className={styles.avisoRegla}>Mínimo 2 · máximo 3 revisores</span>
+            <span className={estilos.avisoRegla}>Mínimo 2 · máximo 3 revisores</span>
           </div>
         )}
 
-        <div className={styles.contenedorTabla}>
-          <table className={styles.tabla}>
+        <div className={estilos.contenedorTabla}>
+          <table className={estilos.tabla}>
             <thead>
               <tr>
                 <th style={{ width: 38 }}></th>
@@ -172,50 +191,50 @@ export default function AssignReviewersModal({
               </tr>
             </thead>
             <tbody>
-              {revisoresFiltrados.map((rev) => {
-                const seleccionado = revisoresSeleccionados.includes(rev.id)
-                const esCoautor = rev.conflicto.tipo === 'coautor'
-                const esInstitucion = rev.conflicto.tipo === 'institucion'
+              {revisoresFiltrados.map((revisor) => {
+                const seleccionado = revisoresSeleccionados.includes(revisor.id)
+                const esCoautor = revisor.conflicto.tipo === 'coautor'
+                const esInstitucion = revisor.conflicto.tipo === 'institucion'
 
                 let claseFila = ''
                 if (esCoautor) {
-                  claseFila = styles.filaCoautor
+                  claseFila = estilos.filaCoautor
                 } else if (esInstitucion) {
-                  claseFila = styles.filaInstitucion
+                  claseFila = estilos.filaInstitucion
                 } else if (seleccionado) {
-                  claseFila = styles.filaSeleccionada
+                  claseFila = estilos.filaSeleccionada
                 }
 
                 return (
                   <tr
-                    key={rev.id}
+                    key={revisor.id}
                     className={claseFila}
-                    onClick={() => !esCoautor && alternarRevisor(rev.id)}
+                    onClick={() => !esCoautor && alternarRevisor(revisor.id)}
                   >
                     <td>
                       <input
                         type="checkbox"
-                        className={styles.casilla}
+                        className={estilos.casilla}
                         checked={seleccionado}
                         disabled={esCoautor}
-                        onChange={() => alternarRevisor(rev.id)}
-                        onClick={(e) => e.stopPropagation()}
+                        onChange={() => alternarRevisor(revisor.id)}
+                        onClick={(evento) => evento.stopPropagation()}
                       />
                     </td>
-                    <td className={styles.celdaNombre}>{rev.nombre}</td>
-                    <td className={styles.celdaLineas}>
-                      {rev.lineasInteres.join(' · ')}
+                    <td className={estilos.celdaNombre}>{revisor.nombre}</td>
+                    <td className={estilos.celdaLineas}>
+                      {revisor.lineasInteres.join(' · ')}
                     </td>
-                    <td className={styles.celdaCarga}>{rev.cargaTexto}</td>
+                    <td className={estilos.celdaCarga}>{revisor.cargaTexto}</td>
                     <td>
                       {esCoautor && (
-                        <span className={styles.estadoCoautor}>{rev.conflicto.etiqueta}</span>
+                        <span className={estilos.estadoCoautor}>{revisor.conflicto.etiqueta}</span>
                       )}
                       {esInstitucion && (
-                        <span className={styles.estadoInstitucion}>{rev.conflicto.etiqueta}</span>
+                        <span className={estilos.estadoInstitucion}>{revisor.conflicto.etiqueta}</span>
                       )}
                       {!esCoautor && !esInstitucion && (
-                        <span className={styles.estadoSinConflicto}>Sin conflicto</span>
+                        <span className={estilos.estadoSinConflicto}>Sin conflicto</span>
                       )}
                     </td>
                   </tr>
@@ -226,13 +245,13 @@ export default function AssignReviewersModal({
         </div>
 
         {esCasoConflicto ? (
-          <div className={styles.bloqueJustificacion}>
-            <label className={styles.etiquetaJustificacion}>
+          <div className={estilos.bloqueJustificacion}>
+            <label className={estilos.etiquetaJustificacion}>
               <input
                 type="checkbox"
-                className={styles.casilla}
+                className={estilos.casilla}
                 checked={permitirMismaInstitucion}
-                onChange={(e) => setPermitirMismaInstitucion(e.target.checked)}
+                onChange={(evento) => cambiarPermitirMismaInstitucion(evento.target.checked)}
               />
               <span>
                 Asignar de todos modos al revisor de la misma institución (requiere justificación del comité).
@@ -240,46 +259,52 @@ export default function AssignReviewersModal({
             </label>
           </div>
         ) : (
-          <div className={styles.bloqueFecha}>
-            <label className={styles.etiquetaFecha} htmlFor="fecha-revision">
+          <div className={estilos.bloqueFecha}>
+            <label className={estilos.etiquetaFecha} htmlFor="fecha-revision">
               FECHA LÍMITE DE LA REVISIÓN
             </label>
-            <div className={styles.contenedorInputFecha}>
+            <div className={estilos.contenedorCampoFecha}>
               <input
                 id="fecha-revision"
                 type="text"
-                className={styles.campoFecha}
+                className={estilos.campoFecha}
                 value={fechaLimite}
-                onChange={(e) => setFechaLimite(e.target.value)}
+                onChange={(evento) => cambiarFechaLimite(evento.target.value)}
               />
-              <span aria-hidden="true" className={styles.iconoCalendario}>▤</span>
+              <span aria-hidden="true" className={estilos.iconoCalendario}>
+                ▤
+              </span>
             </div>
           </div>
         )}
 
-        <footer className={styles.pieModal}>
-          <div className={styles.resumenSeleccion}>
+        <footer className={estilos.pieModal}>
+          <div className={estilos.resumenSeleccion}>
             {!puedeGuardar ? (
-              <span className={styles.avisoFaltante}>Seleccione al menos 2 revisores sin conflicto</span>
+              <span className={estilos.avisoFaltante}>
+                Seleccione al menos 2 revisores sin conflicto
+              </span>
             ) : (
-              <span className={styles.conteoSeleccion}>{cantidadValida} revisores seleccionados</span>
+              <span className={estilos.conteoSeleccion}>
+                {cantidadValida} revisores seleccionados
+              </span>
             )}
           </div>
-          <div className={styles.accionesPie}>
-            <Button variant="secondary" type="button" onClick={alCerrar}>
+          <div className={estilos.accionesPie}>
+            <Boton variant="secondary" type="button" onClick={alCerrar}>
               Cancelar
-            </Button>
-            <Button
+            </Boton>
+            <Boton
               variant="primary"
               type="button"
               disabled={!puedeGuardar}
               onClick={guardarAsignacion}
             >
               Asignar y notificar
-            </Button>
+            </Boton>
           </div>
         </footer>
       </fieldset>
-    </Modal>
+    </ModalBase>
   )
 }

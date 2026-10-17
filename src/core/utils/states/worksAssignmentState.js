@@ -1,4 +1,4 @@
-export const initialWorks = [
+export const trabajosIniciales = [
   {
     codigo: 'TRB-2026-031',
     titulo: 'Refactorización guiada por métricas de deuda técnica',
@@ -183,7 +183,7 @@ export const initialWorks = [
   },
 ]
 
-export const initialReviewers = [
+export const revisoresIniciales = [
   {
     id: 'rev-1',
     nombre: 'Mg. Luis Ramírez Cárdenas',
@@ -267,7 +267,7 @@ export const initialReviewers = [
   },
 ]
 
-export const initialPendingReviews = [
+export const revisionesPendientesIniciales = [
   {
     id: 'pen-1',
     codigo: 'TRB-2026-045',
@@ -340,14 +340,23 @@ export const initialPendingReviews = [
   },
 ]
 
-export function validateWorks(valor) {
+export function validarTrabajos(valor) {
   return Array.isArray(valor)
 }
 
-export function validateReviewers(valor) {
+export function validarRevisores(valor) {
   return Array.isArray(valor)
 }
 
-export function validatePendingReviews(valor) {
+export function validarRevisionesPendientes(valor) {
   return Array.isArray(valor)
+}
+
+export {
+  trabajosIniciales as initialWorks,
+  revisoresIniciales as initialReviewers,
+  revisionesPendientesIniciales as initialPendingReviews,
+  validarTrabajos as validateWorks,
+  validarRevisores as validateReviewers,
+  validarRevisionesPendientes as validatePendingReviews,
 }
