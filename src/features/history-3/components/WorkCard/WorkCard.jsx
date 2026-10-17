@@ -35,7 +35,7 @@ function WorkCard({ trabajo, recepcionAbierta }) {
       </div>
 
       <div className={styles.cardFooter}>
-        <span className={trabajo.noEnviado ? styles.dateAlert : styles.date}>{trabajo.fecha}</span>
+        <span className={trabajo.noEnviado ? styles.dateAlert : styles.date}>{trabajo.estado === 'borrador' && recepcionAbierta ? 'No enviado · borrador' : trabajo.fecha}</span>
         <Link className={styles.actionLink} to={accion.to}>
           {accion.label}
         </Link>

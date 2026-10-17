@@ -6,8 +6,8 @@
 }
 
 .card {
-  width: min(100%, 520px);
-  padding: var(--space-8);
+  width: min(100%, 600px);
+  padding: var(--space-10);
   border-top: 2px solid var(--color-primary);
   background: var(--color-surface);
 }

@@ -3,6 +3,8 @@ import { useState as usarEstado } from 'react'
 import Encabezado from '../../../core/ui/Header/Header.jsx'
 import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import PiePagina from '../../../core/ui/Footer/Footer.jsx'
+import Pagination from '../../../core/ui/Pagination/Pagination.jsx'
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import Boton from '../../../core/ui/Button/Button.jsx'
 import ModalReasignar from '../components/ReassignModal/ReassignModal.jsx'
 import { Link } from 'react-router'
@@ -24,6 +26,7 @@ export default function PaginaSeguimientoRevisiones() {
   const errorAlmacenamiento = conference.error
 
   const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = usarEstado(false)
+  const [page, setPage] = usarEstado(1)
   const [notificacion, cambiarNotificacion] = usarEstado('')
 
   const [modalReasignarAbierto, cambiarModalReasignarAbierto] = usarEstado(false)
@@ -37,6 +40,10 @@ export default function PaginaSeguimientoRevisiones() {
   const listaMostrada = filtrarSoloVencidas
     ? revisionesPendientes.filter((elemento) => elemento.esVencida)
     : revisionesPendientes
+
+  const pageSize = 6
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(listaMostrada.length / pageSize)))
+  const visibleReviews = listaMostrada.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   async function recordReminders(items) {
     if (ocupado) return
@@ -95,7 +102,7 @@ export default function PaginaSeguimientoRevisiones() {
             <div>
               <h1 className={estilos.titulo}>Seguimiento de revisiones</h1>
               <p className={estilos.subtitulo}>
-                Pendientes ordenadas por fecha límite · cierre de la etapa: 20/10/2026
+                Pendientes ordenadas por fecha límite · cierre de la etapa: {formatScheduleDate(conference.schedule.review ?? '')}
               </p>
             </div>
             <div>
@@ -144,7 +151,7 @@ export default function PaginaSeguimientoRevisiones() {
                 </tr>
               </thead>
               <tbody>
-                {listaMostrada.map((elemento) => (
+                {visibleReviews.map((elemento) => (
                   <tr
                     key={elemento.id}
                     className={elemento.esVencida ? estilos.filaVencida : ''}
@@ -194,6 +201,8 @@ export default function PaginaSeguimientoRevisiones() {
               </tbody>
             </table>
           </div>
+
+          <Pagination pagina={currentPage} total={listaMostrada.length} porPagina={pageSize} alCambiar={setPage} />
 
           <div className={estilos.cuadriculaResumenInferior}>
             <div className={estilos.tarjetaResumenInferior}>

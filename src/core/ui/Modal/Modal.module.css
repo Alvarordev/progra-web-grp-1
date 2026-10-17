@@ -10,7 +10,7 @@
 }
 
 .dialog {
-  width: min(100%, 560px);
+  width: min(100%, var(--modal-width-medium));
   max-height: calc(100vh - var(--space-8));
   overflow-y: auto;
   border: 1px solid var(--color-border);
@@ -24,14 +24,14 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-5) var(--space-7);
   border-bottom: 1px solid var(--color-border);
 }
 
 .title {
   margin: 0;
-  font-size: var(--font-size-subtitle);
-  line-height: var(--line-height-subtitle);
+  font-size: var(--font-size-section-title);
+  line-height: var(--line-height-section-title);
 }
 
 .closeButton {
@@ -46,7 +46,7 @@
 
 @media (max-width: 600px) {
   .backdrop {
-    align-items: end;
+    align-items: center;
     padding: var(--space-2);
   }
 
@@ -57,4 +57,15 @@
   .header {
     padding: var(--space-3) var(--space-4);
   }
+}
+
+.compact { width: min(100%, var(--modal-width-compact)); }
+.confirmation { width: min(100%, var(--modal-width-confirmation)); }
+.decision { width: min(100%, var(--modal-width-decision)); }
+.wide { width: min(100%, var(--modal-width-wide)); }
+.description {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
 }

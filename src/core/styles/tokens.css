@@ -51,4 +51,16 @@
   --line-height-section-title: 28px;
   --font-size-page-title: 28px;
   --line-height-page-title: 32px;
+
+  --space-7: 28px;
+  --navigation-height: 60px;
+  --font-size-hero: 36px;
+  --line-height-hero: 44px;
+  --modal-width-compact: 620px;
+  --modal-width-medium: 640px;
+  --modal-width-confirmation: 660px;
+  --modal-width-decision: 820px;
+  --modal-width-wide: 880px;
+  --color-footer: #211d1c;
+  --color-footer-text: #f8f6f4;
 }

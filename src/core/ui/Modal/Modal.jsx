@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react'
 import Button from '../Button/Button.jsx'
 import styles from './Modal.module.css'
 
-function Modal({ alCerrar, children, titulo }) {
+function Modal({ alCerrar, children, titulo, descripcion, tamano = 'medium' }) {
   const dialogId = useId()
   const dialogRef = useRef(null)
   const closeHandlerRef = useRef(alCerrar)
@@ -39,9 +39,9 @@ function Modal({ alCerrar, children, titulo }) {
       return
     }
 
-    const elementosEnfocables = dialogRef.current.querySelectorAll(
+    const elementosEnfocables = [...dialogRef.current.querySelectorAll(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    )
+    )].filter(element => !element.matches(':disabled') && element.getClientRects().length > 0)
     const primero = elementosEnfocables[0]
     const ultimo = elementosEnfocables[elementosEnfocables.length - 1]
 
@@ -77,18 +77,22 @@ function Modal({ alCerrar, children, titulo }) {
       role="presentation"
     >
       <section
+        aria-describedby={descripcion ? `${dialogId}-description` : undefined}
         aria-labelledby={dialogId}
         aria-modal="true"
-        className={styles.dialog}
+        className={`${styles.dialog} ${styles[tamano] ?? styles.medium}`}
         onKeyDown={handleKeyDown}
         ref={dialogRef}
         role="dialog"
         tabIndex="-1"
       >
         <header className={styles.header}>
+          <div>
           <h2 className={styles.title} id={dialogId}>
             {titulo}
           </h2>
+          {descripcion && <p className={styles.description} id={`${dialogId}-description`}>{descripcion}</p>}
+          </div>
           <Button
             aria-label="Cerrar ventana"
             className={styles.closeButton}

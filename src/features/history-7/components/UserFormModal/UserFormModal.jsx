@@ -9,6 +9,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 /* Formulario único para invitar (usuario = null) y para editar (usuario existente). */
 function UserFormModal({ guardando = false, errorGuardado = '', alCerrar, alGuardar, instituciones, usuario, usuarios }) {
   const isEditing = Boolean(usuario)
+  const isDefaultCommittee = usuario?.userId === 'default-committee'
   const idPrefix = useId()
   const [values, setValues] = useState({
     nombre: usuario?.nombre ?? '',
@@ -130,6 +131,7 @@ function UserFormModal({ guardando = false, errorGuardado = '', alCerrar, alGuar
             <label htmlFor={`${idPrefix}-correo`}>Correo electrónico *</label>
             <input
               {...fieldProps('correo')}
+              readOnly={isDefaultCommittee}
               autoComplete="off"
               onChange={(event) => setValue('correo', event.target.value)}
               type="email"
@@ -143,6 +145,7 @@ function UserFormModal({ guardando = false, errorGuardado = '', alCerrar, alGuar
               <label htmlFor={`${idPrefix}-rol`}>Rol *</label>
               <select
                 {...fieldProps('rol')}
+                disabled={isDefaultCommittee}
                 onChange={(event) => setValue('rol', event.target.value)}
                 value={values.rol}
               >

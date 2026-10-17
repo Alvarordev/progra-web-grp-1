@@ -92,12 +92,10 @@ export default function ModalAsignarRevisores({
         if (!guardando) alCerrar()
       }}
       titulo="Asignar revisores"
+      descripcion={textoReferencia}
+      tamano="wide"
     >
       <fieldset className={estilos.cuerpoModal} disabled={guardando}>
-        <div className={estilos.referenciaTrabajo}>
-          <p className={estilos.subtitulo}>{textoReferencia}</p>
-        </div>
-
         {error && (
           <p className={estilos.mensajeError} role="alert">
             {error}
@@ -110,7 +108,7 @@ export default function ModalAsignarRevisores({
               !
             </span>
             <p className={estilos.textoConflicto}>
-              <strong>Conflicto detectado:</strong> 1 revisor es coautor del trabajo y otro pertenece a la misma institución del autor de correspondencia. No es posible asignar a un coautor.
+              <strong>Conflicto detectado:</strong> Hay revisores que son coautores o pertenecen a la misma institución del autor de correspondencia. No es posible asignar a un coautor.
             </p>
           </div>
         )}

@@ -149,9 +149,15 @@ export const acceptedWorks = [
 ]
 
 
-export const initialProgram = { sessions: initialSessions, assignments: acceptedWorks.map(({ codigo, sesionId, orden }) => ({ codigo, sesionId, orden })), published: true }
+const initialAssignments = acceptedWorks.map(({ codigo, sesionId, orden }) => ({ codigo, sesionId, orden }))
+export const initialProgram = {
+  sessions: initialSessions,
+  assignments: initialAssignments,
+  published: true,
+  publishedSnapshot: structuredClone({ sessions: initialSessions, assignments: initialAssignments }),
+}
 
-export function validateProgram(value) {
+function validateProgramContent(value) {
   return Boolean(value && Array.isArray(value.sessions) && value.sessions.every(session =>
     typeof session.id === 'string' && typeof session.nombre === 'string' && typeof session.eje === 'string' &&
     /^\d{4}-\d{2}-\d{2}$/.test(session.fecha) && /^\d{2}:\d{2}$/.test(session.horaInicio) &&
@@ -160,5 +166,10 @@ export function validateProgram(value) {
     Array.isArray(value.assignments) && value.assignments.every(item => typeof item.codigo === 'string' &&
       (item.sesionId === null || value.sessions.some(session => session.id === item.sesionId)) &&
       (item.orden === null || Number.isInteger(item.orden) && item.orden > 0)) &&
-    new Set(value.assignments.map(item => item.codigo)).size === value.assignments.length && typeof value.published === 'boolean')
+    new Set(value.assignments.map(item => item.codigo)).size === value.assignments.length)
+}
+
+export function validateProgram(value) {
+  return validateProgramContent(value) && typeof value.published === 'boolean' &&
+    (value.publishedSnapshot === undefined || validateProgramContent(value.publishedSnapshot))
 }

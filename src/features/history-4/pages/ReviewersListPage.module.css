@@ -294,3 +294,10 @@
     width: 100%;
   }
 }
+
+.controlesFiltro { min-width: 0; }
+.selectorFiltro { min-width: 0; max-width: 100%; }
+@media (max-width: 768px) {
+  .controlesFiltro { align-items: stretch; }
+  .selectorFiltro { width: 100%; }
+}

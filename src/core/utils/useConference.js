@@ -33,6 +33,9 @@ export default function useConference() {
     setSaving(true)
     setError('')
     try {
+      if (key === 'program' && data.program.published && !value.publishedSnapshot) {
+        value = { ...value, publishedSnapshot: structuredClone({ sessions: data.program.sessions, assignments: data.program.assignments }) }
+      }
       const result = await repositories[key].save(value)
       await refresh()
       return result

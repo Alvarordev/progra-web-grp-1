@@ -279,3 +279,12 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+.cuerpoModal { min-width: 0; }
+.contenedorTabla { max-height: 280px; overflow: auto; }
+.campoBusqueda { min-width: 0; }
+@media (max-width: 600px) {
+  .filaBusqueda, .pieModal { align-items: stretch; flex-direction: column; }
+  .accionesPie { justify-content: flex-end; flex-wrap: wrap; }
+  .tabla { min-width: 720px; }
+}

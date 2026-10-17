@@ -1,3 +1,4 @@
+import { splitAccountName } from './accountNames.js'
 import { initialUsers } from './states/usersState.js'
 import { roleValues } from './directory.js'
 import {
@@ -41,8 +42,10 @@ export async function getParticipantAccounts() {
   )
   accounts.push(storedAccounts.find(account => account.userId === defaultCommitteeAccount.userId) ?? { ...defaultCommitteeAccount })
   for (const user of initialUsers) {
+    const seeded = accounts.find(account => account.userId === `participant:${user.correo}` && account.name === user.nombre)
+    if (seeded && seeded.names === user.nombre.split(' ')[0] && seeded.surnames === user.nombre.split(' ').slice(1).join(' ')) Object.assign(seeded, splitAccountName(user.nombre))
     if (!accounts.some(account => account.userId === `participant:${user.correo}` || account.email.toLowerCase() === user.correo.toLowerCase())) {
-      accounts.push({ userId: `participant:${user.correo}`, names: user.nombre.split(' ')[0], surnames: user.nombre.split(' ').slice(1).join(' '), name: user.nombre, email: user.correo, institution: user.institucion, role: roleValues[user.rol] })
+      accounts.push({ userId: `participant:${user.correo}`, ...splitAccountName(user.nombre), name: user.nombre, email: user.correo, institution: user.institucion, role: roleValues[user.rol] })
     }
   }
   if (legacy && !accounts.some(account => account.userId === legacy.userId || account.email.toLowerCase() === legacy.email.toLowerCase())) {

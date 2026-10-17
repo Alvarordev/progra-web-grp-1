@@ -13,7 +13,7 @@ import styles from './NewWorkPage.module.css'
 const MAX_SUMMARY = 1500
 const MIN_KEYWORDS = 3
 
-const steps = ['1. Datos generales', '2. Coautores', '3. Envío']
+const steps = ['1. Datos generales', '2. Resumen y palabras clave', '3. Documento y coautores']
 
 function validateWork(trabajo) {
   const errores = {}
@@ -221,12 +221,12 @@ function NewWorkPage() {
         <form className={`${styles.panel} ${styles.form}`} id="new-work-form" noValidate onSubmit={handleSubmit}>
           <fieldset disabled={busy || !open} className={styles.formFields}>
           <div className={styles.fullWidth}>
-            <FormField ayuda="Máximo 180 caracteres." error={errores.titulo} etiqueta="Título del trabajo *" htmlFor="work-title">
+            <FormField error={errores.titulo} etiqueta="Título del trabajo *" htmlFor="work-title">
               <input id="work-title" maxLength={180} name="titulo" onChange={handleChange} value={trabajo.titulo} />
             </FormField>
           </div>
 
-          <FormField ayuda="Puede cambiar el tipo mientras el trabajo esté en borrador." etiqueta="Tipo de trabajo *" htmlFor="work-type">
+          <FormField etiqueta="Tipo de trabajo *" htmlFor="work-type">
             <select id="work-type" name="tipo" onChange={handleChange} value={trabajo.tipo}>
               {workTypes.map((tipo) => (
                 <option key={tipo.nombre} value={tipo.nombre}>

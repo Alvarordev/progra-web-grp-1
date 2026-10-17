@@ -22,3 +22,10 @@ git diff --check
 - [Normas de desarrollo](./AGENTS.md).
 - [Referencia de pantallas](./src/ejemplo/README.md).
 - [Persistencia de estados y futura migración a una API](./src/core/utils/README.md).
+
+## Integración
+
+- [Mapa de navegación y condiciones de acceso](./docs/navigation-map.md).
+- [Tres batches y cuentas de demostración](./docs/implementation-batches.md).
+
+La fidelidad visual se contrasta con el mockup de escritorio. Los datos de negocio se guardan en el navegador mediante los repositorios compartidos.

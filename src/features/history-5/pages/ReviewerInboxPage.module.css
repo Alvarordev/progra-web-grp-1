@@ -12,7 +12,7 @@
 .content {
   width: min(100% - var(--space-8), var(--content-width));
   margin: 0 auto;
-  padding: var(--space-5) 0 var(--space-8);
+  padding: var(--space-3) 0 var(--space-6);
 }
 
 .headingRow {
@@ -25,8 +25,8 @@
 
 .headingRow h1 {
   margin: 0 0 var(--space-1);
-  font-size: var(--font-size-section-title);
-  line-height: var(--line-height-section-title);
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-page-title);
 }
 
 .headingRow p {
@@ -130,8 +130,8 @@
 
 .emptyHeading h1 {
   margin: 0 0 var(--space-1);
-  font-size: var(--font-size-section-title);
-  line-height: var(--line-height-section-title);
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-page-title);
 }
 
 .emptyHeading p {
@@ -226,3 +226,6 @@
     width: min(100% - var(--space-6), var(--content-width));
   }
 }
+
+.pendingStat { background: var(--color-warning-soft); }
+.completedStat { background: var(--color-success-soft); }

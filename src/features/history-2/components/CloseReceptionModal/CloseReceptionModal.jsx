@@ -13,7 +13,7 @@ function CloseReceptionModal({ alCerrar, alConfirmar, guardando, error }) {
   }
 
   return (
-    <Modal alCerrar={alCerrar} titulo="Cerrar la recepción de trabajos">
+    <Modal tamano="confirmation" alCerrar={alCerrar} titulo="Cerrar la recepción de trabajos">
       <form className={styles.form} onSubmit={handleSubmit}>
         <p className={styles.transition}>Recepción abierta → En revisión</p>
         <div className={styles.notice}>

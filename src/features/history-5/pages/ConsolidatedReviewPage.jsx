@@ -80,7 +80,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
               <ConsolidatedKpis resumen={consolidado.resumen} />
 
               <section className={styles.block} aria-labelledby="titulo-puntajes">
-                <h2 id="titulo-puntajes">Puntajes por revisor</h2>
+                <h2 className={styles.visuallyHidden} id="titulo-puntajes">Puntajes por revisor</h2>
                 <ConsolidatedScoreTable
                   filas={consolidado.filas}
                   criteriosPromedio={consolidado.criteriosPromedio}
@@ -89,7 +89,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
               </section>
 
               <section className={styles.block} aria-labelledby="titulo-comentarios">
-                <h2 id="titulo-comentarios">Comentarios de los revisores</h2>
+                <h2 className={styles.visuallyHidden} id="titulo-comentarios">Comentarios de los revisores</h2>
                 <ReviewerCommentsPanel revisiones={consolidado.filas} />
               </section>
 

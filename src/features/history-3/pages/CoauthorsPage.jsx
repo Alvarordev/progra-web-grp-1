@@ -83,7 +83,7 @@ function CoauthorsPage() {
       <div className={styles.pageHeading}>
         <div>
           <h1>Coautores</h1>
-          <p>Paso 2 de 3 · {code} · {trabajo.tipo} (hasta {MAX_COAUTHORS} coautores)</p>
+          <p>Paso 3 de 3 · {code} · {trabajo.tipo} (hasta {MAX_COAUTHORS} coautores)</p>
         </div>
         <div className={styles.actions}>
           <Button onClick={() => navigate(`/autor/nuevo-trabajo?borrador=${code}`)} variant="secondary">

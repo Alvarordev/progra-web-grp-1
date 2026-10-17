@@ -6,10 +6,9 @@
 }
 
 .contenidoPrincipal {
-  width: 100%;
-  max-width: var(--container-width, 1360px);
+  width: min(100% - var(--space-8), var(--content-width));
   margin: 0 auto;
-  padding: 28px 24px 56px 24px;
+  padding: var(--space-3) 0 var(--space-6);
   flex: 1;
 }
 
@@ -130,7 +129,7 @@
 }
 
 .tablaSeguimiento td {
-  padding: 13px 16px;
+  padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--color-border, #e4dfda);
   vertical-align: middle;
 }

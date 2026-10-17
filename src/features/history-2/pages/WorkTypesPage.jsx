@@ -69,8 +69,8 @@ function WorkTypesPage() {
         </section>
 
         <p className={styles.notice}>
-          El alta y la edición de un tipo de trabajo se realizan en modal, con
-          los mismos campos de la tabla y validación de extensión mayor a cero.
+          Los requisitos de cada tipo se muestran al registrar un trabajo.
+          Revise la extensión y el máximo de coautores antes de guardar.
         </p>
       </div>
 

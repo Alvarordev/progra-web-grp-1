@@ -39,16 +39,14 @@ function DecisionModal({ alCerrar, codigo, resumen, filas, datos, decision }) {
   }
 
   return (
-    <Modal alCerrar={() => { if (!saving) alCerrar() }} titulo="Decisión final del comité">
-      <p className={styles.subtitulo}>
-        {codigo} · promedio {formatTenth(resumen.promedioGeneral)} · {resumen.entregadas} de {resumen.totalRevisiones} revisiones entregadas
-      </p>
+    <Modal tamano="decision" alCerrar={() => { if (!saving) alCerrar() }} titulo="Decisión final del comité" descripcion={`${codigo} · promedio ${formatTenth(resumen.promedioGeneral)} · ${resumen.entregadas} de ${resumen.totalRevisiones} revisiones entregadas`}>
+      <div className={styles.body}>
 
       <fieldset className={styles.fieldset}>
         <legend>Decisión *</legend>
         <div className={styles.opciones}>
           {opciones.map((opcion) => (
-            <label className={styles.opcion} key={opcion.value}>
+            <label className={styles.opcion} data-decision={opcion.value} key={opcion.value}>
               <input type="radio" name="decision-final" value={opcion.value} checked={result === opcion.value} disabled={saving || published} onChange={() => setResult(opcion.value)} />
               <span>
                 <strong>{opcion.label}</strong>
@@ -78,7 +76,7 @@ function DecisionModal({ alCerrar, codigo, resumen, filas, datos, decision }) {
       </p>
 
       <p className={styles.aviso}>
-        Al publicar, el autor de correspondencia recibirá un correo y el resultado será visible en su detalle del trabajo. La decisión no se puede modificar después.
+        Al publicar, el resultado será visible en el detalle del trabajo del autor de correspondencia. La decisión no se puede modificar después.
       </p>
 
       {error && <p role="alert">{error}</p>}
@@ -86,6 +84,7 @@ function DecisionModal({ alCerrar, codigo, resumen, filas, datos, decision }) {
         <Button disabled={saving} onClick={alCerrar} variant="secondary" type="button">Cancelar</Button>
         <Button disabled={saving || published} onClick={() => save(false)} variant="tertiary" type="button">Guardar sin publicar</Button>
         <Button disabled={published} loading={saving} onClick={() => save(true)} variant="primary" type="button">{published ? 'Decisión publicada' : 'Publicar decisión'}</Button>
+      </div>
       </div>
     </Modal>
   )

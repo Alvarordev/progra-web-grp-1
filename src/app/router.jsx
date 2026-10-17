@@ -1,40 +1,42 @@
-import MyPresentationPage from '../features/history-6/pages/MyPresentationPage.jsx'
-import PublicProgramPage from '../features/history-6/pages/PublicProgramPage.jsx'
-import SessionAssignmentPage from '../features/history-6/pages/SessionAssignmentPage.jsx'
-import SessionBuilderPage from '../features/history-6/pages/SessionBuilderPage.jsx'
-import MetricsPage from '../features/history-7/pages/MetricsPage.jsx'
-import ReviewerCompliancePage from '../features/history-7/pages/ReviewerCompliancePage.jsx'
-import UsersPage from '../features/history-7/pages/UsersPage.jsx'
-import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
-import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
-import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
-import InformationPage from '../features/history-1/pages/InformationPage.jsx'
+import {
+  MyPresentationPage,
+  PublicProgramPage,
+  SessionAssignmentPage,
+  SessionBuilderPage,
+  MetricsPage,
+  ReviewerCompliancePage,
+  UsersPage,
+  ReceivedWorksPage,
+  ReviewersListPage,
+  ReviewsTrackingPage,
+  InformationPage,
+  ExamplePage,
+  AuthorHomePage,
+  History1Page,
+  CongressRulesPage,
+  LoginPage,
+  PasswordRecoveryPage,
+  RegistrationPage,
+  AccountPage,
+  NotFoundPage,
+  RoleAccess,
+  RoleAccessError,
+  EditionSettingsPage,
+  ThematicAxesPage,
+  WorkTypesPage,
+  SchedulePage,
+  CriteriaPage,
+  NewWorkPage,
+  CoauthorsPage,
+  MyWorksPage,
+  WorkDetailPage,
+  ReadOnlyWorkPage,
+  ReviewerInboxPage,
+  EvaluationPage,
+  ConsolidatedReviewPage,
+} from './routePages.js'
 import { createBrowserRouter, redirect } from 'react-router'
-import ExamplePage from '../ejemplo/ExamplePage.jsx'
-import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
-import History1Page from '../features/history-1/pages/History1Page.jsx'
-import CongressRulesPage from '../features/history-1/pages/CongressRulesPage.jsx'
-import LoginPage from '../features/history-1/pages/LoginPage.jsx'
-import PasswordRecoveryPage from '../features/history-1/pages/PasswordRecoveryPage.jsx'
-import RegistrationPage from '../features/history-1/pages/RegistrationPage.jsx'
-import AccountPage from '../features/history-1/pages/AccountPage.jsx'
-import NotFoundPage from '../features/history-1/pages/NotFoundPage.jsx'
-import RoleAccess from '../features/history-1/components/RoleAccess/RoleAccess.jsx'
-import RoleAccessError from '../features/history-1/components/RoleAccess/RoleAccessError.jsx'
 import { createAccessLoader } from './access.js'
-import EditionSettingsPage from '../features/history-2/pages/EditionSettingsPage.jsx'
-import ThematicAxesPage from '../features/history-2/pages/ThematicAxesPage.jsx'
-import WorkTypesPage from '../features/history-2/pages/WorkTypesPage.jsx'
-import SchedulePage from '../features/history-2/pages/SchedulePage.jsx'
-import CriteriaPage from '../features/history-2/pages/CriteriaPage.jsx'
-import NewWorkPage from '../features/history-3/pages/NewWorkPage.jsx'
-import CoauthorsPage from '../features/history-3/pages/CoauthorsPage.jsx'
-import MyWorksPage from '../features/history-3/pages/MyWorksPage.jsx'
-import WorkDetailPage from '../features/history-3/pages/WorkDetailPage.jsx'
-import ReadOnlyWorkPage from '../features/history-3/pages/ReadOnlyWorkPage.jsx'
-import ReviewerInboxPage from '../features/history-5/pages/ReviewerInboxPage.jsx'
-import EvaluationPage from '../features/history-5/pages/EvaluationPage.jsx'
-import ConsolidatedReviewPage from '../features/history-5/pages/ConsolidatedReviewPage.jsx'
 
 const router = createBrowserRouter([
   {

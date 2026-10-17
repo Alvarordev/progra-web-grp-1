@@ -39,23 +39,18 @@ export default function PaginaTrabajosRecibidos() {
   const trabajos = estadoTrabajos.value.map(work => ({ ...work, entregadas: (work.revisoresAsignados ?? []).filter(id => { const reviewer = estadoRevisores.value.find(item => item.id === id); return reviewer && getReview(reviewState.value, reviewer, work.codigo)?.status === 'submitted' }).length }))
   const revisores = estadoRevisores.value
 
-  const ocupado = estadoTrabajos.loading || estadoRevisores.loading || estadoTrabajos.saving || estadoRevisores.saving
-  const errorAlmacenamiento = estadoTrabajos.error || estadoRevisores.error
+  const ocupado = estadoTrabajos.loading || estadoRevisores.loading || estadoTrabajos.saving || estadoRevisores.saving || reviewState.loading
+  const errorAlmacenamiento = estadoTrabajos.error || estadoRevisores.error || reviewState.error
 
   const [vistaVaciaActiva, cambiarVistaVaciaActiva] = usarEstado(
     () => parametrosBusqueda.get('vacio') === '1'
   )
-  const [ejeSeleccionado, cambiarEjeSeleccionado] = usarEstado('Ingeniería de software')
-  const [estadoSeleccionado, cambiarEstadoSeleccionado] = usarEstado('Enviado')
+  const [ejeSeleccionado, cambiarEjeSeleccionado] = usarEstado('todos')
+  const [estadoSeleccionado, cambiarEstadoSeleccionado] = usarEstado('todos')
   const [tipoSeleccionado, cambiarTipoSeleccionado] = usarEstado('todos')
   const [consultaBusqueda, cambiarConsultaBusqueda] = usarEstado('')
-  const [filtroManualActivo, cambiarFiltroManualActivo] = usarEstado(false)
 
-  const [codigosSeleccionados, cambiarCodigosSeleccionados] = usarEstado([
-    'TRB-2026-031',
-    'TRB-2026-035',
-    'TRB-2026-040',
-  ])
+  const [codigosSeleccionados, cambiarCodigosSeleccionados] = usarEstado([])
   const [paginaActual, cambiarPaginaActual] = usarEstado(1)
   const elementosPorPagina = 8
 
@@ -71,9 +66,6 @@ export default function PaginaTrabajosRecibidos() {
   const trabajosFiltrados = usarMemo(() => {
     if (vistaVaciaActiva) {
       return []
-    }
-    if (!filtroManualActivo) {
-      return trabajosSinBorrador
     }
     return trabajosSinBorrador.filter((trabajo) => {
       if (ejeSeleccionado !== 'todos' && trabajo.eje !== ejeSeleccionado) return false
@@ -93,16 +85,13 @@ export default function PaginaTrabajosRecibidos() {
   }, [
     vistaVaciaActiva,
     trabajosSinBorrador,
-    filtroManualActivo,
     ejeSeleccionado,
     estadoSeleccionado,
     tipoSeleccionado,
     consultaBusqueda,
   ])
 
-  const totalPaginas = !filtroManualActivo
-    ? 2
-    : Math.max(1, Math.ceil(trabajosFiltrados.length / elementosPorPagina))
+  const totalPaginas = Math.max(1, Math.ceil(trabajosFiltrados.length / elementosPorPagina))
 
   const trabajosPaginados = trabajosFiltrados.slice(
     (paginaActual - 1) * elementosPorPagina,
@@ -186,7 +175,7 @@ export default function PaginaTrabajosRecibidos() {
 
   const limpiarFiltros = () => {
     cambiarVistaVaciaActiva(false)
-    cambiarFiltroManualActivo(true)
+
     cambiarEjeSeleccionado('todos')
     cambiarEstadoSeleccionado('todos')
     cambiarTipoSeleccionado('todos')
@@ -195,20 +184,14 @@ export default function PaginaTrabajosRecibidos() {
   }
 
   const quitarFiltroEje = () => {
-    cambiarFiltroManualActivo(true)
+
     cambiarEjeSeleccionado('todos')
-    if (estadoSeleccionado === 'Enviado' && !filtroManualActivo) {
-      cambiarEstadoSeleccionado('todos')
-    }
     cambiarPaginaActual(1)
   }
 
   const quitarFiltroEstado = () => {
-    cambiarFiltroManualActivo(true)
+
     cambiarEstadoSeleccionado('todos')
-    if (ejeSeleccionado === 'Ingeniería de software' && !filtroManualActivo) {
-      cambiarEjeSeleccionado('todos')
-    }
     cambiarPaginaActual(1)
   }
 
@@ -315,7 +298,7 @@ export default function PaginaTrabajosRecibidos() {
                     value={ejeSeleccionado}
                     onChange={(evento) => {
                       cambiarVistaVaciaActiva(false)
-                      cambiarFiltroManualActivo(true)
+
                       cambiarEjeSeleccionado(evento.target.value)
                       cambiarPaginaActual(1)
                     }}
@@ -339,7 +322,7 @@ export default function PaginaTrabajosRecibidos() {
                     value={estadoSeleccionado}
                     onChange={(evento) => {
                       cambiarVistaVaciaActiva(false)
-                      cambiarFiltroManualActivo(true)
+
                       cambiarEstadoSeleccionado(evento.target.value)
                       cambiarPaginaActual(1)
                     }}
@@ -358,7 +341,7 @@ export default function PaginaTrabajosRecibidos() {
                       value={tipoSeleccionado}
                       onChange={(evento) => {
                         cambiarVistaVaciaActiva(false)
-                        cambiarFiltroManualActivo(true)
+
                         cambiarTipoSeleccionado(evento.target.value)
                         cambiarPaginaActual(1)
                       }}
@@ -381,7 +364,7 @@ export default function PaginaTrabajosRecibidos() {
                     value={consultaBusqueda}
                     onChange={(evento) => {
                       cambiarVistaVaciaActiva(false)
-                      cambiarFiltroManualActivo(true)
+
                       cambiarConsultaBusqueda(evento.target.value)
                       cambiarPaginaActual(1)
                     }}
@@ -422,7 +405,7 @@ export default function PaginaTrabajosRecibidos() {
                       <button
                         type="button"
                         onClick={() => {
-                          cambiarFiltroManualActivo(true)
+
                           cambiarTipoSeleccionado('todos')
                           cambiarPaginaActual(1)
                         }}
@@ -438,7 +421,7 @@ export default function PaginaTrabajosRecibidos() {
                       <button
                         type="button"
                         onClick={() => {
-                          cambiarFiltroManualActivo(true)
+
                           cambiarConsultaBusqueda('')
                           cambiarPaginaActual(1)
                         }}
@@ -566,13 +549,8 @@ export default function PaginaTrabajosRecibidos() {
                 <div className={estilos.filaPaginacion}>
                   <span className={estilos.infoPaginacion}>
                     Mostrando {(paginaActual - 1) * elementosPorPagina + 1}–
-                    {!filtroManualActivo && paginaActual === 1
-                      ? 8
-                      : Math.min(
-                          paginaActual * elementosPorPagina,
-                          trabajosFiltrados.length
-                        )}{' '}
-                    de {!filtroManualActivo ? 14 : trabajosFiltrados.length} trabajos
+                    {Math.min(paginaActual * elementosPorPagina, trabajosFiltrados.length)}{' '}
+                    de {trabajosFiltrados.length} trabajos
                     {codigosSeleccionados.length > 0 &&
                       ` · ${codigosSeleccionados.length} seleccionados`}
                   </span>

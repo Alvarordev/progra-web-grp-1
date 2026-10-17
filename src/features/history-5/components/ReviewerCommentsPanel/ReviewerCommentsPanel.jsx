@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styles from './ReviewerCommentsPanel.module.css'
 
 const pestanas = [
-  { id: 'autor', etiqueta: 'Comentarios al autor' },
+  { id: 'autor', etiqueta: 'Comentarios al autor reunidos' },
   { id: 'comite', etiqueta: 'Observaciones confidenciales' },
 ]
 

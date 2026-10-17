@@ -97,6 +97,7 @@ function EvaluationScreen({ codigo }) {
   const [sentAt, setSentAt] = useState(null)
   const [notice, setNotice] = useState('')
   const [errors, setErrors] = useState([])
+  const [attempted, setAttempted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [reviewerId, setReviewerId] = useState('demo-reviewer')
@@ -141,6 +142,7 @@ function EvaluationScreen({ codigo }) {
   const scoredCriteria = criteria.filter((criterion) => isValidScore(criterion.puntaje))
   const average = formatTenth(calculateWeightedAverage(criteria))
   const recommendationLabel = getRecommendationLabel(recommendation)
+  const scoreErrorsOnly = errors.length === 1 && errors[0].startsWith('Completa el puntaje y comentario de:') && criteria.every(criterion => criterion.comentario.trim())
 
   function updateCriterion(id, field, value) {
     setCriteria((currentCriteria) =>
@@ -185,6 +187,7 @@ function EvaluationScreen({ codigo }) {
 
   function sendRecommendation(event) {
     event.preventDefault()
+    setAttempted(true)
 
     const missingCriteria = criteria
       .filter((criterion) => criterion.puntaje === '' || !criterion.comentario.trim())
@@ -245,7 +248,7 @@ function EvaluationScreen({ codigo }) {
           )}
 
           {errors.length > 0 && (
-            <div className={styles.errorNotice} role="alert">
+            <div className={`${styles.errorNotice} ${scoreErrorsOnly ? styles.visuallyHidden : ''}`} role="alert">
               <strong>Revisa estos campos antes de enviar:</strong>
               <ul>
                 {errors.map((error) => <li key={error}>{error}</li>)}
@@ -297,7 +300,7 @@ function EvaluationScreen({ codigo }) {
                 </div>
 
                 {criteria.map((criterion) => {
-                  const scoreInvalid = criterion.puntaje !== '' && !isValidScore(criterion.puntaje)
+                  const scoreInvalid = (attempted || criterion.puntaje !== '') && !isValidScore(criterion.puntaje)
 
                   return (
                     <div className={styles.criterionRow} key={criterion.id}>
@@ -393,7 +396,7 @@ function EvaluationScreen({ codigo }) {
               <label className={styles.field}>
                 <span>Comentarios al autor *</span>
                 <textarea
-                  rows="4"
+                  rows="3"
                   value={authorComment}
                   disabled={submitted}
                   onChange={(event) => {
@@ -406,7 +409,7 @@ function EvaluationScreen({ codigo }) {
               <label className={styles.field}>
                 <span>Observaciones al comité (confidencial)</span>
                 <textarea
-                  rows="4"
+                  rows="3"
                   value={committeeComment}
                   disabled={submitted}
                   onChange={(event) => setCommitteeComment(event.target.value)}

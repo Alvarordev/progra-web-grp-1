@@ -15,13 +15,11 @@ function HeroSection({ rol, edicion }) {
       <div className={styles.content}>
         <div className={styles.text}>
           <p className={styles.eyebrow}>
-            CONVOCATORIA ABIERTA · LIMA, 12 Y 13 DE NOVIEMBRE DE 2026
+            CONGRESO ACADÉMICO · LIMA · EDICIÓN {edicion?.editionYear}
           </p>
           <h1>{edicion?.editionName ?? 'VIII Congreso Académico Estudiantil'}</h1>
           <p className={styles.description}>
-            Presenta tu investigación ante el comité y la comunidad universitaria.
-            Recibimos artículos completos, resúmenes extendidos, pósteres y casos
-            de estudio en seis ejes temáticos.
+            {edicion?.editionDescription}
           </p>
         </div>
 

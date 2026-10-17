@@ -3,6 +3,8 @@ import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.js
 import InfoPanel from '../components/InfoPanel/InfoPanel.jsx'
 import WorkDataPanel from '../components/WorkDataPanel/WorkDataPanel.jsx'
 import WorkHeading from '../components/WorkHeading/WorkHeading.jsx'
+import { receptionIsOpen } from '../../../core/utils/submissions.js'
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import useConference from '../../../core/utils/useConference.js'
 import { getAuthorWorks } from '../../../core/utils/submissions.js'
 import styles from './WorkDetailPage.module.css'
@@ -33,7 +35,7 @@ function ReadOnlyWorkPage() {
           !
         </span>
         <p>
-          <strong>La recepción cerró el 30/09/2026 a las 23:59.</strong> Este trabajo se muestra en modo lectura y
+          <strong>{receptionIsOpen(conference.status, conference.schedule) ? 'Vista de solo lectura.' : `La recepción cerró el ${formatScheduleDate(conference.schedule.reception ?? '')}.`}</strong> Este trabajo se muestra en modo lectura y
           ya no admite cambios. Si necesita corregir un dato, escriba al comité organizador.
         </p>
       </section>

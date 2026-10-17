@@ -12,7 +12,7 @@
   gap: var(--space-1);
   padding: var(--space-3);
   border: 1px solid var(--color-border);
-  border-top: 2px solid var(--color-accent);
+  border-top: 2px solid var(--color-primary);
   background: var(--color-surface);
 }
 
@@ -35,3 +35,7 @@
   font-size: var(--font-size-label);
   color: var(--color-text-muted);
 }
+
+.kpi:nth-child(2) { border-top-color: var(--color-accent); }
+.kpi:nth-child(3) { border-top-color: var(--color-success); }
+.kpi:nth-child(4) { border-top-color: var(--color-info); }

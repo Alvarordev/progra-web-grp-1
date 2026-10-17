@@ -47,11 +47,10 @@ El cronograma usa cadenas `AAAA-MM-DDTHH:mm` en horario de Lima y exige recepci�
 anterior a revisión y revisión anterior a publicación. Los criterios pueden
 guardarse con una suma pendiente; cerrar la recepción y pasar a «En revisión»
 exige una suma de 100. El cierre requiere aceptar la casilla y escribir `CERRAR`.
-Por ahora se guarda el estado: los efectos sobre envíos se conectarán cuando
-exista esa historia.
+El estado y el cronograma gobiernan el alta y la edición de los trabajos del autor.
 
 Las evaluaciones se guardan en `reviewsRepository`, identificadas por usuario
-y código de trabajo. Sin login se utiliza el revisor `demo-reviewer`. El borrador
+y código de trabajo. La ruta exige cuenta y asignación vigentes. El borrador
 admite campos incompletos; el envío requiere puntajes enteros de 0 a 20,
 comentarios obligatorios, recomendación y pesos que sumen 100. Una evaluación
 enviada se recupera en modo lectura y actualiza la bandeja. Se conservan los
@@ -101,7 +100,7 @@ cuenta, registro y login ejecutan esta lectura, preservando la ficha anterior.
 correos duplicados y guarda una credencial derivada por cuenta.
 `authenticateParticipant()` requiere tanto ficha como credencial coincidente;
 `startAccountSession()` guarda la ficha activa y la identidad después de verificar.
-Las fichas antiguas sin credencial deben establecerla mediante recuperación.
+Las cuentas de ejemplo usan su credencial inicial de demostración; las demás fichas antiguas sin credencial deben establecerla mediante recuperación.
 Solo se navega al terminar las escrituras: autor a `/autor`, revisor a
 `/mi-cuenta` (Historia 1.5), ambos a `/autor` con enlace a la cuenta de revisor.
 ### Recordarme en este equipo
@@ -305,3 +304,15 @@ corresponderán al backend.
 El directorio combina fichas de participantes con los datos administrativos de Usuarios. Sus cambios se aplican a la cuenta correspondiente; el login consulta el bloqueo. Un revisor bloqueado conserva entregas pero deja de ser responsable de asignaciones pendientes.
 
 Las semillas son datos iniciales de la base local y se escriben en la primera lectura. Una colección guardada vacía se conserva. Las sesiones sin identidad no se escriben como registros nulos. No se borran ni sustituyen datos incompatibles.
+
+## Integración de las historias
+
+`useConference` carga configuración, trabajos, revisores, evaluaciones, decisiones y programa mediante sus repositorios. Los borradores y envíos comparten `worksRepository`; el comité, el autor y el revisor consultan esos mismos códigos. `decisionsRepository` conserva borradores y decisiones publicadas. `programRepository` guarda sesiones, asignaciones y la instantánea pública; editar un borrador no modifica la publicación anterior.
+
+`directoryRepository` une participantes y fichas de gestión, sincroniza cambios de correo con las credenciales derivadas y las referencias de trabajos, y aplica el bloqueo de cuentas. Se conservan las evaluaciones entregadas y se liberan las pendientes del revisor bloqueado. La actividad del tablero se deriva de los registros compartidos.
+
+Los valores iniciales se materializan en la primera lectura de cada repositorio. `remove()` elimina solo su clave; la lectura posterior vuelve a proporcionar su valor inicial. Un valor vacío guardado continúa vacío. Un formato incompatible produce un error y conserva el contenido original.
+
+Los repositorios locales ofrecen además `subscribe(listener)` para que componentes simultáneos, como el encabezado y Configuración, reflejen el mismo guardado. `useStoredState` libera esta suscripción al desmontarse. Esta notificación no cambia el contrato asíncrono de lectura y escritura.
+
+Consulte el [mapa de navegación](../../../docs/navigation-map.md) y las [cuentas de demostración](../../../docs/implementation-batches.md).

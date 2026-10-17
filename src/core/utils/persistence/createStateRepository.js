@@ -6,6 +6,7 @@ export default function createStateRepository({
   storage = 'localStorage',
 }) {
   const key = `congress:${name}`
+  const listeners = new Set()
 
   function assertValid(value) {
     if (!validate(value)) {
@@ -14,6 +15,10 @@ export default function createStateRepository({
   }
 
   return {
+    subscribe(listener) {
+      listeners.add(listener)
+      return () => listeners.delete(listener)
+    },
     async get() {
       let stored
       try {
@@ -43,6 +48,7 @@ export default function createStateRepository({
         const stored = JSON.parse(text)
         assertValid(stored.data)
         window[storage].setItem(key, text)
+        listeners.forEach(listener => listener())
         return stored.data
       } catch (cause) {
         throw new Error('No se pudieron guardar los datos en este navegador.', { cause })
@@ -51,6 +57,7 @@ export default function createStateRepository({
     async remove() {
       try {
         window[storage].removeItem(key)
+        listeners.forEach(listener => listener())
       } catch (cause) {
         throw new Error('No se pudieron eliminar los datos de este navegador.', { cause })
       }

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
+import Pagination from '../../../core/ui/Pagination/Pagination.jsx'
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
@@ -26,6 +28,7 @@ function MyWorksPage() {
   const [searchParams] = useSearchParams()
   const [filtroActivo, setFiltroActivo] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
+  const [page, setPage] = useState(1)
 
   const trabajos = searchParams.get('vista') === 'vacia' ? [] : getAuthorWorks(conference.works, conference.account, conference.decisions)
   const codigoEnviado = location.state?.enviado
@@ -36,6 +39,10 @@ function MyWorksPage() {
       (filtroActivo === 'todos' || trabajo.estado === filtroActivo) &&
       (trabajo.titulo.toLowerCase().includes(texto) || trabajo.codigo.toLowerCase().includes(texto)),
   )
+
+  const pageSize = 4
+  const currentPage = Math.min(page, Math.max(1, Math.ceil(trabajosFiltrados.length / pageSize)))
+  const visibleWorks = trabajosFiltrados.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const filtrosConCantidad = filters
     .map((filtro) => ({
@@ -52,15 +59,15 @@ function MyWorksPage() {
   if (trabajos.length === 0) {
     return (
       <AuthorPageLayout rutaActiva="/autor/trabajos">
-        <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
-          Cierra el 30/09/2026 a las 23:59.
+        <DeadlineNotice titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+          Fecha de cierre: {formatScheduleDate(conference.schedule.reception ?? '')}.
         </DeadlineNotice>
         <div className={styles.pageHeading}>
           <div>
             <h1>Mis trabajos</h1>
             <p>Aún no registra trabajos en esta edición</p>
           </div>
-          <Button onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
+          <Button disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
             Nuevo trabajo
           </Button>
         </div>
@@ -68,7 +75,7 @@ function MyWorksPage() {
           <EmptyState
             accion={
               <div className={styles.emptyActions}>
-                <Button onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
+                <Button disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')} variant="primary">
                   Registrar mi primer trabajo
                 </Button>
                 <Link className={styles.textLink} to="/bases">
@@ -76,7 +83,7 @@ function MyWorksPage() {
                 </Link>
               </div>
             }
-            descripcion="Registre su trabajo antes del 30/09/2026 a las 23:59. Puede guardarlo como borrador y completarlo después."
+            descripcion={open ? 'Puede guardar su trabajo como borrador y completarlo antes del cierre de recepción.' : 'La recepción está cerrada. Consulte las fechas vigentes en las bases del congreso.'}
             icono="✎"
             titulo="Todavía no tiene trabajos registrados"
           />
@@ -111,7 +118,7 @@ function MyWorksPage() {
               aria-pressed={filtroActivo === filtro.estado}
               className={`${styles.filter} ${filtroActivo === filtro.estado ? styles.filterActive : ''}`}
               key={filtro.estado}
-              onClick={() => setFiltroActivo(filtro.estado)}
+              onClick={() => { setFiltroActivo(filtro.estado); setPage(1) }}
               type="button"
             >
               {filtro.label} · {filtro.cantidad}
@@ -121,7 +128,7 @@ function MyWorksPage() {
         <label className={styles.search}>
           <span className={styles.visuallyHidden}>Buscar trabajos</span>
           <input
-            onChange={(event) => setBusqueda(event.target.value)}
+            onChange={(event) => { setBusqueda(event.target.value); setPage(1) }}
             placeholder="Buscar por título o código…"
             type="search"
             value={busqueda}
@@ -131,7 +138,7 @@ function MyWorksPage() {
 
       {trabajosFiltrados.length > 0 ? (
         <section aria-label="Lista de trabajos" className={styles.workGrid}>
-          {trabajosFiltrados.map((trabajo) => (
+          {visibleWorks.map((trabajo) => (
             <WorkCard key={trabajo.codigo} trabajo={trabajo} recepcionAbierta={open} />
           ))}
         </section>
@@ -139,22 +146,7 @@ function MyWorksPage() {
         <p className={styles.noResults}>Ningún trabajo coincide con la búsqueda.</p>
       )}
 
-      <nav aria-label="Paginación" className={styles.pagination}>
-        <span>
-          Mostrando {trabajosFiltrados.length} de {trabajos.length} trabajos
-        </span>
-        <div className={styles.pages}>
-          <button className={styles.pageButton} disabled type="button">
-            Anterior
-          </button>
-          <span aria-current="page" className={styles.currentPage}>
-            1
-          </span>
-          <button className={styles.pageButton} disabled type="button">
-            Siguiente
-          </button>
-        </div>
-      </nav>
+      <Pagination pagina={currentPage} porPagina={pageSize} total={trabajosFiltrados.length} alCambiar={setPage} />
     </AuthorPageLayout>
   )
 }

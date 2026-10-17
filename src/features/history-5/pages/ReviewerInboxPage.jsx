@@ -1,3 +1,4 @@
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
 import { Link } from 'react-router'
@@ -69,7 +70,7 @@ function ReviewerInboxPage() {
                 <div className={styles.emptyIcon} aria-hidden="true">✓</div>
                 <h2>No tiene revisiones asignadas</h2>
                 <p>
-                  El comité asigna los trabajos cuando cierra la recepción, el 30/09/2026.
+                  El comité asigna los trabajos cuando cierra la recepción, el {formatScheduleDate(conference.schedule.reception ?? '')}.
                   <br />
                   Mantenga sus líneas de interés actualizadas para recibir trabajos afines.
                 </p>
@@ -84,7 +85,7 @@ function ReviewerInboxPage() {
                 <div>
                   <h1>Mi bandeja de revisión</h1>
                   <p>
-                    {assignments.length} trabajos asignados · la etapa de revisión cierra el 20/10/2026 a las 18:00
+                    {assignments.length} trabajos asignados · la etapa de revisión cierra el {formatScheduleDate(conference.schedule.review ?? '')}
                   </p>
                 </div>
 

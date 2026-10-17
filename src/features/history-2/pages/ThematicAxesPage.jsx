@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { thematicAxesRepository } from '../../../core/utils/repositories.js'
+import { thematicAxesRepository, worksRepository } from '../../../core/utils/repositories.js'
 import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
@@ -11,7 +11,11 @@ import ThematicAxisModal from '../components/ThematicAxisModal/ThematicAxisModal
 import styles from './ThematicAxesPage.module.css'
 
 function ThematicAxesPage() {
-  const { value: ejes, loading, saving, error, save } = useStoredState(thematicAxesRepository, thematicAxes)
+  const { value: storedAxes, loading: axesLoading, saving, error: axesError, save } = useStoredState(thematicAxesRepository, thematicAxes)
+  const worksState = useStoredState(worksRepository, [])
+  const ejes = storedAxes.map(axis => ({ ...axis, trabajos: worksState.value.filter(work => work.eje === axis.nombre && work.estado !== 'Borrador').length }))
+  const loading = axesLoading || worksState.loading
+  const error = axesError || worksState.error
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
   const hasAxes = ejes.length > 0

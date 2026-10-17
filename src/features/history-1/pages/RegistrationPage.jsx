@@ -33,6 +33,7 @@ function RegistrationPage() {
   }
 
   function handleBlur(event) {
+    if (!submitted) return
     const { name } = event.target
     setTouched((currentTouched) => ({ ...currentTouched, [name]: true }))
   }

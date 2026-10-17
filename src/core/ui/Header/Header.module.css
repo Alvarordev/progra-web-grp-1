@@ -8,12 +8,10 @@
 
 .container {
     display: flex;
-    max-width: var(--content-width);
-    width: 100%;
+    width: min(100% - var(--space-8), var(--content-width));
     align-items: center;
     justify-content: space-between;
     margin: 0 auto;
-    padding: 0 var(--space-4);
 }
 
 .leftSide {

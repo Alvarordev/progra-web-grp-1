@@ -1,5 +1,6 @@
+import { splitAccountName } from './accountNames.js'
 import { getReview } from './assignments.js'
-import { participantsRepository, usersRepository, reviewersRepository, worksRepository, reviewsRepository } from './repositories.js'
+import { participantsRepository, usersRepository, reviewersRepository, worksRepository, reviewsRepository, demoCredentialsRepository } from './repositories.js'
 
 export const roleLabels = { author: 'Autor', reviewer: 'Revisor', both: 'Ambos', committee: 'Comité' }
 export const roleValues = { Autor: 'author', Revisor: 'reviewer', Ambos: 'both', Comité: 'committee' }
@@ -19,27 +20,34 @@ export async function getDirectory() {
 }
 
 export async function saveDirectory(users) {
-  const [previous, participants, reviewers] = await Promise.all([usersRepository.get(), participantsRepository.get(), reviewersRepository.get()])
+  const [previous, participants, reviewers, credentials, works, reviews] = await Promise.all([usersRepository.get(), participantsRepository.get(), reviewersRepository.get(), demoCredentialsRepository.get(), worksRepository.get(), reviewsRepository.get()])
   const nextParticipants = participants.map(participant => {
     const user = users.find(item => item.userId === participant.userId || item.correo.toLowerCase() === participant.email.toLowerCase())
     if (!user) return participant
-    return { ...participant, name: user.nombre, names: user.nombre.split(' ')[0], surnames: user.nombre.split(' ').slice(1).join(' ') || user.nombre, email: user.correo, institution: user.institucion, role: roleValues[user.rol] }
+    return { ...participant, name: user.nombre, ...(user.nombre === participant.name ? {} : splitAccountName(user.nombre)), email: user.correo, institution: user.institucion, role: roleValues[user.rol] }
   })
   await usersRepository.save(users)
   try {
     await participantsRepository.save(nextParticipants)
+    const emailChanges = participants.flatMap(participant => {
+      const next = nextParticipants.find(item => item.userId === participant.userId)
+      return next.email === participant.email ? [] : [[participant.email, next.email]]
+    })
+    const emailMap = new Map(emailChanges)
+    await demoCredentialsRepository.save(credentials.map(credential => ({ ...credential, email: emailMap.get(credential.email) ?? credential.email })))
     const nextReviewers = reviewers.map(reviewer => {
       const participant = participants.find(item => item.userId === reviewer.userId)
       const user = users.find(item => item.userId === reviewer.userId || item.correo === (reviewer.email ?? participant?.email))
-      return user ? { ...reviewer, nombre: user.nombre, institucion: user.institucion, bloqueado: user.bloqueado } : reviewer
+      return user ? { ...reviewer, nombre: user.nombre, email: user.correo, institucion: user.institucion, bloqueado: user.bloqueado } : reviewer
     })
     await reviewersRepository.save(nextReviewers)
-    const [works, reviews] = await Promise.all([worksRepository.get(), reviewsRepository.get()])
-    await worksRepository.save(works.map(work => ({ ...work, revisoresAsignados: work.revisoresAsignados.filter(id => { const reviewer = nextReviewers.find(item => item.id === id); return !reviewer?.bloqueado || getReview(reviews, reviewer, work.codigo)?.status === 'submitted' }) })))
+    await worksRepository.save(works.map(work => ({ ...work, ownerEmail: emailMap.get(work.ownerEmail) ?? work.ownerEmail, ...(work.details?.autores ? { details: { ...work.details, autores: work.details.autores.map(author => ({ ...author, correo: emailMap.get(author.correo) ?? author.correo })) } } : {}), revisoresAsignados: work.revisoresAsignados.filter(id => { const reviewer = nextReviewers.find(item => item.id === id); return !reviewer?.bloqueado || getReview(reviews, reviewer, work.codigo)?.status === 'submitted' }) })))
   } catch (error) {
     await usersRepository.save(previous)
     await participantsRepository.save(participants)
     await reviewersRepository.save(reviewers)
+    await demoCredentialsRepository.save(credentials)
+    await worksRepository.save(works)
     throw error
   }
   return users

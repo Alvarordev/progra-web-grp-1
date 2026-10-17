@@ -30,6 +30,7 @@ function SessionAssignmentPage() {
   const hayEspacio = contenido.length < capacidad
 
   function handleAdd(trabajo) {
+    if (conference.busy) return
     if (!hayEspacio) {
       return
     }
@@ -39,11 +40,13 @@ function SessionAssignmentPage() {
   }
 
   function handleRemove(trabajo) {
+    if (conference.busy) return
     setContenido(contenido.filter(item => item.codigo !== trabajo.codigo))
     setFeedback('')
   }
 
   function handleMove(indice, desplazamiento) {
+    if (conference.busy) return
     const destino = indice + desplazamiento
 
     setContenido(() => {

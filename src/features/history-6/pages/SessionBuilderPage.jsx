@@ -129,7 +129,8 @@ function SessionBuilderPage() {
       {modal && (
         <SessionModal
           alCerrar={() => { if (!conference.saving) setModal(null) }}
-            guardando={conference.saving}
+          guardando={conference.saving}
+          ejes={conference.axes.map(axis => axis.nombre)}
           alGuardar={handleSave}
           key={`${modal.modo}-${modal.sesion?.id ?? 'new'}`}
           modo={modal.modo}

@@ -23,7 +23,7 @@ function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alCon
   }
 
   return (
-    <Modal alCerrar={alCerrar} titulo="Bloquear usuario">
+    <Modal tamano="compact" alCerrar={alCerrar} titulo="Bloquear usuario">
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
         <fieldset className={styles.body} disabled={guardando}>
           <div className={styles.summary}>

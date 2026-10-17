@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import { rooms, thematicAxes } from '../../data/program.js'
+import { rooms } from '../../data/program.js'
 import { sessionsOverlap, toMinutes } from '../../utils/sessionSchedule.js'
 import styles from './SessionModal.module.css'
 
@@ -69,7 +69,7 @@ function validate(valores, sesiones, idActual) {
   return errores
 }
 
-function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, sesiones }) {
+function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, sesiones, ejes }) {
   const [valores, setValores] = useState(() => createFormValues(sesion))
   const [errores, setErrores] = useState({})
   const titulo = modo === 'edit' ? 'Editar sesión' : 'Nueva sesión'
@@ -83,6 +83,7 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (guardando) return
 
     const erroresFormulario = validate(valores, sesiones, sesion?.id)
 
@@ -106,6 +107,7 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
       name: campo,
       onChange: handleChange,
       value: valores[campo],
+      disabled: guardando,
     }
   }
 
@@ -136,7 +138,7 @@ function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, se
             <option disabled value="">
               Seleccione un eje
             </option>
-            {thematicAxes.map((eje) => (
+            {ejes.map((eje) => (
               <option key={eje} value={eje}>
                 {eje}
               </option>
