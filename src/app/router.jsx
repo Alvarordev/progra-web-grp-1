@@ -1,3 +1,7 @@
+import MyPresentationPage from '../features/history-6/pages/MyPresentationPage.jsx'
+import PublicProgramPage from '../features/history-6/pages/PublicProgramPage.jsx'
+import SessionAssignmentPage from '../features/history-6/pages/SessionAssignmentPage.jsx'
+import SessionBuilderPage from '../features/history-6/pages/SessionBuilderPage.jsx'
 import MetricsPage from '../features/history-7/pages/MetricsPage.jsx'
 import ReviewerCompliancePage from '../features/history-7/pages/ReviewerCompliancePage.jsx'
 import UsersPage from '../features/history-7/pages/UsersPage.jsx'
@@ -148,6 +152,12 @@ const router = createBrowserRouter([
     path: '/usuarios',
     element: <UsersPage />,
   },
+  {
+    path: '/programa', element: <SessionBuilderPage />,
+  },
+  { path: '/programa/asignar-trabajos', element: <SessionAssignmentPage /> },
+  { path: '/programa-publico', element: <PublicProgramPage /> },
+  { path: '/mi-presentacion', element: <MyPresentationPage /> },
   {
     path: '*',
     element: <NotFoundPage />,

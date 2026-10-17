@@ -1,0 +1,26 @@
+/* Misma barra de navegación que ReviewerNavigation: se reutilizan sus estilos. */
+.navigationBar {
+  composes: navigationBar from '../ReviewerNavigation/ReviewerNavigation.module.css';
+}
+
+.navigationContent {
+  composes: navigationContent from '../ReviewerNavigation/ReviewerNavigation.module.css';
+}
+
+.navigation {
+  composes: navigation from '../ReviewerNavigation/ReviewerNavigation.module.css';
+}
+
+.link {
+  composes: link from '../ReviewerNavigation/ReviewerNavigation.module.css';
+}
+
+.active {
+  composes: active from '../ReviewerNavigation/ReviewerNavigation.module.css';
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
