@@ -41,7 +41,7 @@ export async function getParticipantAccounts() {
   )
   accounts.push(storedAccounts.find(account => account.userId === defaultCommitteeAccount.userId) ?? { ...defaultCommitteeAccount })
   for (const user of initialUsers) {
-    if (!accounts.some(account => account.email.toLowerCase() === user.correo.toLowerCase())) {
+    if (!accounts.some(account => account.userId === `participant:${user.correo}` || account.email.toLowerCase() === user.correo.toLowerCase())) {
       accounts.push({ userId: `participant:${user.correo}`, names: user.nombre.split(' ')[0], surnames: user.nombre.split(' ').slice(1).join(' '), name: user.nombre, email: user.correo, institution: user.institucion, role: roleValues[user.rol] })
     }
   }

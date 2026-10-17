@@ -17,3 +17,20 @@ Las credenciales iniciales de las cuentas de ejemplo se derivan al usarlas por p
 ## Verificación
 
 Por batch: `npm run lint`, `npm run build`, `git diff --check` y recorridos puntuales de Playwright. Las comprobaciones no se conservan como archivos de tests en el repositorio.
+
+## Batch 1 — completado
+
+Rutas por rol y destinos públicos completos. Cuentas de demostración y repositorios de decisiones y programa. Validación: lint, build, diff sin errores y acceso por login del comité a Usuarios.
+
+## Batch 2 — completado
+
+- Borradores, coautores y envíos comparten `congress:works`; el comité y el autor leen el mismo registro.
+- Bandeja, seguimiento, consolidado y métricas se calculan con trabajos, revisores y evaluaciones compartidos. Los ids antiguos de revisores conservan compatibilidad.
+- Decisiones guardadas/publicadas, programas y orden de exposición persistidos. La publicación mantiene una instantánea pública.
+- Bloqueo de cuentas efectivo en login; se conservan las evaluaciones entregadas y se liberan las asignaciones pendientes del revisor bloqueado.
+- Descargas de listado CSV, reporte, programa PDF y calendario ICS. La versión final se adjunta mediante un enlace HTTPS persistido.
+- Recordatorios registrados localmente. No se envían correos a servicios externos.
+
+Playwright comprobó autor → borrador → recarga → coautores → envío → comité → asignación → revisor → evaluación → decisión → sesión. También confirmó publicación pública, descargas PDF/ICS, bloqueo de recepción y rechazo del login de una cuenta bloqueada. Lint, build y `git diff --check` correctos.
+
+Las fechas iniciales reproducen el PDF de 2026: el comité debe actualizar el cronograma para abrir un plazo vigente. La ampliación 1.4 permanece sin cambios.

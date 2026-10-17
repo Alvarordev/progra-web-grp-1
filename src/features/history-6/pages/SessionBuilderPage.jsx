@@ -1,3 +1,5 @@
+import useConference from '../../../core/utils/useConference.js'
+import { getProgramWorks } from '../../../core/utils/program.js'
 import { useState } from 'react'
 import Button from '../../../core/ui/Button/Button.jsx'
 import CommitteeProgramLayout from '../components/CommitteeProgramLayout/CommitteeProgramLayout.jsx'
@@ -5,16 +7,17 @@ import ProgramSummary from '../components/ProgramSummary/ProgramSummary.jsx'
 import RoomOccupancy from '../components/RoomOccupancy/RoomOccupancy.jsx'
 import SessionModal from '../components/SessionModal/SessionModal.jsx'
 import SessionsTable from '../components/SessionsTable/SessionsTable.jsx'
-import { acceptedWorks, initialSessions, rooms } from '../data/program.js'
+import { rooms } from '../data/program.js'
 import { findOverlaps, formatDate, getOverlapRange } from '../utils/sessionSchedule.js'
 import styles from './SessionBuilderPage.module.css'
 
 const OCCUPANCY_DATE = '2026-11-12'
-const TEMPORARY_CHANGES_MESSAGE =
-  'Cambios aplicados temporalmente. No se guardarán al recargar.'
+const SAVED_MESSAGE = 'Sesión guardada en este navegador.'
 
 function SessionBuilderPage() {
-  const [sesiones, setSesiones] = useState(initialSessions)
+  const conference = useConference()
+  const sesiones = conference.program.sessions
+  const acceptedWorks = getProgramWorks(conference.works, conference.program)
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState({ mensaje: '', esError: false })
 
@@ -32,46 +35,22 @@ function SessionBuilderPage() {
     setModal({ modo: 'edit', sesion })
   }
 
-  function handleSave(sesionActualizada) {
-    if (modal.modo === 'edit') {
-      setSesiones((sesionesActuales) =>
-        sesionesActuales.map((sesion) =>
-          sesion.id === modal.sesion.id
-            ? {
-                ...sesion,
-                ...sesionActualizada,
-                moderadorCompleto:
-                  sesionActualizada.moderador === sesion.moderador
-                    ? sesion.moderadorCompleto
-                    : undefined,
-              }
-            : sesion,
-        ),
-      )
-    } else {
-      setSesiones((sesionesActuales) => [
-        ...sesionesActuales,
-        { ...sesionActualizada, id: `session-${Date.now()}` },
-      ])
+  async function handleSave(updated) {
+    if (conference.busy) return
+    const sessions = modal.modo === 'edit' ? sesiones.map(session => session.id === modal.sesion.id ? { ...session, ...updated, moderadorCompleto: updated.moderador } : session) : [...sesiones, { ...updated, id: crypto.randomUUID() }]
+    if (findOverlaps(sessions).some(pair => pair.some(session => session.id === (modal.sesion?.id ?? sessions.at(-1).id)))) {
+      setFeedback({ mensaje: 'La sala y la hora se superponen con otra sesión.', esError: true }); return
     }
-
-    setModal(null)
-    setFeedback({ mensaje: TEMPORARY_CHANGES_MESSAGE, esError: false })
+    try { await conference.save('program', { ...conference.program, sessions }); setModal(null); setFeedback({ mensaje: SAVED_MESSAGE, esError: false }) } catch { /* el error permanece visible */ }
   }
 
-  function handlePublish() {
-    if (conflictos.length > 0) {
-      setFeedback({
-        mensaje: 'No se puede publicar el programa mientras existan solapamientos.',
-        esError: true,
-      })
-      return
-    }
-
-    setFeedback({
-      mensaje: 'Programa publicado temporalmente. No se guardará al recargar.',
-      esError: false,
-    })
+  async function handlePublish() {
+    if (conference.busy) return
+    if (conflictos.length) { setFeedback({ mensaje: 'No se puede publicar el programa mientras existan solapamientos.', esError: true }); return }
+    try {
+      await conference.save('program', { ...conference.program, published: true, publishedSnapshot: { sessions: sesiones, assignments: conference.program.assignments } })
+      setFeedback({ mensaje: 'Programa publicado. La versión pública ya está disponible.', esError: false })
+    } catch { /* el error permanece visible */ }
   }
 
   return (
@@ -86,10 +65,10 @@ function SessionBuilderPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <Button onClick={handlePublish} type="button" variant="secondary">
+            <Button disabled={conference.busy} onClick={handlePublish} type="button" variant="secondary">
               Publicar programa
             </Button>
-            <Button onClick={handleCreate} type="button" variant="primary">
+            <Button disabled={conference.busy} onClick={handleCreate} type="button" variant="primary">
               Nueva sesión
             </Button>
           </div>
@@ -99,7 +78,7 @@ function SessionBuilderPage() {
           aria-live="polite"
           className={feedback.esError ? styles.feedbackError : styles.feedback}
         >
-          {feedback.mensaje}
+          {conference.loading ? 'Cargando programa…' : conference.error || feedback.mensaje}
         </p>
 
         {conflictos.length > 0 && (
@@ -149,7 +128,8 @@ function SessionBuilderPage() {
 
       {modal && (
         <SessionModal
-          alCerrar={() => setModal(null)}
+          alCerrar={() => { if (!conference.saving) setModal(null) }}
+            guardando={conference.saving}
           alGuardar={handleSave}
           key={`${modal.modo}-${modal.sesion?.id ?? 'new'}`}
           modo={modal.modo}

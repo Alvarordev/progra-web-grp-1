@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { participantRepository, participantsRepository, reviewerProfilesRepository, sessionRepository } from './repositories.js'
+import { participantRepository, participantsRepository, reviewerProfilesRepository, sessionRepository, thematicAxesRepository, reviewersRepository, usersRepository } from './repositories.js'
 import { getParticipantAccounts } from './accounts.js'
 import { demoReviewerId, getReviewerProfile, initialReviewerProfile } from './states/reviewerProfilesState.js'
 
@@ -44,6 +44,9 @@ export default function useReviewerProfile() {
         }
         await participantsRepository.save(accounts.map(account => account.userId === reviewerId ? updated : account))
         await participantRepository.save(updated)
+        const [users, reviewers, axes] = await Promise.all([usersRepository.get(), reviewersRepository.get(), thematicAxesRepository.get()])
+        await usersRepository.save(users.map(user => user.correo.toLowerCase() === updated.email.toLowerCase() ? { ...user, nombre: updated.name, institucion: updated.institution } : user))
+        await reviewersRepository.save(reviewers.map(reviewer => reviewer.userId === reviewerId ? { ...reviewer, nombre: updated.name, institucion: updated.institution, lineasInteres: axes.filter(axis => nextProfile.interestIds.includes(axis.id)).map(axis => axis.nombre) } : reviewer))
         await sessionRepository.save({ userId: reviewerId, name: updated.name, role: updated.role })
       }
       setProfile(nextProfile)

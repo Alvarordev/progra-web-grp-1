@@ -1,3 +1,4 @@
+import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
@@ -29,7 +30,8 @@ function matchesFilter(assignment, filterId) {
 function ReviewerInboxPage() {
   const reviewsState = useStoredState(reviewsRepository, initialReviews)
   const profileState = useReviewerProfile()
-  const assignments = getReviewerAssignments(reviewsState.value, profileState.reviewerId)
+  const conference = useConference()
+  const assignments = getReviewerAssignments(reviewsState.value, profileState.reviewerId, conference.works, conference.reviewers)
   const [selectedFilter, setSelectedFilter] = useState('todas')
   const { pending: pendingCount, completed: completedCount, overdue: overdueCount } = getReviewActivity(assignments)
   const visibleAssignments = assignments.filter((assignment) =>

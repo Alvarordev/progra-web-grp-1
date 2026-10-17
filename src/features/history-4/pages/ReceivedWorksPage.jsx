@@ -1,3 +1,4 @@
+import { downloadFile } from '../../../core/utils/downloads.js'
 import { useState as usarEstado, useMemo as usarMemo } from 'react'
 import {
   Link as Enlace,
@@ -19,7 +20,8 @@ import {
   trabajosIniciales,
   revisoresIniciales,
 } from '../../../core/utils/states/worksAssignmentState.js'
-import { assignmentsByWork as asignacionesPorTrabajo } from '../../history-5/data/assignmentsByWork.js'
+import { getReview } from '../../../core/utils/assignments.js'
+import { reviewsRepository } from '../../../core/utils/repositories.js'
 import estilos from './ReceivedWorksPage.module.css'
 
 const usuarioComite = {
@@ -33,10 +35,11 @@ export default function PaginaTrabajosRecibidos() {
   const [parametrosBusqueda] = usarParametrosBusqueda()
   const estadoTrabajos = usarEstadoAlmacenado(repositorioTrabajos, trabajosIniciales)
   const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
-  const trabajos = estadoTrabajos.value
+  const reviewState = usarEstadoAlmacenado(reviewsRepository, {})
+  const trabajos = estadoTrabajos.value.map(work => ({ ...work, entregadas: (work.revisoresAsignados ?? []).filter(id => { const reviewer = estadoRevisores.value.find(item => item.id === id); return reviewer && getReview(reviewState.value, reviewer, work.codigo)?.status === 'submitted' }).length }))
   const revisores = estadoRevisores.value
 
-  const ocupado = estadoTrabajos.saving || estadoRevisores.saving
+  const ocupado = estadoTrabajos.loading || estadoRevisores.loading || estadoTrabajos.saving || estadoRevisores.saving
   const errorAlmacenamiento = estadoTrabajos.error || estadoRevisores.error
 
   const [vistaVaciaActiva, cambiarVistaVaciaActiva] = usarEstado(
@@ -144,7 +147,7 @@ export default function PaginaTrabajosRecibidos() {
     cambiarModalAsignarAbierto(true)
   }
 
-  const confirmarAsignacion = async ({ codigosTrabajo, idsRevisores, fechaLimite }) => {
+  const confirmarAsignacion = async ({ codigosTrabajo, idsRevisores, fechaLimite, justificacion }) => {
     if (ocupado || errorAlmacenamiento) return false
     const trabajosActualizados = trabajos.map((trabajo) => {
       if (codigosTrabajo.includes(trabajo.codigo)) {
@@ -155,6 +158,9 @@ export default function PaginaTrabajosRecibidos() {
           revisoresAsignados: idsRevisores,
           revisores: `${idsRevisores.length} asignados · ${entregadasPrevias} entregadas`,
           fechaLimite,
+          reviewDeadline: fechaLimite.split('/').reverse().join('-'),
+          assignedAt: new Date().toISOString(),
+          assignmentJustification: justificacion,
         }
       }
       return trabajo
@@ -164,7 +170,7 @@ export default function PaginaTrabajosRecibidos() {
       if (idsRevisores.includes(revisor.id)) {
         return {
           ...revisor,
-          asignadas: revisor.asignadas + codigosTrabajo.length,
+          asignadas: trabajosActualizados.filter(work => work.revisoresAsignados?.includes(revisor.id)).length,
         }
       }
       return revisor
@@ -206,23 +212,6 @@ export default function PaginaTrabajosRecibidos() {
     cambiarPaginaActual(1)
   }
 
-  const alternarVistaVacia = () => {
-    if (!vistaVaciaActiva) {
-      cambiarVistaVaciaActiva(true)
-      cambiarEjeSeleccionado('todos')
-      cambiarEstadoSeleccionado('todos')
-      cambiarTipoSeleccionado('todos')
-      cambiarConsultaBusqueda('')
-    } else {
-      cambiarVistaVaciaActiva(false)
-      cambiarFiltroManualActivo(false)
-      cambiarEjeSeleccionado('Ingeniería de software')
-      cambiarEstadoSeleccionado('Enviado')
-      cambiarTipoSeleccionado('todos')
-      cambiarConsultaBusqueda('')
-    }
-  }
-
   const todosMarcadosEnPagina =
     trabajosPaginados.length > 0 &&
     trabajosPaginados.every((trabajo) => codigosSeleccionados.includes(trabajo.codigo))
@@ -235,9 +224,6 @@ export default function PaginaTrabajosRecibidos() {
     Boolean(consultaBusqueda.trim())
 
   const obtenerTextoRevisores = (trabajo) => {
-    if (trabajo.revisores && trabajo.revisores !== 'Sin asignar') {
-      return trabajo.revisores
-    }
     if (trabajo.revisoresAsignados && trabajo.revisoresAsignados.length > 0) {
       const cantidadEntregadas = trabajo.entregadas || 0
       const palabraEntregada = cantidadEntregadas === 1 ? 'entregada' : 'entregadas'
@@ -266,15 +252,19 @@ export default function PaginaTrabajosRecibidos() {
             <header className={estilos.encabezadoPagina}>
               <div>
                 <h1 className={estilos.titulo}>Trabajos recibidos</h1>
-                <p className={estilos.subtitulo} onClick={alternarVistaVacia}>
+                <p className={estilos.subtitulo}>
                   {sinTrabajos
                     ? 'Sin trabajos enviados por el momento'
-                    : '14 trabajos · 12 enviados · 2 borradores fuera de proceso'}
+                    : `${trabajos.length} trabajos · ${trabajosSinBorrador.length} enviados · ${trabajos.length - trabajosSinBorrador.length} borradores fuera de proceso`}
                 </p>
               </div>
               {!sinTrabajos && (
                 <div className={estilos.accionesSuperiores}>
-                  <Boton variant="secondary" type="button">
+                  <Boton variant="secondary" type="button" onClick={() => {
+                    const quote = value => `"${String(value).replaceAll('"', '""')}"`
+                    const rows = [['Código', 'Título', 'Eje', 'Tipo', 'Estado'], ...trabajosFiltrados.map(work => [work.codigo, work.titulo, work.eje, work.tipo, work.estado])]
+                    downloadFile('trabajos-recibidos.csv', '\uFEFF' + rows.map(row => row.map(quote).join(',')).join('\r\n'), 'text/csv;charset=utf-8')
+                  }}>
                     Exportar listado
                   </Boton>
                   <Boton
@@ -299,19 +289,19 @@ export default function PaginaTrabajosRecibidos() {
               <section aria-label="Resumen de trabajos" className={estilos.rejillaMetricas}>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeAzul}`}>
                   <span className={estilos.etiquetaMetrica}>ENVIADOS</span>
-                  <span className={estilos.valorMetrica}>12</span>
+                  <span className={estilos.valorMetrica}>{trabajosSinBorrador.length}</span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeAmbar}`}>
                   <span className={estilos.etiquetaMetrica}>EN REVISIÓN</span>
-                  <span className={estilos.valorMetrica}>7</span>
+                  <span className={estilos.valorMetrica}>{trabajos.filter(work => work.estado === 'En revisión').length}</span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeRojo}`}>
                   <span className={estilos.etiquetaMetrica}>SIN REVISORES</span>
-                  <span className={estilos.valorMetrica}>3</span>
+                  <span className={estilos.valorMetrica}>{trabajosSinBorrador.filter(work => !work.revisoresAsignados.length).length}</span>
                 </div>
                 <div className={`${estilos.tarjetaMetrica} ${estilos.bordeVerde}`}>
                   <span className={estilos.etiquetaMetrica}>CON DECISIÓN</span>
-                  <span className={estilos.valorMetrica}>2</span>
+                  <span className={estilos.valorMetrica}>{trabajos.filter(work => ['Aceptado', 'Rechazado'].includes(work.estado)).length}</span>
                 </div>
               </section>
             )}
@@ -385,6 +375,7 @@ export default function PaginaTrabajosRecibidos() {
                 <div className={estilos.contenedorBuscador}>
                   <input
                     type="text"
+                    aria-label="Buscar trabajo por código, título o autor"
                     placeholder="Buscar por código, título o autor…"
                     className={estilos.campoBuscador}
                     value={consultaBusqueda}
@@ -510,10 +501,7 @@ export default function PaginaTrabajosRecibidos() {
                     </thead>
                     <tbody>
                       {trabajosPaginados.map((trabajo) => {
-                        const tieneConsolidado = Object.hasOwn(
-                          asignacionesPorTrabajo,
-                          trabajo.codigo
-                        )
+                        const tieneConsolidado = trabajo.estado !== 'Borrador'
                         const rutaConsolidado = `/trabajos-recibidos/${encodeURIComponent(
                           trabajo.codigo
                         )}/consolidado`

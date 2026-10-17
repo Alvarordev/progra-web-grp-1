@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import FinalVersionModal from '../components/FinalVersionModal/FinalVersionModal.jsx'
 import { Link, Navigate, useParams } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
@@ -10,12 +12,26 @@ import ScorePanel from '../components/ScorePanel/ScorePanel.jsx'
 import TrackingPanel from '../components/TrackingPanel/TrackingPanel.jsx'
 import WorkDataPanel from '../components/WorkDataPanel/WorkDataPanel.jsx'
 import WorkHeading from '../components/WorkHeading/WorkHeading.jsx'
-import { findWork } from '../data/works.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getAuthorWorks } from '../../../core/utils/submissions.js'
 import styles from './WorkDetailPage.module.css'
 
 function WorkDetailPage() {
   const { codigo } = useParams()
-  const trabajo = findWork(codigo)
+  const conference = useConference()
+  const trabajo = getAuthorWorks(conference.works, conference.account, conference.decisions).find(work => work.codigo === codigo)
+
+  const [finalModal, setFinalModal] = useState(false)
+  const [finalNotice, setFinalNotice] = useState('')
+  async function saveFinal(url) {
+    try {
+      await conference.save('works', conference.works.map(work => work.codigo === codigo ? { ...work, finalDocumentUrl: url } : work))
+      setFinalModal(false)
+      setFinalNotice('Versión final guardada.')
+    } catch { /* el error se muestra en el modal */ }
+  }
+
+  if (conference.loading || conference.error) return <AuthorPageLayout><p role="status">{conference.error || 'Cargando trabajo…'}</p></AuthorPageLayout>
 
   if (!trabajo) {
     return (
@@ -80,7 +96,7 @@ function WorkDetailPage() {
           <>
             {verDocumento}
             {aceptado && (
-              <Link className={styles.primaryLink} to="/autor/presentacion">
+              <Link className={styles.primaryLink} to={`/autor/presentacion?trabajo=${codigo}`}>
                 Ver mi presentación
               </Link>
             )}
@@ -99,7 +115,7 @@ function WorkDetailPage() {
           {aceptado ? (
             <InfoPanel etiqueta="Siguiente paso">
               <p>Envíe la versión final con las observaciones atendidas hasta el 05/11/2026.</p>
-              <Button className={styles.fullButton} variant="primary">
+              <Button className={styles.fullButton} variant="primary" type="button" onClick={() => setFinalModal(true)}>
                 Subir versión final
               </Button>
             </InfoPanel>
@@ -113,6 +129,8 @@ function WorkDetailPage() {
           )}
         </aside>
       </div>
+      {finalNotice && <p role="status">{finalNotice}</p>}
+      {finalModal && <FinalVersionModal alCerrar={() => { if (!conference.saving) setFinalModal(false) }} alGuardar={saveFinal} guardando={conference.saving} error={conference.error} />}
     </AuthorPageLayout>
   )
 }

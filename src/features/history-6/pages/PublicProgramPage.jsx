@@ -5,7 +5,9 @@ import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Header from '../../../core/ui/Header/Header.jsx'
 import VisitorNavigation from '../../../core/ui/VisitorNavigation/VisitorNavigation.jsx'
 import ProgramSession from '../components/ProgramSession/ProgramSession.jsx'
-import { acceptedWorks, initialSessions, thematicAxes } from '../data/program.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getProgramWorks, publicProgram } from '../../../core/utils/program.js'
+import { downloadPdf } from '../../../core/utils/downloads.js'
 import {
   formatDate,
   formatWeekday,
@@ -14,10 +16,22 @@ import {
 } from '../utils/sessionSchedule.js'
 import styles from './PublicProgramPage.module.css'
 
-const programDays = [...new Set(initialSessions.map((sesion) => sesion.fecha))].sort()
 
 function PublicProgramPage() {
-  const [dia, setDia] = useState(programDays[0])
+  const conference = useConference()
+  const published = publicProgram(conference.program)
+  const initialSessions = published.sessions
+  const acceptedWorks = getProgramWorks(conference.works, published)
+  const thematicAxes = conference.axes.map(axis => axis.nombre)
+  const programDays = [...new Set(initialSessions.map(session => session.fecha))].sort()
+  const [selectedDay, setDia] = useState(null)
+  const dia = selectedDay ?? programDays[0]
+  const [exportError, setExportError] = useState('')
+  const [exporting, setExporting] = useState(false)
+  async function exportProgram() {
+    setExporting(true)
+    try { await downloadPdf('Programa del congreso', initialSessions.flatMap(session => [session.nombre, `${formatDate(session.fecha)} · ${session.horaInicio}–${session.horaFin} · ${session.sala}`, ...getSessionWorks(acceptedWorks, session.id).map(work => `${work.orden}. ${work.titulo} — ${work.autores}`)]), 'programa-del-congreso.pdf') } catch { setExportError('No se pudo generar el programa. Inténtelo nuevamente.') } finally { setExporting(false) }
+  }
   const [ejeFiltro, setEjeFiltro] = useState('')
 
   const sesionesVisibles = initialSessions
@@ -46,11 +60,13 @@ function PublicProgramPage() {
                 y B
               </p>
             </div>
-            <Button type="button" variant="secondary">
+            <Button disabled={conference.busy || !initialSessions.length} loading={exporting} onClick={exportProgram} type="button" variant="secondary">
               Descargar programa en PDF
             </Button>
           </header>
 
+          {(conference.error || exportError) && <p role="alert">{conference.error || exportError}</p>}
+          {conference.loading && <p role="status">Cargando programa…</p>}
           <div className={styles.toolbar}>
             <div aria-label="Días del congreso" className={styles.days} role="group">
               {programDays.map((fecha) => (

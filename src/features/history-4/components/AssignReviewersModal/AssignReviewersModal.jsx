@@ -13,74 +13,20 @@ export default function ModalAsignarRevisores({
   alConfirmarAsignacion,
 }) {
   const primerTrabajo = trabajosObjetivo[0]
-  const codigoTrabajo = primerTrabajo?.codigo ?? 'TRB-2026-031'
-  const esCasoConflicto =
-    codigoTrabajo === 'TRB-2026-042' ||
-    trabajosObjetivo.some((trabajo) =>
-      trabajo.autores?.some((autor) => autor.includes('Yupanqui'))
-    )
-
   const [terminoBusqueda, cambiarTerminoBusqueda] = usarEstado('')
   const [revisoresSeleccionados, cambiarRevisoresSeleccionados] = usarEstado(() =>
-    esCasoConflicto ? ['rev-1'] : ['rev-1', 'rev-2']
+    []
   )
   const [permitirMismaInstitucion, cambiarPermitirMismaInstitucion] = usarEstado(false)
   const [fechaLimite, cambiarFechaLimite] = usarEstado('20/10/2026')
 
-  const listaRevisores = usarMemo(() => {
-    if (esCasoConflicto) {
-      return [
-        {
-          id: 'rev-1',
-          nombre: 'Mg. Luis Ramírez Cárdenas',
-          institucion: 'Pontificia Universidad Católica',
-          lineasInteres: ['IA y datos', 'Ingeniería de software'],
-          cargaTexto: '4 revisiones',
-          conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
-        },
-        {
-          id: 'rev-4',
-          nombre: 'Dra. Milagros Yupanqui Ríos',
-          institucion: 'Universidad de Lima',
-          lineasInteres: ['Salud y sociedad'],
-          cargaTexto: '3 revisiones',
-          conflicto: { tipo: 'coautor', etiqueta: 'Coautora del trabajo', bloqueante: true },
-        },
-        {
-          id: 'rev-3',
-          nombre: 'Ing. Jorge Palomino Ávila',
-          institucion: 'Universidad de Lima',
-          lineasInteres: ['Innovación', 'IA y datos'],
-          cargaTexto: '5 revisiones',
-          conflicto: { tipo: 'institucion', etiqueta: 'Misma institución', bloqueante: false },
-        },
-        {
-          id: 'rev-5',
-          nombre: 'Dr. Óscar Nakamura Trigoso',
-          institucion: 'Pontificia Universidad Católica',
-          lineasInteres: ['IA y datos', 'Economía'],
-          cargaTexto: '1 revisión',
-          conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
-        },
-      ]
-    }
-
-    const baseRevisores = revisores.length > 0 ? revisores.slice(0, 4) : []
-    return baseRevisores.map((revisor) => {
-      const lineas =
-        revisor.id === 'rev-2'
-          ? ['Ingeniería de software', 'Sostenibilidad']
-          : revisor.lineasInteres
-      const carga =
-        revisor.id === 'rev-1' ? 4 : revisor.id === 'rev-2' ? 2 : revisor.asignadas
-      return {
-        ...revisor,
-        lineasInteres: lineas,
-        cargaTexto: `${carga} ${carga === 1 ? 'revisión' : 'revisiones'}`,
-        conflicto: { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false },
-      }
-    })
-  }, [esCasoConflicto, revisores])
+  const [justification, setJustification] = usarEstado('')
+  const listaRevisores = usarMemo(() => revisores.filter(reviewer => !reviewer.bloqueado).map(reviewer => {
+    const coauthor = trabajosObjetivo.some(work => work.details?.autores?.some(author => Boolean(author.correo && reviewer.email && author.correo.toLowerCase() === reviewer.email.toLowerCase()) || author.nombre === reviewer.nombre) || work.autores.some(name => reviewer.nombre.includes(name)))
+    const sameInstitution = trabajosObjetivo.some(work => work.institucion === reviewer.institucion)
+    return { ...reviewer, cargaTexto: `${reviewer.asignadas} revisiones`, conflicto: coauthor ? { tipo: 'coautor', etiqueta: 'Coautor del trabajo', bloqueante: true } : sameInstitution ? { tipo: 'institucion', etiqueta: 'Misma institución', bloqueante: false } : { tipo: 'ninguno', etiqueta: 'Sin conflicto', bloqueante: false } }
+  }), [revisores, trabajosObjetivo])
+  const esCasoConflicto = listaRevisores.some(reviewer => reviewer.conflicto.tipo !== 'ninguno')
 
   const revisoresFiltrados = usarMemo(() => {
     const consulta = terminoBusqueda.toLowerCase().trim()
@@ -96,6 +42,7 @@ export default function ModalAsignarRevisores({
   if (!abierto || trabajosObjetivo.length === 0) return null
 
   const alternarRevisor = (revisorId) => {
+    if (guardando) return
     const elemento = listaRevisores.find((revisor) => revisor.id === revisorId)
     if (elemento?.conflicto?.bloqueante) return
 
@@ -117,7 +64,8 @@ export default function ModalAsignarRevisores({
   const cantidadValida = revisoresSeleccionados.length
   const cumpleCantidad = cantidadValida >= 2 && cantidadValida <= 3
   const bloqueadoPorInstitucion = seleccionTieneInstitucion && !permitirMismaInstitucion
-  const puedeGuardar = cumpleCantidad && !bloqueadoPorInstitucion
+  const validDate = /^\d{2}\/\d{2}\/\d{4}$/.test(fechaLimite) && Number.isFinite(Date.parse(fechaLimite.split('/').reverse().join('-')))
+  const puedeGuardar = cumpleCantidad && !bloqueadoPorInstitucion && (!seleccionTieneInstitucion || Boolean(justification.trim())) && validDate
 
   const guardarAsignacion = async () => {
     if (guardando || !puedeGuardar) return
@@ -125,6 +73,7 @@ export default function ModalAsignarRevisores({
       codigosTrabajo: trabajosObjetivo.map((trabajo) => trabajo.codigo),
       idsRevisores: revisoresSeleccionados,
       fechaLimite,
+      justificacion: justification.trim(),
     })
     if (!guardado) return
     alCerrar()
@@ -171,6 +120,7 @@ export default function ModalAsignarRevisores({
             <input
               type="text"
               className={estilos.campoBusqueda}
+              aria-label="Buscar revisor"
               placeholder="Buscar revisor por nombre, institución o línea de interés…"
               value={terminoBusqueda}
               onChange={(evento) => cambiarTerminoBusqueda(evento.target.value)}
@@ -216,7 +166,8 @@ export default function ModalAsignarRevisores({
                         type="checkbox"
                         className={estilos.casilla}
                         checked={seleccionado}
-                        disabled={esCoautor}
+                        aria-label={`Seleccionar a ${revisor.nombre}`}
+                        disabled={guardando || esCoautor}
                         onChange={() => alternarRevisor(revisor.id)}
                         onClick={(evento) => evento.stopPropagation()}
                       />
@@ -257,6 +208,8 @@ export default function ModalAsignarRevisores({
                 Asignar de todos modos al revisor de la misma institución (requiere justificación del comité).
               </span>
             </label>
+            {permitirMismaInstitucion && <label>Justificación del comité *<textarea value={justification} onChange={event => setJustification(event.target.value)} /></label>}
+            <label htmlFor="conflict-deadline">Fecha límite de revisión *</label><input id="conflict-deadline" value={fechaLimite} onChange={event => cambiarFechaLimite(event.target.value)} />
           </div>
         ) : (
           <div className={estilos.bloqueFecha}>
@@ -297,6 +250,7 @@ export default function ModalAsignarRevisores({
             <Boton
               variant="primary"
               type="button"
+              loading={guardando}
               disabled={!puedeGuardar}
               onClick={guardarAsignacion}
             >

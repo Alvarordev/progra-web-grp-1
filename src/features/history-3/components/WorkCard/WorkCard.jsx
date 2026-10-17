@@ -2,7 +2,8 @@ import { Link } from 'react-router'
 import WorkStatusBadge from '../WorkStatusBadge/WorkStatusBadge.jsx'
 import styles from './WorkCard.module.css'
 
-function getAction(trabajo) {
+function getAction(trabajo, recepcionAbierta) {
+  if (trabajo.estado === 'borrador' && recepcionAbierta) return { label: 'Seguir editando', to: `/autor/nuevo-trabajo?borrador=${trabajo.codigo}` }
   if (trabajo.estado === 'borrador' || trabajo.modoLectura) {
     return { label: 'Ver en modo lectura', to: `/autor/trabajos/${trabajo.codigo}/lectura` }
   }
@@ -12,9 +13,9 @@ function getAction(trabajo) {
   return { label: 'Ver detalle', to: `/autor/trabajos/${trabajo.codigo}` }
 }
 
-function WorkCard({ trabajo }) {
+function WorkCard({ trabajo, recepcionAbierta }) {
   const titleId = `work-${trabajo.codigo}`
-  const accion = getAction(trabajo)
+  const accion = getAction(trabajo, recepcionAbierta)
 
   return (
     <article aria-labelledby={titleId} className={styles.card}>

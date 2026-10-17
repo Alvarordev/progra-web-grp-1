@@ -7,8 +7,8 @@ function DonutChartCard({ datos, nota, titulo }) {
     const anterior = datos
       .slice(0, indice)
       .reduce((suma, otro) => suma + otro.value, 0)
-    const inicio = (anterior / total) * 100
-    const fin = ((anterior + dato.value) / total) * 100
+    const inicio = (anterior / (total || 1)) * 100
+    const fin = ((anterior + dato.value) / (total || 1)) * 100
     return `${dato.color} ${inicio}% ${fin}%`
   })
 

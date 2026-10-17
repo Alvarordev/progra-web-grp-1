@@ -4,13 +4,14 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
-import useStoredState from '../../../core/utils/useStoredState.js'
-import { criteriaRepository, reviewsRepository } from '../../../core/utils/repositories.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getReview, getWorkReviewers, reviewerIdentity } from '../../../core/utils/assignments.js'
+
 import ConsolidatedKpis from '../components/ConsolidatedKpis/ConsolidatedKpis.jsx'
 import ConsolidatedScoreTable from '../components/ConsolidatedScoreTable/ConsolidatedScoreTable.jsx'
 import ReviewerCommentsPanel from '../components/ReviewerCommentsPanel/ReviewerCommentsPanel.jsx'
 import DecisionModal from '../components/DecisionModal/DecisionModal.jsx'
-import { assignmentsByWork } from '../data/assignmentsByWork.js'
+
 import { buildConsolidation } from '../utils/consolidation.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
@@ -23,18 +24,16 @@ const committeeUser = {
 function ConsolidatedReviewPage({ mostrarDecision = false }) {
   const { codigo } = useParams()
   const [decisionAbierta, setDecisionAbierta] = useState(mostrarDecision)
-  const trabajo = assignmentsByWork[codigo]
-  const reviewsState = useStoredState(reviewsRepository, {})
-  const criteriaState = useStoredState(criteriaRepository, [])
-  const cargando = reviewsState.loading || criteriaState.loading
-  const consolidado = trabajo && !cargando
-    ? buildConsolidation({
-        codigo,
-        revisores: trabajo.revisores,
-        reviews: reviewsState.value,
-        criteria: criteriaState.value,
-      })
-    : null
+  const conference = useConference()
+  const work = conference.works.find(item => item.codigo === codigo)
+  const trabajo = work ? { title: work.titulo, eje: work.eje, tipo: work.tipo, autores: work.autores.join(', ') } : null
+  const cargando = conference.loading
+  const assigned = work ? getWorkReviewers(work, conference.reviewers) : []
+  const normalizedReviews = Object.fromEntries(assigned.flatMap(reviewer => {
+    const review = getReview(conference.reviews, reviewer, codigo)
+    return review ? [[`${reviewerIdentity(reviewer)}:${codigo}`, review]] : []
+  }))
+  const consolidado = trabajo && !cargando ? buildConsolidation({ codigo, revisores: assigned.map(reviewer => ({ ...reviewer, id: reviewerIdentity(reviewer) })), reviews: normalizedReviews, criteria: conference.criteria }) : null
 
   return (
     <div className={styles.page}>
@@ -52,6 +51,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
           </nav>
 
           {cargando && <p role="status">Cargando consolidado…</p>}
+          {conference.error && <p role="alert">{conference.error}</p>}
 
           {consolidado ? (
             <>
@@ -70,9 +70,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 </div>
 
                 <div className={styles.actions}>
-                  <Button variant="secondary" type="button">
-                    Ver documento
-                  </Button>
+                  <a className={styles.documentLink} href={work.documentUrl || '/Tema6_Mockups_f.pdf'} target="_blank" rel="noreferrer">Ver documento</a>
                   <Button variant="primary" type="button" onClick={() => setDecisionAbierta(true)}>
                     Registrar decisión final
                   </Button>
@@ -99,6 +97,8 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 <DecisionModal
                   alCerrar={() => setDecisionAbierta(false)}
                   codigo={codigo}
+                  datos={conference}
+                  decision={conference.decisions[codigo]}
                   resumen={consolidado.resumen}
                   filas={consolidado.filas}
                 />

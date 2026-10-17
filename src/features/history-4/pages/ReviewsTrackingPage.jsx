@@ -1,18 +1,13 @@
+import { remindersRepository } from '../../../core/utils/repositories.js'
 import { useState as usarEstado } from 'react'
 import Encabezado from '../../../core/ui/Header/Header.jsx'
 import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import PiePagina from '../../../core/ui/Footer/Footer.jsx'
 import Boton from '../../../core/ui/Button/Button.jsx'
 import ModalReasignar from '../components/ReassignModal/ReassignModal.jsx'
-import usarEstadoAlmacenado from '../../../core/utils/useStoredState.js'
-import {
-  pendingReviewsRepository as repositorioRevisionesPendientes,
-  reviewersRepository as repositorioRevisores,
-} from '../../../core/utils/repositories.js'
-import {
-  revisionesPendientesIniciales,
-  revisoresIniciales,
-} from '../../../core/utils/states/worksAssignmentState.js'
+import { Link } from 'react-router'
+import useConference from '../../../core/utils/useConference.js'
+import { getPendingReviews, getReview } from '../../../core/utils/assignments.js'
 import estilos from './ReviewsTrackingPage.module.css'
 
 const usuarioComite = {
@@ -22,20 +17,11 @@ const usuarioComite = {
 }
 
 export default function PaginaSeguimientoRevisiones() {
-  const estadoPendientes = usarEstadoAlmacenado(
-    repositorioRevisionesPendientes,
-    revisionesPendientesIniciales
-  )
-  const revisionesPendientes = estadoPendientes.value
-  const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
-  const listaRevisores = estadoRevisores.value
-
-  const ocupado = [estadoPendientes, estadoRevisores].some(
-    (estado) => estado.loading || estado.saving
-  )
-  const errorAlmacenamiento = [estadoPendientes, estadoRevisores].find(
-    (estado) => estado.error
-  )?.error
+  const conference = useConference()
+  const revisionesPendientes = getPendingReviews(conference.works, conference.reviewers, conference.reviews)
+  const listaRevisores = conference.reviewers.filter(reviewer => !reviewer.bloqueado)
+  const ocupado = conference.busy
+  const errorAlmacenamiento = conference.error
 
   const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = usarEstado(false)
   const [notificacion, cambiarNotificacion] = usarEstado('')
@@ -45,26 +31,23 @@ export default function PaginaSeguimientoRevisiones() {
 
   const cantidadVencidas = revisionesPendientes.filter((elemento) => elemento.esVencida).length
   const cantidadEnPlazo = revisionesPendientes.filter((elemento) => !elemento.esVencida).length
-  const totalEntregadas = 19
-  const totalAsignadas = 26
+  const totalAsignadas = conference.works.reduce((sum, work) => sum + work.revisoresAsignados.length, 0)
+  const totalEntregadas = conference.works.reduce((sum, work) => sum + work.revisoresAsignados.filter(id => { const reviewer = conference.reviewers.find(item => item.id === id); return reviewer && getReview(conference.reviews, reviewer, work.codigo)?.status === 'submitted' }).length, 0)
 
   const listaMostrada = filtrarSoloVencidas
     ? revisionesPendientes.filter((elemento) => elemento.esVencida)
     : revisionesPendientes
 
-  const manejarRecordarTodos = () => {
-    cambiarNotificacion(
-      'Recordatorio enviado exitosamente por correo a todos los revisores con tareas pendientes.'
-    )
-    setTimeout(() => cambiarNotificacion(''), 5000)
+  async function recordReminders(items) {
+    if (ocupado) return
+    try {
+      const existing = await remindersRepository.get()
+      await remindersRepository.save([...existing, ...items.map(item => ({ id: crypto.randomUUID(), codigo: item.codigo, revisorId: item.revisorId, createdAt: new Date().toISOString() }))])
+      cambiarNotificacion(`${items.length} recordatorio(s) registrado(s) en este navegador.`)
+    } catch (cause) { cambiarNotificacion(cause.message) }
   }
-
-  const manejarRecordarIndividual = (elemento) => {
-    cambiarNotificacion(
-      `Recordatorio enviado al revisor ${elemento.revisor} para el trabajo ${elemento.codigo}.`
-    )
-    setTimeout(() => cambiarNotificacion(''), 5000)
-  }
+  const manejarRecordarTodos = () => recordReminders(revisionesPendientes)
+  const manejarRecordarIndividual = item => recordReminders([item])
 
   const manejarAbrirReasignacion = (elemento) => {
     cambiarElementoSeleccionadoReasignar(elemento)
@@ -80,22 +63,14 @@ export default function PaginaSeguimientoRevisiones() {
   }) => {
     if (ocupado || errorAlmacenamiento) return false
 
-    const actualizadas = revisionesPendientes.map((elemento) => {
-      if (elemento.id === pendienteId) {
-        return {
-          ...elemento,
-          revisorId: nuevoRevisorId,
-          revisor: nuevoRevisorNombre,
-          estado: 'Pendiente · 8 días',
-          esVencida: false,
-          fechaLimite: '20/10/2026',
-        }
-      }
-      return elemento
-    })
-
-    const guardado = await estadoPendientes.save(actualizadas).catch(() => false)
-    if (!guardado) return false
+    const pending = revisionesPendientes.find(item => item.id === pendienteId)
+    if (!pending) return false
+    const candidate = listaRevisores.find(reviewer => reviewer.id === nuevoRevisorId)
+    const work = conference.works.find(item => item.codigo === pending.codigo)
+    if (!candidate || work.revisoresAsignados.includes(candidate.id) || work.details?.autores?.some(author => author.correo === candidate.email)) return false
+    try {
+      await conference.save('works', conference.works.map(item => item.codigo === pending.codigo ? { ...item, revisoresAsignados: item.revisoresAsignados.map(id => id === pending.revisorId ? nuevoRevisorId : id), reassignmentReason: motivo, assignedAt: new Date().toISOString() } : item))
+    } catch { return false }
 
     cambiarNotificacion(
       `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
@@ -176,7 +151,7 @@ export default function PaginaSeguimientoRevisiones() {
                   >
                     <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
                     <td className={estilos.celdaTitulo}>
-                      <strong>{elemento.trabajo}</strong>
+                      <Link to={`/trabajos-recibidos/${elemento.codigo}/consolidado`}><strong>{elemento.trabajo}</strong></Link>
                     </td>
                     <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
                     <td

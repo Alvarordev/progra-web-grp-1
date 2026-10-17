@@ -1,3 +1,5 @@
+import useConference from '../../../core/utils/useConference.js'
+import { getPendingReviews, getReview } from '../../../core/utils/assignments.js'
 import { useState as usarEstado, useMemo as usarMemo } from 'react'
 import Encabezado from '../../../core/ui/Header/Header.jsx'
 import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
@@ -17,7 +19,12 @@ const usuarioComite = {
 
 export default function PaginaListaRevisores() {
   const estadoRevisores = usarEstadoAlmacenado(repositorioRevisores, revisoresIniciales)
-  const listaRevisores = estadoRevisores.value
+  const conference = useConference()
+  const pending = getPendingReviews(conference.works, conference.reviewers, conference.reviews)
+  const listaRevisores = estadoRevisores.value.map(reviewer => {
+    const works = conference.works.filter(work => work.revisoresAsignados.includes(reviewer.id))
+    return { ...reviewer, asignadas: works.length, entregadas: works.filter(work => getReview(conference.reviews, reviewer, work.codigo)?.status === 'submitted').length, vencidas: pending.filter(item => item.revisorId === reviewer.id && item.esVencida).length }
+  })
   const ocupado = estadoRevisores.loading || estadoRevisores.saving
   const errorAlmacenamiento = estadoRevisores.error
 
@@ -88,6 +95,8 @@ export default function PaginaListaRevisores() {
 
     const nuevoRevisor = {
       id: `rev-${Date.now()}`,
+      email: formularioInvitacion.correo.trim().toLowerCase(),
+      userId: `participant:${formularioInvitacion.correo.trim().toLowerCase()}`,
       nombre: formularioInvitacion.nombre.trim(),
       institucion: formularioInvitacion.institucion,
       lineasInteres: formularioInvitacion.lineasInteres
@@ -110,7 +119,7 @@ export default function PaginaListaRevisores() {
       institucion: 'Universidad de Lima',
       lineasInteres: '',
     })
-    cambiarMensajeExito(`Invitación enviada exitosamente a ${nuevoRevisor.nombre}.`)
+    cambiarMensajeExito(`Invitación registrada para ${nuevoRevisor.nombre}.`)
     setTimeout(() => cambiarMensajeExito(''), 5000)
   }
 

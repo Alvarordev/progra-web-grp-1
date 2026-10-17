@@ -1,3 +1,4 @@
+import useConference from '../../../core/utils/useConference.js'
 import { useEffect, useState } from 'react'
 import { editionRepository, editionStatusRepository, thematicAxesRepository, workTypesRepository, scheduleRepository, criteriaRepository } from '../../../core/utils/repositories.js'
 import { initialEdition, initialEditionStatus } from '../../../core/utils/states/editionState.js'
@@ -13,6 +14,7 @@ import CloseReceptionModal from '../components/CloseReceptionModal/CloseReceptio
 import styles from './EditionSettingsPage.module.css'
 
 function EditionSettingsPage() {
+  const conference = useConference()
   const [edition, setEdition] = useState(initialEdition)
   const [estado, setEstado] = useState(initialEditionStatus)
   const [feedback, setFeedback] = useState('')
@@ -272,11 +274,11 @@ function EditionSettingsPage() {
               <dl className={styles.activityList}>
                 <div>
                   <dt>Trabajos recibidos</dt>
-                  <dd>{axesState.value.reduce((sum, item) => sum + item.trabajos, 0)}</dd>
+                  <dd>{conference.works.length}</dd>
                 </div>
                 <div>
                   <dt>Revisores de demostración</dt>
-                  <dd>9</dd>
+                  <dd>{conference.reviewers.length}</dd>
                 </div>
               </dl>
             </section>

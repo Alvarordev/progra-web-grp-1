@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import useConference from '../../../core/utils/useConference.js'
+import { useEffect, useState } from 'react'
 import { criteriaRepository, reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
 import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
 import { Link, useParams, useSearchParams } from 'react-router'
@@ -70,23 +71,6 @@ const initialCriteria = [
   },
 ]
 
-const readOnlyReviewExamples = {
-  'TRB-2026-031': {
-    enviadaEl: '2026-10-06T11:05:00',
-    criterios: [
-      { id: 'originalidad', nombre: 'Originalidad', peso: 25, puntaje: '16', comentario: 'La propuesta adapta métricas conocidas a un contexto universitario.' },
-      { id: 'rigor', nombre: 'Rigor metodológico', peso: 30, puntaje: '15', comentario: 'El tamaño de la muestra de repositorios debería justificarse.' },
-      { id: 'claridad', nombre: 'Claridad de la exposición', peso: 20, puntaje: '18', comentario: 'Buena estructura y tablas legibles.' },
-      { id: 'relevancia', nombre: 'Relevancia y aporte', peso: 25, puntaje: '17', comentario: 'Aplicable a los cursos de proyectos de la carrera.' },
-    ],
-    recomendacion: 'observaciones',
-    comentarioAutor:
-      'El trabajo es sólido en su exposición. Recomiendo justificar la selección de repositorios y añadir una comparación con una línea base sin refactorización.',
-    comentarioComite:
-      'Puede aceptarse si los autores atienden la observación metodológica antes de la versión final.',
-  },
-}
-
 function formatSentAt(sentAt) {
   return {
     fecha: sentAt.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
@@ -102,31 +86,14 @@ function buildSentNotice(sentAt) {
 
 function EvaluationScreen({ codigo }) {
   const profileState = useReviewerProfile()
-  const [searchParams] = useSearchParams()
-  const readOnlyMode = searchParams.get('modo') === 'lectura'
-  const existingReview = useMemo(() => (readOnlyMode
-    ? readOnlyReviewExamples[codigo] ?? {
-        criterios: initialCriteria.map((criterion) => ({
-          ...criterion,
-          puntaje: criterion.puntaje || '17',
-          comentario: criterion.comentario || 'Evaluación registrada para este criterio.',
-        })),
-        recomendacion: 'aceptar',
-        comentarioAutor: 'Evaluación enviada y disponible en modo de lectura.',
-        comentarioComite: '',
-      }
-    : undefined), [readOnlyMode, codigo])
-  const trabajo = works[codigo] ?? {
-    title: 'Trabajo académico asignado',
-    eje: 'Eje temático',
-    tipo: 'Tipo de trabajo',
-    resumen: 'No hay un resumen de demostración para este trabajo.',
-  }
-  const [criteria, setCriteria] = useState(() => existingReview?.criteria ?? existingReview?.criterios ?? initialCriteria)
-  const [recommendation, setRecommendation] = useState(() => existingReview?.recommendation ?? existingReview?.recomendacion ?? '')
-  const [authorComment, setAuthorComment] = useState(() => existingReview?.authorComment ?? existingReview?.comentarioAutor ?? '')
-  const [committeeComment, setCommitteeComment] = useState(() => existingReview?.committeeComment ?? existingReview?.comentarioComite ?? '')
-  const [submitted, setSubmitted] = useState(Boolean(existingReview))
+  const conference = useConference()
+  const assignedWork = conference.works.find(work => work.codigo === codigo)
+  const trabajo = assignedWork ? { title: assignedWork.titulo, eje: assignedWork.eje, tipo: assignedWork.tipo, resumen: assignedWork.details?.resumen ?? 'Consulte el documento del trabajo para realizar la evaluación.', fechaLimite: assignedWork.fechaLimite ?? assignedWork.reviewDeadline } : works[codigo] ?? { title: 'Trabajo asignado' }
+  const [criteria, setCriteria] = useState(() => initialCriteria)
+  const [recommendation, setRecommendation] = useState(() => '')
+  const [authorComment, setAuthorComment] = useState(() => '')
+  const [committeeComment, setCommitteeComment] = useState(() => '')
+  const [submitted, setSubmitted] = useState(false)
   const [sentAt, setSentAt] = useState(null)
   const [notice, setNotice] = useState('')
   const [errors, setErrors] = useState([])
@@ -145,7 +112,7 @@ function EvaluationScreen({ codigo }) {
         if (!active) return
         const userId = session?.userId ?? 'demo-reviewer'
         const saved = reviews[getReviewKey(userId, codigo)]
-        const review = saved ?? existingReview
+        const review = saved
         const currentCriteria = configuredCriteria.map((item) => {
           const previous = saved?.criteria.find((criterion) => criterion.id === item.id)
           return { ...item, puntaje: previous?.puntaje ?? '', comentario: previous?.comentario ?? '' }
@@ -156,7 +123,7 @@ function EvaluationScreen({ codigo }) {
         setRecommendation(review?.recommendation ?? review?.recomendacion ?? '')
         setAuthorComment(review?.authorComment ?? review?.comentarioAutor ?? '')
         setCommitteeComment(review?.committeeComment ?? review?.comentarioComite ?? '')
-        setSubmitted(saved ? saved.status === 'submitted' : Boolean(existingReview))
+        setSubmitted(saved ? saved.status === 'submitted' : false)
         const deliveryDate = saved?.status === 'submitted' ? new Date(saved.updatedAt) : review?.enviadaEl ? new Date(review.enviadaEl) : null
         setSentAt(deliveryDate)
         setNotice(saved?.status === 'draft' ? 'Borrador recuperado de este navegador.' : review && saved?.status !== 'draft' ? buildSentNotice(deliveryDate) : '')
@@ -169,7 +136,7 @@ function EvaluationScreen({ codigo }) {
     }
     loadReview()
     return () => { active = false }
-  }, [codigo, existingReview])
+  }, [codigo])
 
   const scoredCriteria = criteria.filter((criterion) => isValidScore(criterion.puntaje))
   const average = formatTenth(calculateWeightedAverage(criteria))
@@ -307,7 +274,7 @@ function EvaluationScreen({ codigo }) {
               <Button
                 variant="secondary"
                 type="button"
-                onClick={() => setNotice('El enlace al documento se agregará cuando se conecten los datos del trabajo.')}
+                onClick={() => window.open(assignedWork?.documentUrl || '/Tema6_Mockups_f.pdf', '_blank', 'noopener,noreferrer')}
               >
                 Abrir documento
               </Button>

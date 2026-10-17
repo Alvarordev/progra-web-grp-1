@@ -1,9 +1,14 @@
+import { useSearchParams } from 'react-router'
+import useConference from '../../../core/utils/useConference.js'
+import { getProgramWorks, publicProgram } from '../../../core/utils/program.js'
+import { downloadCalendar } from '../../../core/utils/downloads.js'
+import AuthorPageLayout from '../../history-3/components/AuthorPageLayout/AuthorPageLayout.jsx'
 import { Link } from 'react-router'
 import AuthorNavigation from '../../../core/ui/AuthorNavigation/AuthorNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Header from '../../../core/ui/Header/Header.jsx'
-import { acceptedWorks, initialSessions, rooms } from '../data/program.js'
+import { rooms } from '../data/program.js'
 import {
   WORK_MINUTES,
   formatDate,
@@ -13,14 +18,6 @@ import {
 } from '../utils/sessionSchedule.js'
 import styles from './MyPresentationPage.module.css'
 
-const authorUser = {
-  iniciales: 'RQ',
-  nombre: 'Rosa Quispe Ttito',
-  rol: 'Rol: Autor',
-}
-
-const AUTHOR_WORK_CODE = 'TRB-2026-051'
-
 const speakerGuidelines = [
   'Preséntese en la sala 15 minutos antes del inicio de la sesión.',
   'La exposición dura 15 minutos y 5 minutos de preguntas.',
@@ -28,8 +25,16 @@ const speakerGuidelines = [
   'Formato recomendado: PDF o PPTX en proporción 16:9.',
 ]
 
-const trabajo = acceptedWorks.find((item) => item.codigo === AUTHOR_WORK_CODE)
-const sesion = initialSessions.find((item) => item.id === trabajo.sesionId)
+function MyPresentationPage() {
+  const conference = useConference()
+  const [params] = useSearchParams()
+  const published = publicProgram(conference.program)
+  const acceptedWorks = getProgramWorks(conference.works, published)
+  const ownWorks = acceptedWorks.filter(work => work.ownerId === conference.account?.userId || work.ownerEmail === conference.account?.email)
+  const trabajo = ownWorks.find(work => work.codigo === params.get('trabajo')) ?? ownWorks.find(work => work.sesionId)
+  const sesion = published.sessions.find(session => session.id === trabajo?.sesionId)
+  if (conference.loading || conference.error || !trabajo || !sesion) return <AuthorPageLayout rutaActiva="/autor/presentacion"><h1>Mi presentación</h1><p role="status">{conference.error || (conference.loading ? 'Cargando presentación…' : 'Todavía no tiene una presentación publicada. Consulte el dictamen y la asignación de sesión de sus trabajos aceptados.')}</p><Link to="/autor/trabajos">Volver a mis trabajos</Link></AuthorPageLayout>
+  const authorUser = { nombre: conference.account.name, iniciales: `${conference.account.names[0]}${conference.account.surnames[0]}`, rol: 'Rol: Autor' }
 const trabajosDeLaSesion = getSessionWorks(acceptedWorks, sesion.id)
 const indiceEnSesion = trabajosDeLaSesion.findIndex(
   (item) => item.codigo === trabajo.codigo,
@@ -51,7 +56,7 @@ const presentationDetails = [
   {
     etiqueta: 'Sala',
     valor: sesion.sala,
-    detalle: sala.ubicacion,
+    detalle: sala?.ubicacion ?? sesion.sala,
   },
   {
     etiqueta: 'Orden en la sesión',
@@ -60,11 +65,11 @@ const presentationDetails = [
   },
 ]
 
-function MyPresentationPage() {
+
   return (
     <div className={styles.page}>
       <Header estado="Programa publicado" />
-      <AuthorNavigation rutaActiva="/mi-presentacion" usuario={authorUser} />
+      <AuthorNavigation rutaActiva="/autor/presentacion" usuario={authorUser} />
 
       <main className={styles.main}>
         <div className={styles.content}>
@@ -123,7 +128,7 @@ function MyPresentationPage() {
                 className={styles.actions}
               >
                 <h2 id="actions-title">Acciones</h2>
-                <Button className={styles.fullWidth} type="button" variant="primary">
+                <Button className={styles.fullWidth} type="button" variant="primary" onClick={() => downloadCalendar(trabajo, sesion, horario)}>
                   Agregar a mi calendario
                 </Button>
                 <Link className={styles.secondaryLink} to="/programa-publico">

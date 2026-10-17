@@ -17,7 +17,7 @@ import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
 import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
 import { initialCriteria, validateCriteria } from './states/criteriaState.js'
-import { validateReviews } from './states/reviewsState.js'
+import { initialReviews, validateReviews } from './states/reviewsState.js'
 import { validateDemoCredentials } from './states/demoCredentialsState.js'
 import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
@@ -38,7 +38,7 @@ export const demoCredentialsRepository = createStateRepository({
 })
 
 export const reviewsRepository = createStateRepository({
-  name: 'reviews', defaultValue: {}, validate: validateReviews,
+  name: 'reviews', defaultValue: initialReviews, validate: validateReviews,
 })
 
 export const workTypesRepository = createStateRepository({
@@ -114,4 +114,8 @@ export const programRepository = createStateRepository({
 
 export const decisionsRepository = createStateRepository({
   name: 'decisions', defaultValue: {}, validate: validateDecisions,
+})
+
+export const remindersRepository = createStateRepository({
+  name: 'reminders', defaultValue: [], validate: value => Array.isArray(value) && value.every(item => typeof item.id === 'string' && typeof item.codigo === 'string' && typeof item.revisorId === 'string' && typeof item.createdAt === 'string'),
 })

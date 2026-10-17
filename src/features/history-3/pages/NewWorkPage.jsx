@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
 import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
-import { sampleWork, thematicAxes, workTypes } from '../data/works.js'
+import { sampleWork } from '../../../core/utils/states/submissionState.js'
+import useConference from '../../../core/utils/useConference.js'
+import { emptySubmission, receptionIsOpen, saveSubmission, toSubmission } from '../../../core/utils/submissions.js'
 import styles from './NewWorkPage.module.css'
 
 const MAX_SUMMARY = 1500
@@ -35,8 +37,19 @@ function validateWork(trabajo) {
 
 function NewWorkPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const [trabajo, setTrabajo] = useState(location.state?.trabajo ?? sampleWork)
+  const conference = useConference()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const code = searchParams.get('borrador')
+  const stored = conference.works.find(work => work.codigo === code && (work.ownerId === conference.account?.userId || work.ownerEmail === conference.account?.email))
+  const [draft, setDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const open = receptionIsOpen(conference.status, conference.schedule)
+  const busy = conference.busy || saving
+  const trabajo = draft ?? (stored ? toSubmission(stored) : conference.account?.email === 'rosa.quispe@aloe.ulima.edu.pe' ? sampleWork : { ...emptySubmission, tipo: conference.types[0]?.nombre ?? '' })
+  const setTrabajo = updater => setDraft(typeof updater === 'function' ? updater(trabajo) : updater)
+  const workTypes = conference.types.map(type => ({ ...type, requisitos: `${type.extensionMaxima} · ${type.formatoEsperado}`, maxCoautores: type.admiteCoautores ? type.maxCoautores : 0 }))
+  const thematicAxes = conference.axes.map(axis => axis.nombre)
   const [nuevaPalabra, setNuevaPalabra] = useState('')
   const [errores, setErrores] = useState({})
   const [borradorGuardado, setBorradorGuardado] = useState(false)
@@ -71,24 +84,30 @@ function NewWorkPage() {
     }))
   }
 
-  function handleSaveDraft() {
-    if (!trabajo.titulo.trim()) {
-      setErrores({ titulo: 'Ingrese al menos el título para guardar el borrador.' })
-      return
-    }
-    setErrores({})
-    setBorradorGuardado(true)
+  async function persist(sendNext) {
+    if (busy) return
+    if (!trabajo.titulo.trim()) { setErrores({ titulo: 'Ingrese al menos el título para guardar el borrador.' }); return }
+    setSaving(true)
+    setSaveError('')
+    try {
+      const savedCode = await saveSubmission({ account: conference.account, submission: trabajo, code, status: conference.status, schedule: conference.schedule })
+      setSearchParams({ borrador: savedCode }, { replace: true })
+      await conference.refresh()
+      if (sendNext) navigate(`/autor/nuevo-trabajo/coautores?borrador=${savedCode}`)
+      else { setErrores({}); setBorradorGuardado(true) }
+    } catch (cause) { setSaveError(cause.message) } finally { setSaving(false) }
   }
+
+  function handleSaveDraft() { persist(false) }
 
   function handleSubmit(event) {
     event.preventDefault()
-    const nuevosErrores = validateWork(trabajo)
-    setErrores(nuevosErrores)
-
-    if (Object.keys(nuevosErrores).length === 0) {
-      navigate('/autor/nuevo-trabajo/coautores', { state: { trabajo } })
-    }
+    const found = validateWork(trabajo)
+    setErrores(found)
+    if (!Object.keys(found).length) persist(true)
   }
+
+  if (conference.loading) return <AuthorPageLayout><p role="status">Cargando trabajo…</p></AuthorPageLayout>
 
   if (borradorGuardado) {
     return (
@@ -97,14 +116,14 @@ function NewWorkPage() {
           ✓ Borrador guardado el 18/09/2026 a las 19:42. Aún no ha sido enviado al comité.{' '}
           <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
-        <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
-          Cierra el 30/09/2026 a las 23:59.
+        <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+          El envío y la edición siguen el cronograma vigente del congreso.
         </DeadlineNotice>
 
         <div className={styles.pageHeading}>
           <div>
             <p className={styles.code}>
-              TRB-2026-058 <WorkStatusBadge estado="borrador" />
+              {code} <WorkStatusBadge estado="borrador" />
             </p>
             <h1>{trabajo.titulo}</h1>
           </div>
@@ -112,7 +131,7 @@ function NewWorkPage() {
             <Button onClick={() => setBorradorGuardado(false)} variant="secondary">
               Seguir editando
             </Button>
-            <Button onClick={() => navigate('/autor/nuevo-trabajo/coautores', { state: { trabajo } })} variant="primary">
+            <Button onClick={() => persist(true)} variant="primary">
               Enviar al comité
             </Button>
           </div>
@@ -159,8 +178,8 @@ function NewWorkPage() {
 
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
-      <DeadlineNotice restante="Faltan 12 días · 04:11 h" titulo="Recepción abierta.">
-        Cierra el 30/09/2026 a las 23:59.
+      <DeadlineNotice restante={open ? `Hasta ${conference.schedule.reception?.slice(0, 10).split('-').reverse().join('/')}` : undefined} titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+        El envío y la edición siguen el cronograma vigente del congreso.
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>
@@ -169,10 +188,10 @@ function NewWorkPage() {
           <p>Paso 1 de 3 · Datos generales</p>
         </div>
         <div className={styles.actions}>
-          <Button onClick={handleSaveDraft} variant="secondary">
+          <Button disabled={busy || !open} onClick={handleSaveDraft} variant="secondary">
             Guardar como borrador
           </Button>
-          <Button form="new-work-form" type="submit" variant="primary">
+          <Button disabled={busy || !open} form="new-work-form" type="submit" variant="primary">
             Continuar a coautores
           </Button>
         </div>
@@ -197,8 +216,10 @@ function NewWorkPage() {
         </section>
       )}
 
+      {(conference.error || saveError) && <p role="alert">{conference.error || saveError}</p>}
       <div className={styles.layout}>
         <form className={`${styles.panel} ${styles.form}`} id="new-work-form" noValidate onSubmit={handleSubmit}>
+          <fieldset disabled={busy || !open} className={styles.formFields}>
           <div className={styles.fullWidth}>
             <FormField ayuda="Máximo 180 caracteres." error={errores.titulo} etiqueta="Título del trabajo *" htmlFor="work-title">
               <input id="work-title" maxLength={180} name="titulo" onChange={handleChange} value={trabajo.titulo} />
@@ -269,13 +290,14 @@ function NewWorkPage() {
               <input id="work-link" name="enlace" onChange={handleChange} value={trabajo.enlace} />
             </FormField>
           </div>
+          </fieldset>
         </form>
 
         <aside className={styles.sideColumn}>
           <section className={styles.panel}>
             <h2 className={styles.label}>Requisitos del tipo elegido</h2>
             <p>
-              {tipoElegido.nombre} · {tipoElegido.requisitos}
+              {tipoElegido?.nombre ?? 'Seleccione un tipo'} · {tipoElegido?.requisitos}
             </p>
           </section>
           <section className={styles.panel}>

@@ -1,4 +1,5 @@
-import { participantsRepository, usersRepository, reviewersRepository } from './repositories.js'
+import { getReview } from './assignments.js'
+import { participantsRepository, usersRepository, reviewersRepository, worksRepository, reviewsRepository } from './repositories.js'
 
 export const roleLabels = { author: 'Autor', reviewer: 'Revisor', both: 'Ambos', committee: 'Comité' }
 export const roleValues = { Autor: 'author', Revisor: 'reviewer', Ambos: 'both', Comité: 'committee' }
@@ -27,14 +28,18 @@ export async function saveDirectory(users) {
   await usersRepository.save(users)
   try {
     await participantsRepository.save(nextParticipants)
-    await reviewersRepository.save(reviewers.map(reviewer => {
+    const nextReviewers = reviewers.map(reviewer => {
       const participant = participants.find(item => item.userId === reviewer.userId)
       const user = users.find(item => item.userId === reviewer.userId || item.correo === (reviewer.email ?? participant?.email))
       return user ? { ...reviewer, nombre: user.nombre, institucion: user.institucion, bloqueado: user.bloqueado } : reviewer
-    }))
+    })
+    await reviewersRepository.save(nextReviewers)
+    const [works, reviews] = await Promise.all([worksRepository.get(), reviewsRepository.get()])
+    await worksRepository.save(works.map(work => ({ ...work, revisoresAsignados: work.revisoresAsignados.filter(id => { const reviewer = nextReviewers.find(item => item.id === id); return !reviewer?.bloqueado || getReview(reviews, reviewer, work.codigo)?.status === 'submitted' }) })))
   } catch (error) {
     await usersRepository.save(previous)
     await participantsRepository.save(participants)
+    await reviewersRepository.save(reviewers)
     throw error
   }
   return users

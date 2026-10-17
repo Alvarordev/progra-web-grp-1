@@ -69,7 +69,7 @@ function validate(valores, sesiones, idActual) {
   return errores
 }
 
-function SessionModal({ alCerrar, alGuardar, modo, sesion, sesiones }) {
+function SessionModal({ guardando = false, alCerrar, alGuardar, modo, sesion, sesiones }) {
   const [valores, setValores] = useState(() => createFormValues(sesion))
   const [errores, setErrores] = useState({})
   const titulo = modo === 'edit' ? 'Editar sesión' : 'Nueva sesión'
@@ -123,7 +123,7 @@ function SessionModal({ alCerrar, alGuardar, modo, sesion, sesiones }) {
 
   return (
     <Modal alCerrar={alCerrar} titulo={titulo}>
-      <form className={styles.form} noValidate onSubmit={handleSubmit}>
+      <form aria-busy={guardando} className={styles.form} noValidate onSubmit={handleSubmit}>
         <div className={styles.field}>
           <label htmlFor="session-nombre">Nombre *</label>
           <input {...fieldProps('nombre')} autoComplete="off" required />
@@ -187,10 +187,10 @@ function SessionModal({ alCerrar, alGuardar, modo, sesion, sesiones }) {
         </div>
 
         <footer className={styles.footer}>
-          <Button onClick={alCerrar} type="button" variant="secondary">
+          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
             Cancelar
           </Button>
-          <Button type="submit" variant="primary">
+          <Button loading={guardando} type="submit" variant="primary">
             Guardar sesión
           </Button>
         </footer>

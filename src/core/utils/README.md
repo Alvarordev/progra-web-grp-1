@@ -293,3 +293,15 @@ las credenciales locales vuelve a estar disponible la contraseña inicial.
 Cerrar sesión elimina solo la identidad activa, conservando las demás cuentas.
 Esta cuenta forma parte de la demostración local; los permisos reales
 corresponderán al backend.
+
+## Integración de las historias
+
+`worksRepository` es el registro común de borradores y envíos. Conserva los campos de asignación existentes y admite detalles del autor, propietario, coautores, documento y versión final. `submissions.js` transforma el registro para las vistas del autor sin mantener otra lista en memoria. La edición exige recepción abierta y fecha vigente.
+
+`assignments.js` relaciona el revisor de una cuenta con los identificadores antiguos y conserva claves legadas de evaluaciones. Bandeja, seguimiento y consolidado consultan esas asignaciones y las evaluaciones enviadas. Los borradores no cuentan como entregados.
+
+`decisionsRepository` (`congress:decisions`) conserva borradores y publicaciones por código de trabajo. `programRepository` (`congress:program`) conserva sesiones, asignaciones y orden; publicar guarda una instantánea de la programación que consulta el público. `remindersRepository` registra solicitudes locales de recordatorio. No envía correo real.
+
+El directorio combina fichas de participantes con los datos administrativos de Usuarios. Sus cambios se aplican a la cuenta correspondiente; el login consulta el bloqueo. Un revisor bloqueado conserva entregas pero deja de ser responsable de asignaciones pendientes.
+
+Las semillas son datos iniciales de la base local y se escriben en la primera lectura. Una colección guardada vacía se conserva. Las sesiones sin identidad no se escriben como registros nulos. No se borran ni sustituyen datos incompatibles.

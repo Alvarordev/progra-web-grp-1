@@ -4,7 +4,8 @@ import Button from '../../../core/ui/Button/Button.jsx'
 import CommitteeProgramLayout from '../components/CommitteeProgramLayout/CommitteeProgramLayout.jsx'
 import PendingWorksPanel from '../components/PendingWorksPanel/PendingWorksPanel.jsx'
 import SessionContentPanel from '../components/SessionContentPanel/SessionContentPanel.jsx'
-import { acceptedWorks, initialSessions } from '../data/program.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getProgramWorks } from '../../../core/utils/program.js'
 import {
   formatDate,
   getSessionCapacity,
@@ -14,17 +15,17 @@ import styles from './SessionAssignmentPage.module.css'
 
 function SessionAssignmentPage() {
   const [searchParams] = useSearchParams()
+  const conference = useConference()
+  const initialSessions = conference.program.sessions
+  const acceptedWorks = getProgramWorks(conference.works, conference.program)
   const sesion =
     initialSessions.find((item) => item.id === searchParams.get('sesion')) ??
     initialSessions[0]
-  const capacidad = getSessionCapacity(sesion)
+  const capacidad = sesion ? getSessionCapacity(sesion) : 0
 
-  const [pendientes, setPendientes] = useState(() =>
-    acceptedWorks.filter((trabajo) => !trabajo.sesionId),
-  )
-  const [contenido, setContenido] = useState(() =>
-    getSessionWorks(acceptedWorks, sesion.id),
-  )
+  const [draft, setContenido] = useState(null)
+  const contenido = draft ?? (sesion ? getSessionWorks(acceptedWorks, sesion.id) : [])
+  const pendientes = acceptedWorks.filter(work => !work.sesionId && !contenido.some(item => item.codigo === work.codigo))
   const [feedback, setFeedback] = useState('')
   const hayEspacio = contenido.length < capacidad
 
@@ -33,25 +34,20 @@ function SessionAssignmentPage() {
       return
     }
 
-    setPendientes((actuales) =>
-      actuales.filter((item) => item.codigo !== trabajo.codigo),
-    )
-    setContenido((actuales) => [...actuales, trabajo])
+    setContenido([...contenido, trabajo])
     setFeedback('')
   }
 
   function handleRemove(trabajo) {
-    setContenido((actuales) =>
-      actuales.filter((item) => item.codigo !== trabajo.codigo),
-    )
-    setPendientes((actuales) => [...actuales, trabajo])
+    setContenido(contenido.filter(item => item.codigo !== trabajo.codigo))
     setFeedback('')
   }
 
   function handleMove(indice, desplazamiento) {
     const destino = indice + desplazamiento
 
-    setContenido((actuales) => {
+    setContenido(() => {
+      const actuales = contenido
       if (destino < 0 || destino >= actuales.length) {
         return actuales
       }
@@ -66,9 +62,14 @@ function SessionAssignmentPage() {
     setFeedback('')
   }
 
-  function handleSave() {
-    setFeedback('Sesión guardada temporalmente. No se guardará al recargar.')
+  async function handleSave() {
+    if (conference.busy || !sesion) return
+    const assignments = conference.program.assignments.filter(item => item.sesionId !== sesion.id && !contenido.some(work => work.codigo === item.codigo))
+    const next = { ...conference.program, assignments: [...assignments, ...contenido.map((work, index) => ({ codigo: work.codigo, sesionId: sesion.id, orden: index + 1 }))] }
+    try { await conference.save('program', next); setContenido(null); setFeedback('Sesión guardada en este navegador.') } catch { /* error visible */ }
   }
+
+  if (!sesion) return <CommitteeProgramLayout><h1>Asignar trabajos a la sesión</h1><p role="status">{conference.error || (conference.loading ? 'Cargando sesión…' : 'Cree una sesión desde Programa para asignarle trabajos.')}</p></CommitteeProgramLayout>
 
   return (
     <CommitteeProgramLayout estado="Resultados publicados">
@@ -81,20 +82,20 @@ function SessionAssignmentPage() {
               · {sesion.horaInicio}–{sesion.horaFin} · Sala {sesion.sala}
             </p>
           </div>
-          <Button onClick={handleSave} type="button" variant="primary">
+          <Button disabled={conference.busy} onClick={handleSave} type="button" variant="primary">
             Guardar sesión
           </Button>
         </header>
 
         <p aria-live="polite" className={styles.feedback}>
-          {feedback}
+          {conference.error || feedback}
         </p>
 
         <div className={styles.columns}>
           <div className={styles.column}>
             <PendingWorksPanel
               alAgregar={handleAdd}
-              hayEspacio={hayEspacio}
+              hayEspacio={hayEspacio && !conference.busy}
               trabajos={pendientes}
             />
             <p className={styles.accentNote}>

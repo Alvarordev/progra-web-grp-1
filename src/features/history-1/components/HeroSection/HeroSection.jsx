@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import styles from './HeroSection.module.css'
 
-function HeroSection({ rol }) {
+function HeroSection({ rol, edicion }) {
   const action = rol === 'committee'
     ? { to: '/configuracion', label: 'Ir a la configuración del congreso' }
     : rol === 'reviewer'
@@ -17,7 +17,7 @@ function HeroSection({ rol }) {
           <p className={styles.eyebrow}>
             CONVOCATORIA ABIERTA · LIMA, 12 Y 13 DE NOVIEMBRE DE 2026
           </p>
-          <h1>VIII Congreso Académico Estudiantil</h1>
+          <h1>{edicion?.editionName ?? 'VIII Congreso Académico Estudiantil'}</h1>
           <p className={styles.description}>
             Presenta tu investigación ante el comité y la comunidad universitaria.
             Recibimos artículos completos, resúmenes extendidos, pósteres y casos

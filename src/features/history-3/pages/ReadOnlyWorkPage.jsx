@@ -3,7 +3,8 @@ import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.js
 import InfoPanel from '../components/InfoPanel/InfoPanel.jsx'
 import WorkDataPanel from '../components/WorkDataPanel/WorkDataPanel.jsx'
 import WorkHeading from '../components/WorkHeading/WorkHeading.jsx'
-import { findWork } from '../data/works.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getAuthorWorks } from '../../../core/utils/submissions.js'
 import styles from './WorkDetailPage.module.css'
 
 function getAuthorsLine(autores) {
@@ -14,7 +15,10 @@ function getAuthorsLine(autores) {
 
 function ReadOnlyWorkPage() {
   const { codigo } = useParams()
-  const trabajo = findWork(codigo)
+  const conference = useConference()
+  const trabajo = getAuthorWorks(conference.works, conference.account, conference.decisions).find(work => work.codigo === codigo)
+
+  if (conference.loading || conference.error) return <AuthorPageLayout><p role="status">{conference.error || 'Cargando trabajo…'}</p></AuthorPageLayout>
 
   if (!trabajo) return <Navigate replace to="/autor/trabajos" />
 

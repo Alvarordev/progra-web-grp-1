@@ -1,3 +1,4 @@
+import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
 import { Link, Navigate, useOutletContext } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
@@ -19,6 +20,7 @@ import styles from './AccountPage.module.css'
 function AccountPage() {
   const participant = useOutletContext()
   const profileState = useReviewerProfile()
+  const conference = useConference()
   const isReviewer = ['reviewer', 'both'].includes(participant.role)
   const axesState = useStoredState(thematicAxesRepository, [], isReviewer)
   const reviewsState = useStoredState(reviewsRepository, {}, isReviewer)
@@ -28,7 +30,7 @@ function AccountPage() {
   const loading = profileState.loading || (isReviewer && (axesState.loading || reviewsState.loading))
   const loadError = profileState.error || (isReviewer ? axesState.error || reviewsState.error : '')
   const blocked = loading || Boolean(loadError) || profileState.saving || passwordSaving
-  const assignments = getReviewerAssignments(reviewsState.value, profileState.reviewerId)
+  const assignments = getReviewerAssignments(reviewsState.value, profileState.reviewerId, conference.works, conference.reviewers)
   const user = {
     ...getReviewerUser(profileState.loading ? participant : profileState.profile),
     rol: participant.role === 'both' ? 'Rol: Autor y revisor' : isReviewer ? 'Rol: Revisor' : 'Rol: Autor',

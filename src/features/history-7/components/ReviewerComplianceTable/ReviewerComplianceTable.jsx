@@ -2,7 +2,7 @@ import DataTable from '../DataTable/DataTable.jsx'
 import styles from './ReviewerComplianceTable.module.css'
 
 function getCompliance(revisor) {
-  return Math.round((revisor.entregadas / revisor.asignadas) * 100)
+  return Math.round((revisor.entregadas / (revisor.asignadas || 1)) * 100)
 }
 
 function getComplianceTone(porcentaje) {
@@ -41,7 +41,7 @@ function ReviewerComplianceTable({ revisores }) {
               >
                 {revisor.vencidas}
               </td>
-              <td data-align="right">{revisor.tiempo.toFixed(1)} días</td>
+              <td data-align="right">{revisor.tiempo === null ? '—' : `${revisor.tiempo.toFixed(1)} días`}</td>
               <td>
                 <div className={styles.progress}>
                   <span aria-hidden="true" className={styles.track}>

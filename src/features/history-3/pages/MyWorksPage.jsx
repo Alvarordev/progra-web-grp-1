@@ -5,7 +5,8 @@ import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import WorkCard from '../components/WorkCard/WorkCard.jsx'
-import { getWorks } from '../data/works.js'
+import useConference from '../../../core/utils/useConference.js'
+import { getAuthorWorks, receptionIsOpen } from '../../../core/utils/submissions.js'
 import styles from './MyWorksPage.module.css'
 
 const filters = [
@@ -19,12 +20,14 @@ const filters = [
 
 function MyWorksPage() {
   const navigate = useNavigate()
+  const conference = useConference()
+  const open = receptionIsOpen(conference.status, conference.schedule)
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const [filtroActivo, setFiltroActivo] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
 
-  const trabajos = searchParams.get('vista') === 'vacia' ? [] : getWorks()
+  const trabajos = searchParams.get('vista') === 'vacia' ? [] : getAuthorWorks(conference.works, conference.account, conference.decisions)
   const codigoEnviado = location.state?.enviado
 
   const texto = busqueda.trim().toLowerCase()
@@ -43,6 +46,8 @@ function MyWorksPage() {
           : trabajos.filter((trabajo) => trabajo.estado === filtro.estado).length,
     }))
     .filter((filtro) => filtro.estado === 'todos' || filtro.cantidad > 0)
+
+  if (conference.loading || conference.error) return <AuthorPageLayout><p role="status">{conference.error || 'Cargando trabajos…'}</p></AuthorPageLayout>
 
   if (trabajos.length === 0) {
     return (
@@ -87,8 +92,8 @@ function MyWorksPage() {
           ✓ Trabajo {codigoEnviado} enviado al comité. Ya aparece en su lista de trabajos.
         </p>
       )}
-      <DeadlineNotice restante="Faltan 22 días" titulo="Etapa de revisión.">
-        Los resultados se publican el 28/10/2026 a las 12:00.
+      <DeadlineNotice titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
+        Consulte el dictamen y las fechas vigentes desde el detalle y las bases.
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>
@@ -96,9 +101,7 @@ function MyWorksPage() {
           <h1>Mis trabajos</h1>
           <p>{trabajos.length} trabajos registrados como autora o coautora</p>
         </div>
-        <button className={styles.closedButton} disabled type="button">
-          Nuevo trabajo (recepción cerrada)
-        </button>
+        <Button type="button" disabled={!open} onClick={() => navigate('/autor/nuevo-trabajo')}> {open ? 'Nuevo trabajo' : 'Nuevo trabajo (recepción cerrada)'} </Button>
       </div>
 
       <div className={styles.toolbar}>
@@ -129,7 +132,7 @@ function MyWorksPage() {
       {trabajosFiltrados.length > 0 ? (
         <section aria-label="Lista de trabajos" className={styles.workGrid}>
           {trabajosFiltrados.map((trabajo) => (
-            <WorkCard key={trabajo.codigo} trabajo={trabajo} />
+            <WorkCard key={trabajo.codigo} trabajo={trabajo} recepcionAbierta={open} />
           ))}
         </section>
       ) : (

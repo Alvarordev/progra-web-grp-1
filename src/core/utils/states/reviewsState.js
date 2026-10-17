@@ -1,3 +1,4 @@
+import { assignmentsByWork } from './reviewExamplesState.js'
 export function getReviewKey(reviewerId, code) {
   return `${reviewerId}:${code}`
 }
@@ -23,3 +24,6 @@ export function validateReviews(value) {
       return validCriteria && (review.status === 'draft' || complete)
     })
 }
+
+
+export const initialReviews = Object.fromEntries(Object.entries(assignmentsByWork).flatMap(([code, work]) => work.revisores.filter(reviewer => reviewer.revisionDemo).map(reviewer => [getReviewKey(reviewer.id, code), reviewer.revisionDemo])))
