@@ -1,16 +1,4 @@
 .content { composes: content from './EditionSettingsPage.module.css'; }
 .pageHeading { composes: pageHeading from './EditionSettingsPage.module.css'; }
 .actions { composes: actions from './EditionSettingsPage.module.css'; }
-.feedback { composes: successNotice from './SchedulePage.module.css'; margin: var(--space-4) 0; }
-.errorNotice { composes: errorNotice from './SchedulePage.module.css'; margin: var(--space-4) 0; }
-.loading { margin: var(--space-4) 0; color: var(--color-text-muted); font-size: var(--font-size-help); }
 .helperText { composes: helperText from './EditionSettingsPage.module.css'; }
-.successNotice { composes: successNotice from './SchedulePage.module.css'; margin-bottom: var(--space-4); }
-.warningNotice {
-  margin: var(--space-4) 0;
-  padding: var(--space-3);
-  border: 1px solid var(--color-warning);
-  background: var(--color-warning-soft);
-  color: var(--color-text);
-  font-size: var(--font-size-help);
-}

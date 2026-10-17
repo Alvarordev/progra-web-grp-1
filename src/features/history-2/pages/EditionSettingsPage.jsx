@@ -10,6 +10,7 @@ import { initialSchedule } from '../../../core/utils/states/scheduleState.js'
 import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import CloseReceptionModal from '../components/CloseReceptionModal/CloseReceptionModal.jsx'
 import styles from './EditionSettingsPage.module.css'
@@ -18,7 +19,7 @@ function EditionSettingsPage() {
   const conference = useConference()
   const [edition, setEdition] = useState(initialEdition)
   const [estado, setEstado] = useState(initialEditionStatus)
-  const [feedback, setFeedback] = useState('')
+  const [feedback, setFeedback] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [closeModal, setCloseModal] = useState(false)
@@ -53,7 +54,7 @@ function EditionSettingsPage() {
       if (statusResult.status === 'fulfilled') setEstado(statusResult.value)
 
       const failure = results.find((result) => result.status === 'rejected')
-      if (failure) setFeedback(failure.reason.message)
+      if (failure) setFeedback({ mensaje: failure.reason.message, tipo: 'error' })
       setLoading(false)
     }
 
@@ -64,22 +65,22 @@ function EditionSettingsPage() {
   function handleChange(event) {
     const { name, value } = event.target
     setEdition((edicionActual) => ({ ...edicionActual, [name]: value }))
-    setFeedback('')
+    setFeedback(null)
   }
 
   async function handleSave(event) {
     event.preventDefault()
     if (loading || saving) return
     if (!edition.editionName.trim() || !edition.editionVenue.trim() || !/^\d{4}$/.test(edition.editionYear) || edition.editionDescription.length > 400) {
-      setFeedback('Ingrese un nombre, una sede y un año de cuatro dígitos. La descripción admite hasta 400 caracteres.')
+      setFeedback({ mensaje: 'Ingrese un nombre, una sede y un año de cuatro dígitos. La descripción admite hasta 400 caracteres.', tipo: 'error' })
       return
     }
     setSaving(true)
     try {
       await editionRepository.save(edition)
-      setFeedback('Cambios guardados en este navegador.')
+      setFeedback({ mensaje: 'Cambios guardados correctamente.' })
     } catch (error) {
-      setFeedback(error.message)
+      setFeedback({ mensaje: error.message, tipo: 'error' })
     } finally {
       setSaving(false)
     }
@@ -88,12 +89,12 @@ function EditionSettingsPage() {
   async function handleToggleStatus() {
     if (loading || saving || configurationLoading || configurationError) return
     if (!axesState.value.length || !typesState.value.length) {
-      setFeedback('Configure al menos un eje temático y un tipo de trabajo antes de abrir o cerrar la recepción.')
+      setFeedback({ mensaje: 'Configure al menos un eje temático y un tipo de trabajo antes de abrir o cerrar la recepción.', tipo: 'warning' })
       return
     }
     if (estado === 'Recepción abierta') {
       if (totalWeight !== 100) {
-        setFeedback('Los criterios deben sumar 100 antes de abrir la etapa de revisión. Ajústelos en «Criterios de evaluación».')
+        setFeedback({ mensaje: 'Los criterios deben sumar 100 antes de abrir la etapa de revisión. Ajústelos en «Criterios de evaluación».', tipo: 'warning' })
         return
       }
       setCloseError('')
@@ -105,9 +106,9 @@ function EditionSettingsPage() {
     try {
       await editionStatusRepository.save('Recepción abierta')
       setEstado('Recepción abierta')
-      setFeedback('Recepción abierta. Estado guardado en este navegador.')
+      setFeedback({ mensaje: 'Recepción abierta correctamente.' })
     } catch (error) {
-      setFeedback(error.message)
+      setFeedback({ mensaje: error.message, tipo: 'error' })
     } finally {
       setSaving(false)
     }
@@ -119,7 +120,7 @@ function EditionSettingsPage() {
       await editionStatusRepository.save('En revisión')
       setEstado('En revisión')
       setCloseModal(false)
-      setFeedback('Recepción cerrada. La edición está en revisión.')
+      setFeedback({ mensaje: 'Recepción cerrada. La edición está en revisión.' })
     } catch (error) {
       setCloseError(error.message)
     } finally {
@@ -152,11 +153,13 @@ function EditionSettingsPage() {
           </div>
         </div>
 
-        <p aria-live="polite" className={styles.feedback}>
-          {loading || configurationLoading ? 'Cargando configuración…' : configurationError || feedback}
-        </p>
-
         <ConfigurationTabs />
+        <ConfigurationFeedback
+          cargando={loading || configurationLoading ? 'Cargando configuración…' : ''}
+          error={configurationError}
+          mensaje={feedback?.mensaje}
+          tipo={feedback?.tipo}
+        />
 
         <div className={styles.dashboard}>
           <section

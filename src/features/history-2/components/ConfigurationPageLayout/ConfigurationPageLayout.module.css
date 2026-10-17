@@ -9,3 +9,8 @@
   width: 100%;
   flex: 1;
 }
+
+.feedbackContainer {
+  width: min(100% - var(--space-8), var(--content-width));
+  margin: 0 auto;
+}

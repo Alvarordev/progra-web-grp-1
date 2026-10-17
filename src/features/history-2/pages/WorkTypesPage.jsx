@@ -4,6 +4,7 @@ import { workTypesRepository } from '../../../core/utils/repositories.js'
 import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import WorkTypeModal from '../components/WorkTypeModal/WorkTypeModal.jsx'
 import WorkTypesTable from '../components/WorkTypesTable/WorkTypesTable.jsx'
@@ -15,10 +16,12 @@ function WorkTypesPage() {
   const [feedback, setFeedback] = useState('')
 
   function handleCreate() {
+    setFeedback('')
     setModal({ modo: 'create', tipoTrabajo: null })
   }
 
   function handleEdit(tipoTrabajo) {
+    setFeedback('')
     setModal({ modo: 'edit', tipoTrabajo })
   }
 
@@ -26,7 +29,7 @@ function WorkTypesPage() {
     if (!window.confirm('¿Eliminar este tipo de trabajo?')) return
     try {
       await save(tiposTrabajo.filter((item) => item.id !== id))
-      setFeedback('Tipo de trabajo eliminado.')
+      setFeedback('Tipo de trabajo eliminado correctamente.')
     } catch { setFeedback('') }
   }
 
@@ -37,7 +40,7 @@ function WorkTypesPage() {
     try {
       await save(nextTypes)
       setModal(null)
-      setFeedback('Tipo de trabajo guardado en este navegador.')
+      setFeedback('Tipo de trabajo guardado correctamente.')
     } catch {
       setFeedback('')
     }
@@ -57,7 +60,7 @@ function WorkTypesPage() {
         </header>
 
         <ConfigurationTabs />
-        <p role="status">{loading ? 'Cargando tipos de trabajo…' : error || feedback}</p>
+        <ConfigurationFeedback cargando={loading ? 'Cargando tipos de trabajo…' : ''} error={modal ? '' : error} mensaje={feedback} />
 
         <section aria-label="Tipos de trabajo de la edición" className={styles.tableSection}>
           <WorkTypesTable

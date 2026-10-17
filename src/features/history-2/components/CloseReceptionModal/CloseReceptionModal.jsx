@@ -1,3 +1,4 @@
+import ConfigurationFeedback from '../ConfigurationFeedback/ConfigurationFeedback.jsx'
 import { useState } from 'react'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import Button from '../../../../core/ui/Button/Button.jsx'
@@ -28,7 +29,7 @@ function CloseReceptionModal({ alCerrar, alConfirmar, guardando, error }) {
           <label htmlFor="close-confirmation">Escriba CERRAR para confirmar</label>
           <input id="close-confirmation" autoComplete="off" disabled={guardando} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
         </div>
-        {error && <p role="alert" className={styles.error}>{error}</p>}
+        <ConfigurationFeedback compacto error={error} />
         <footer className={styles.footer}>
           <Button variant="secondary" disabled={guardando} onClick={alCerrar}>Cancelar</Button>
           <Button variant="destructive" type="submit" loading={guardando} disabled={!accepted || confirmation !== 'CERRAR'}>Cerrar la recepción</Button>

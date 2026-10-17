@@ -1,3 +1,4 @@
+import ConfigurationFeedback from '../ConfigurationFeedback/ConfigurationFeedback.jsx'
 import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
@@ -43,9 +44,8 @@ function CriterionModal({ criterio, alCerrar, alGuardar, guardando = false, erro
           <label htmlFor="criterion-weight">Peso (%) *</label>
           <input id="criterion-weight" name="peso" type="number" min="1" max="100" step="1" required value={values.peso} onChange={handleChange} />
         </div>
-        {error && <p className={styles.error} role="alert">{error}</p>}
         </fieldset>
-        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
+        <ConfigurationFeedback compacto error={error || errorGuardado} />
         <footer className={styles.footer}>
           <Button disabled={guardando} onClick={alCerrar} variant="secondary">Cancelar</Button>
           <Button loading={guardando} type="submit">Guardar criterio</Button>

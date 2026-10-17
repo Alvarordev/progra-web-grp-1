@@ -1,3 +1,4 @@
+import ConfigurationFeedback from '../ConfigurationFeedback/ConfigurationFeedback.jsx'
 import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
@@ -203,7 +204,7 @@ function WorkTypeModal({ alCerrar, alGuardar, modo, tipoTrabajo, guardando = fal
         )}
 
         </fieldset>
-        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
+        <ConfigurationFeedback compacto error={errorGuardado} />
         <footer className={styles.footer}>
           <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
             Cancelar

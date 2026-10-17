@@ -4,6 +4,7 @@ import useStoredState from '../../../core/utils/useStoredState.js'
 import { criteriaRepository } from '../../../core/utils/repositories.js'
 import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import CriteriaTable from '../components/CriteriaTable/CriteriaTable.jsx'
 import CriterionModal from '../components/CriterionModal/CriterionModal.jsx'
@@ -55,22 +56,18 @@ function CriteriaPage() {
         <header className={styles.pageHeading}>
           <div><h1>Criterios de evaluación</h1><p>Los pesos de todos los criterios deben sumar 100.</p></div>
           <div className={styles.actions}>
-            <Button variant="secondary" disabled={loading || saving} onClick={() => setModal({ criterio: null })}>Nuevo criterio</Button>
+            <Button variant="secondary" disabled={loading || saving} onClick={() => { setFeedback(''); setModal({ criterio: null }) }}>Nuevo criterio</Button>
             <Button disabled={loading} loading={saving} onClick={handleSave}>Guardar criterios</Button>
           </div>
         </header>
         <ConfigurationTabs />
-        {loading && <p role="status" className={styles.loading}>Cargando criterios…</p>}
-        {error ? (
-          <p role="alert" className={styles.errorNotice}>{error}</p>
-        ) : feedback && (
-          <p role="status" className={styles.feedback}>{feedback}</p>
-        )}
-        <p className={total === 100 ? styles.successNotice : styles.warningNotice} role="status">
-          {total === 100 ? 'Configuración válida: los pesos suman 100.' : `Los pesos suman ${total} de 100. ${total < 100 ? `Faltan ${100 - total}` : `Sobran ${total - 100}`} puntos. Ajuste los criterios antes de abrir la revisión.`}
-        </p>
+        <ConfigurationFeedback cargando={loading ? 'Cargando criterios…' : ''} error={modal ? '' : error} mensaje={feedback} />
+        {!loading && !error && <ConfigurationFeedback
+          tipo={total === 100 ? 'success' : 'warning'}
+          mensaje={total === 100 ? 'Configuración válida: los pesos suman 100.' : `Los pesos suman ${total} de 100. ${total < 100 ? `Faltan ${100 - total}` : `Sobran ${total - 100}`} puntos. Ajuste los criterios antes de abrir la revisión.`}
+        />}
         {criteria.length > 0 ? (
-          <CriteriaTable criterios={criteria} deshabilitado={loading || saving} alEditar={(item) => setModal({ criterio: item })} alEliminar={handleDelete} />
+          <CriteriaTable criterios={criteria} deshabilitado={loading || saving} alEditar={(item) => { setFeedback(''); setModal({ criterio: item }) }} alEliminar={handleDelete} />
         ) : <p>No hay criterios configurados. Agregue el primer criterio.</p>}
         <p className={styles.helperText}>Cada criterio se guarda al confirmar su formulario. Para abrir la revisión, los pesos deben sumar 100.</p>
       </div>

@@ -5,6 +5,7 @@ import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import ThematicAxesTable from '../components/ThematicAxesTable/ThematicAxesTable.jsx'
 import ThematicAxisModal from '../components/ThematicAxisModal/ThematicAxisModal.jsx'
@@ -17,21 +18,23 @@ function ThematicAxesPage() {
   const loading = axesLoading || worksState.loading
   const error = axesError || worksState.error
   const [modal, setModal] = useState(null)
-  const [feedback, setFeedback] = useState('')
+  const [feedback, setFeedback] = useState(null)
   const hasAxes = ejes.length > 0
   const totalWorks = ejes.reduce((total, eje) => total + eje.trabajos, 0)
 
   function handleCreate() {
+    setFeedback(null)
     setModal({ modo: 'create', eje: null })
   }
 
   function handleEdit(eje) {
+    setFeedback(null)
     setModal({ modo: 'edit', eje })
   }
 
   async function handleDelete(eje) {
     if (eje.trabajos > 0) {
-      setFeedback('No se puede eliminar un eje que tiene trabajos asignados.')
+      setFeedback({ mensaje: 'No se puede eliminar un eje que tiene trabajos asignados.', tipo: 'warning' })
       return
     }
 
@@ -41,8 +44,8 @@ function ThematicAxesPage() {
 
     try {
       await save(ejes.filter((item) => item.id !== eje.id))
-      setFeedback('Eje eliminado.')
-    } catch { setFeedback('') }
+      setFeedback({ mensaje: 'Eje eliminado correctamente.' })
+    } catch { setFeedback(null) }
   }
 
   async function handleSave(updatedAxis) {
@@ -52,9 +55,9 @@ function ThematicAxesPage() {
     try {
       await save(nextAxes)
       setModal(null)
-      setFeedback('Eje guardado en este navegador.')
+      setFeedback({ mensaje: 'Eje guardado correctamente.' })
     } catch {
-      setFeedback('')
+      setFeedback(null)
     }
   }
 
@@ -77,7 +80,7 @@ function ThematicAxesPage() {
 
         <ConfigurationTabs />
 
-        <p aria-live="polite" className={styles.feedback}>{loading ? 'Cargando ejes…' : error || feedback}</p>
+        <ConfigurationFeedback cargando={loading ? 'Cargando ejes…' : ''} error={modal ? '' : error} mensaje={feedback?.mensaje} tipo={feedback?.tipo} />
 
         {hasAxes ? (
           <section

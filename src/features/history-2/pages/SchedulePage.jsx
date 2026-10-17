@@ -4,6 +4,7 @@ import useStoredState from '../../../core/utils/useStoredState.js'
 import { scheduleRepository } from '../../../core/utils/repositories.js'
 import { initialSchedule, getScheduleErrors, formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import styles from './SchedulePage.module.css'
 
@@ -35,7 +36,7 @@ function SchedulePage() {
     try {
       await save(schedule)
       setDraft(null)
-      setFeedback('Cronograma guardado en este navegador.')
+      setFeedback('Cronograma guardado correctamente.')
     } catch { setFeedback('') }
   }
 
@@ -52,8 +53,8 @@ function SchedulePage() {
           </Button>
         </header>
         <ConfigurationTabs />
-        <p role="status" className={styles.feedback}>{loading ? 'Cargando cronograma…' : error || feedback}</p>
-        {invalid && <p className={styles.errorNotice} role="alert">El cronograma no es válido. Corrija las fechas y horas marcadas para guardar.</p>}
+        <ConfigurationFeedback cargando={loading ? 'Cargando cronograma…' : ''} error={error} mensaje={feedback} />
+        <ConfigurationFeedback error={!loading && !error && invalid ? 'El cronograma no es válido. Corrija las fechas y horas marcadas para guardar.' : ''} />
         <div className={styles.dashboard}>
           <form id="schedule-form" onSubmit={handleSubmit} className={styles.panel}>
             <fieldset className={styles.fields} disabled={loading || saving}>
@@ -82,7 +83,7 @@ function SchedulePage() {
                 </div>
               ))}
             </fieldset>
-            {!invalid && <p className={styles.successNotice}>Cronograma válido: las tres fechas son consecutivas.</p>}
+            {!loading && !error && !invalid && <ConfigurationFeedback mensaje="Cronograma válido: las tres fechas son consecutivas." />}
           </form>
           <aside className={styles.panel} aria-labelledby="schedule-preview">
             <h2 id="schedule-preview">Vista previa pública</h2>

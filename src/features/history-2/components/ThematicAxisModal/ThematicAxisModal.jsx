@@ -1,3 +1,4 @@
+import ConfigurationFeedback from '../ConfigurationFeedback/ConfigurationFeedback.jsx'
 import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
@@ -50,9 +51,8 @@ function ThematicAxisModal({ alCerrar, alGuardar, eje, modo, guardando = false, 
           <label htmlFor="axis-owner">Responsable *</label>
           <input id="axis-owner" name="responsable" onChange={handleChange} value={valores.responsable} />
         </div>
-        {error && <p className={styles.error} role="alert">{error}</p>}
         </fieldset>
-        {errorGuardado && <p className={styles.error} role="alert">{errorGuardado}</p>}
+        <ConfigurationFeedback compacto error={error || errorGuardado} />
         <footer className={styles.footer}>
           <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">Cancelar</Button>
           <Button loading={guardando} type="submit" variant="primary">Guardar eje</Button>

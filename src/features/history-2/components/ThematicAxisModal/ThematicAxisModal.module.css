@@ -35,11 +35,6 @@
   resize: vertical;
 }
 
-.error {
-  margin: 0;
-  color: var(--color-danger);
-  font-size: var(--font-size-help);
-}
 
 .footer {
   display: flex;

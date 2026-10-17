@@ -1,3 +1,4 @@
+import ConfigurationFeedback from '../ConfigurationFeedback/ConfigurationFeedback.jsx'
 import useActiveAccount from '../../../../core/utils/useActiveAccount.js'
 import Footer from '../../../../core/ui/Footer/Footer.jsx'
 import CommitteeNavigation from '../../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
@@ -19,10 +20,15 @@ function ConfigurationPageLayout({ children, estado }) {
   return (
     <div className={styles.page}>
       <Header estado={estado ?? storedStatus.value} />
-      {storedStatus.error && <p role="alert">{storedStatus.error}</p>}
-      {accountState.error && <p role="alert">{accountState.error}</p>}
       <CommitteeNavigation rutaActiva="/configuracion" usuario={committeeUser} />
-      <main className={styles.main}>{children}</main>
+      <main className={styles.main}>
+        {(storedStatus.error || accountState.error) && (
+          <div className={styles.feedbackContainer}>
+            <ConfigurationFeedback error={storedStatus.error || accountState.error} />
+          </div>
+        )}
+        {children}
+      </main>
       <Footer />
     </div>
   )
