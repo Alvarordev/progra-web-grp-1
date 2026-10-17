@@ -16,7 +16,7 @@ export function validateUsers(value) {
     user !== null && Number.isInteger(user.id) &&
     typeof user.nombre === 'string' && Boolean(user.nombre.trim()) &&
     typeof user.correo === 'string' && Boolean(user.correo.trim()) &&
-    ['Autor', 'Revisor', 'Comité'].includes(user.rol) &&
+    ['Autor', 'Revisor', 'Ambos', 'Comité'].includes(user.rol) &&
     typeof user.femenino === 'boolean' &&
     typeof user.institucion === 'string' &&
     typeof user.actividad === 'string' &&

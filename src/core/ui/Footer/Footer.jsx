@@ -7,7 +7,7 @@ const footerGroups = [
     links: [
       { label: 'Bases y requisitos', to: '/bases' },
       { label: 'Ejes temáticos', to: '/bases#rules-axes' },
-      { label: 'Programa', to: '/programa' },
+      { label: 'Programa', to: '/programa-publico' },
     ],
   },
   {

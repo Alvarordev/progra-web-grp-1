@@ -109,8 +109,8 @@ function UserFormModal({ guardando = false, errorGuardado = '', alCerrar, alGuar
         <fieldset className={styles.body} disabled={guardando}>
           {!isEditing && (
             <p className={styles.intro}>
-              Se enviará una invitación por correo electrónico para que la
-              persona cree su cuenta con el rol indicado.
+              La invitación queda registrada en este navegador. La persona podrá
+              crear su cuenta con el correo y el rol indicados.
             </p>
           )}
 
@@ -149,6 +149,7 @@ function UserFormModal({ guardando = false, errorGuardado = '', alCerrar, alGuar
                 <option value="">Seleccione…</option>
                 <option value="Autor">Autor</option>
                 <option value="Revisor">Revisor</option>
+                <option value="Ambos">Ambos</option>
                 <option value="Comité">Comité</option>
               </select>
               {renderError('rol')}

@@ -7,7 +7,7 @@ import Toast from '../components/Toast/Toast.jsx'
 import UserFormModal from '../components/UserFormModal/UserFormModal.jsx'
 import UsersTable from '../components/UsersTable/UsersTable.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { usersRepository } from '../../../core/utils/repositories.js'
+import { directoryRepository } from '../../../core/utils/directory.js'
 import { initialUsers } from '../../../core/utils/states/usersState.js'
 import { roles, statusOptions } from '../data/congressData.js'
 import { buildActivity, inferFeminine } from '../utils/users.js'
@@ -22,7 +22,7 @@ function countByRole(users, role) {
 function UsersPage() {
   const idPrefix = useId()
   const { value: users, loading, saving, error, save } =
-    useStoredState(usersRepository, initialUsers)
+    useStoredState(directoryRepository, initialUsers)
   const busy = loading || saving
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -158,7 +158,7 @@ function UsersPage() {
         setInstitutionFilter('')
         setStatusFilter('')
         setPage(1)
-        setToast('Invitación enviada')
+        setToast('Invitación registrada en este navegador')
       }
 
       setUserForm(null)

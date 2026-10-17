@@ -4,7 +4,7 @@ import AccessMessage from '../components/AccessMessage/AccessMessage.jsx'
 
 const actions = [
   { texto: 'Ir al inicio', ruta: '/', primaria: true },
-  { texto: 'Ver el programa', ruta: '/programa' },
+  { texto: 'Ver el programa', ruta: '/programa-publico' },
 ]
 
 function NotFoundPage() {

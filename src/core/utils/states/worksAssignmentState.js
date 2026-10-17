@@ -1,3 +1,4 @@
+import { works as authorExamples } from './submissionState.js'
 export const trabajosIniciales = [
   {
     codigo: 'TRB-2026-031',
@@ -341,7 +342,7 @@ export const revisionesPendientesIniciales = [
 ]
 
 export function validarTrabajos(valor) {
-  return Array.isArray(valor)
+  return Array.isArray(valor) && valor.every(item => item && typeof item.codigo === 'string' && typeof item.titulo === 'string' && Array.isArray(item.autores) && Array.isArray(item.revisoresAsignados)) && new Set(valor.map(item => item.codigo)).size === valor.length
 }
 
 export function validarRevisores(valor) {
@@ -353,10 +354,15 @@ export function validarRevisionesPendientes(valor) {
 }
 
 export {
-  trabajosIniciales as initialWorks,
   revisoresIniciales as initialReviewers,
   revisionesPendientesIniciales as initialPendingReviews,
   validarTrabajos as validateWorks,
   validarRevisores as validateReviewers,
   validarRevisionesPendientes as validatePendingReviews,
 }
+
+
+export const initialWorks = trabajosIniciales.map(work => {
+  const detail = authorExamples.find(item => item.codigo === work.codigo)
+  return { ...work, ...(detail ? { details: detail, ownerEmail: 'rosa.quispe@aloe.ulima.edu.pe' } : {}), documentUrl: '/Tema6_Mockups_f.pdf', reviewDeadline: '2026-10-20' }
+})

@@ -8,7 +8,8 @@ import UsersPage from '../features/history-7/pages/UsersPage.jsx'
 import ReceivedWorksPage from '../features/history-4/pages/ReceivedWorksPage.jsx'
 import ReviewersListPage from '../features/history-4/pages/ReviewersListPage.jsx'
 import ReviewsTrackingPage from '../features/history-4/pages/ReviewsTrackingPage.jsx'
-import { createBrowserRouter } from 'react-router'
+import InformationPage from '../features/history-1/pages/InformationPage.jsx'
+import { createBrowserRouter, redirect } from 'react-router'
 import ExamplePage from '../ejemplo/ExamplePage.jsx'
 import AuthorHomePage from '../features/history-1/pages/AuthorHomePage.jsx'
 import History1Page from '../features/history-1/pages/History1Page.jsx'
@@ -81,26 +82,6 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '/configuracion',
-    element: <EditionSettingsPage />,
-  },
-  {
-    path: '/configuracion/ejes-tematicos',
-    element: <ThematicAxesPage />,
-  },
-  {
-    path: '/configuracion/tipos-trabajo',
-    element: <WorkTypesPage />,
-  },
-  {
-    path: '/configuracion/fechas',
-    element: <SchedulePage />,
-  },
-  {
-    path: '/configuracion/criterios',
-    element: <CriteriaPage />,
-  },
-  {
     element: <RoleAccess />,
     loader: createAccessLoader(['author', 'reviewer', 'both'], 'Esta sección requiere una cuenta de participante.'),
     errorElement: <RoleAccessError />,
@@ -120,6 +101,31 @@ const router = createBrowserRouter([
     loader: createAccessLoader(['reviewer', 'both'], 'La evaluación de trabajos es exclusiva del rol revisor.', true),
     errorElement: <RoleAccessError />,
     children: [{ path: '/evaluacion/:codigo', element: <EvaluationPage /> }],
+  },
+  {
+    element: <RoleAccess />,
+    loader: createAccessLoader(['committee'], 'Esta sección es exclusiva del comité organizador.'),
+    errorElement: <RoleAccessError />,
+    children: [
+  {
+    path: '/configuracion',
+    element: <EditionSettingsPage />,
+  },
+  {
+    path: '/configuracion/ejes-tematicos',
+    element: <ThematicAxesPage />,
+  },
+  {
+    path: '/configuracion/tipos-trabajo',
+    element: <WorkTypesPage />,
+  },
+  {
+    path: '/configuracion/fechas',
+    element: <SchedulePage />,
+  },
+  {
+    path: '/configuracion/criterios',
+    element: <CriteriaPage />,
   },
   {
     path: '/trabajos-recibidos/:codigo/consolidado',
@@ -157,12 +163,15 @@ const router = createBrowserRouter([
     path: '/programa', element: <SessionBuilderPage />,
   },
   { path: '/programa/asignar-trabajos', element: <SessionAssignmentPage /> },
+    ],
+  },
   { path: '/programa-publico', element: <PublicProgramPage /> },
-  { path: '/mi-presentacion', element: <MyPresentationPage /> },
+  { path: '/mi-presentacion', loader: () => { throw redirect('/autor/presentacion') } },
+  ...['guia-autores', 'guia-revisores', 'preguntas-frecuentes', 'terminos', 'privacidad'].map(section => ({ path: `/${section}`, element: <InformationPage seccion={section} /> })),
   {
     path: '*',
     element: <NotFoundPage />,
   },
 ])
 
-export default router;
+export default router
