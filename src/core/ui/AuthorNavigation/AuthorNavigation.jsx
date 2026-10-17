@@ -3,14 +3,14 @@ import UserProfile from '../UserProfile/UserProfile.jsx'
 import styles from './AuthorNavigation.module.css'
 
 const navigationItems = [
-  { label: 'Inicio', to: '/autor' },
-  { label: 'Nuevo trabajo', to: '/autor/nuevo-trabajo' },
-  { label: 'Mis trabajos', to: '/autor/trabajos' },
-  { label: 'Mi presentación', to: '/autor/presentacion' },
-  { label: 'Mi cuenta', to: '/autor/cuenta' },
+  { label: 'Inicio', to: '/' },
+  { label: 'Nuevo trabajo', to: '/nuevo-trabajo' },
+  { label: 'Mis trabajos', to: '/mis-trabajos' },
+  { label: 'Mi presentación', to: '/mi-presentacion' },
+  { label: 'Mi cuenta', to: '/mi-cuenta' },
 ]
 
-function AuthorNavigation({ rutaActiva = '/autor', usuario }) {
+function AuthorNavigation({ rutaActiva = '/mi-presentacion', usuario }) {
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>

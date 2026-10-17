@@ -114,12 +114,3 @@
     flex: 1;
   }
 }
-
-.fields {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
