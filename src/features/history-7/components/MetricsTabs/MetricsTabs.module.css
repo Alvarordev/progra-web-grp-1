@@ -31,3 +31,8 @@
   border-bottom-color: var(--color-primary);
   font-weight: 600;
 }
+
+.inline {
+  align-self: end;
+  margin-bottom: 0;
+}

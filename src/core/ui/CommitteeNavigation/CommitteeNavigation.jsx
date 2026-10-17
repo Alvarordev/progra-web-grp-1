@@ -29,9 +29,7 @@ function CommitteeNavigation({
             return (
               <NavLink
                 aria-current={esRutaActiva ? 'page' : undefined}
-                className={({ isActive: estaActiva }) =>
-                  `${styles.link} ${estaActiva ? styles.active : ''}`
-                }
+                className={`${styles.link} ${esRutaActiva ? styles.active : ''}`}
                 end={!esConfiguracion}
                 key={elemento.to}
                 to={elemento.to}

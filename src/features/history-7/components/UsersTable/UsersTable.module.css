@@ -48,7 +48,13 @@
 
 .actions {
   display: inline-flex;
-  gap: var(--space-1);
+  align-items: center;
+  gap: 0;
+}
+
+.separator {
+  color: var(--color-text-muted);
+  user-select: none;
 }
 
 .empty {

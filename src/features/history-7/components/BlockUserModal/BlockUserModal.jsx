@@ -3,7 +3,7 @@ import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
 import styles from './BlockUserModal.module.css'
 
-function BlockUserModal({ alCerrar, alConfirmar, usuario }) {
+function BlockUserModal({ guardando = false, errorGuardado = '', alCerrar, alConfirmar, usuario }) {
   const reasonId = useId()
   const errorId = useId()
   const [motivo, setMotivo] = useState('')
@@ -12,6 +12,7 @@ function BlockUserModal({ alCerrar, alConfirmar, usuario }) {
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (guardando) return
 
     if (!motivo.trim()) {
       setError('Ingrese el motivo del bloqueo.')
@@ -24,7 +25,7 @@ function BlockUserModal({ alCerrar, alConfirmar, usuario }) {
   return (
     <Modal alCerrar={alCerrar} titulo="Bloquear usuario">
       <form className={styles.form} noValidate onSubmit={handleSubmit}>
-        <div className={styles.body}>
+        <fieldset className={styles.body} disabled={guardando}>
           <div className={styles.summary}>
             <strong>{usuario.nombre}</strong>
             <span>
@@ -69,13 +70,14 @@ function BlockUserModal({ alCerrar, alConfirmar, usuario }) {
             />
             Notificar al usuario por correo electrónico.
           </label>
-        </div>
+        </fieldset>
 
+        {errorGuardado && <p role="alert">{errorGuardado}</p>}
         <div className={styles.footer}>
-          <Button onClick={alCerrar} type="button" variant="secondary">
+          <Button disabled={guardando} onClick={alCerrar} type="button" variant="secondary">
             Cancelar
           </Button>
-          <Button type="submit" variant="destructive">
+          <Button loading={guardando} type="submit" variant="destructive">
             Bloquear usuario
           </Button>
         </div>

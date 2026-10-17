@@ -1,3 +1,4 @@
+import { initialUsers, validateUsers } from './states/usersState.js'
 import { initialWorks, initialReviewers, initialPendingReviews, validateWorks, validateReviewers, validatePendingReviews } from './states/worksAssignmentState.js'
 import createStateRepository from './persistence/createStateRepository.js'
 import createSessionRepository from './persistence/createSessionRepository.js'
@@ -99,4 +100,8 @@ export const reviewersRepository = createStateRepository({
 
 export const pendingReviewsRepository = createStateRepository({
   name: 'pending-reviews', defaultValue: initialPendingReviews, validate: validatePendingReviews,
+})
+
+export const usersRepository = createStateRepository({
+  name: 'users', defaultValue: initialUsers, validate: validateUsers,
 })

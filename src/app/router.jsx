@@ -69,6 +69,7 @@ const router = createBrowserRouter([
     loader: createAccessLoader(['author', 'both'], 'El área del autor es exclusiva de participantes con rol autor.'),
     errorElement: <RoleAccessError />,
     children: [
+      { path: '/autor/presentacion', element: <MyPresentationPage /> },
       { path: '/autor', element: <AuthorHomePage /> },
       { path: '/autor/nuevo-trabajo', element: <NewWorkPage /> },
       { path: '/autor/nuevo-trabajo/coautores', element: <CoauthorsPage /> },

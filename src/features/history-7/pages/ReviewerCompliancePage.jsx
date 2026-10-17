@@ -14,10 +14,10 @@ function ReviewerCompliancePage() {
   return (
     <BoardPageLayout rutaActiva="/tablero">
       <PageHeading
+        acciones={<MetricsTabs enEncabezado />}
         descripcion={`${complianceSummary.asignadas} revisiones asignadas · ${complianceSummary.entregadas} entregadas · tiempo promedio ${complianceSummary.tiempoPromedio}`}
         titulo="Cumplimiento por revisor"
       />
-      <MetricsTabs />
       <ReviewerComplianceTable revisores={reviewers} />
       <ul className={styles.summary}>
         {complianceSummary.indicadores.map((indicador) => (

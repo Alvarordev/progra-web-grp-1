@@ -1,15 +1,17 @@
-import { NavLink } from 'react-router'
+import { NavLink, useNavigate } from 'react-router'
 import Button from '../Button/Button.jsx'
 import styles from './VisitorNavigation.module.css'
 
 const navigationItems = [
   { label: 'Inicio', to: '/' },
   { label: 'Bases del congreso', to: '/bases' },
-  { label: 'Ejes temáticos', to: '/ejes-tematicos' },
+  { label: 'Ejes temáticos', to: '/bases#rules-axes' },
   { label: 'Programa', to: '/programa-publico' },
 ]
 
 function VisitorNavigation({ rutaActiva = '/programa-publico' }) {
+  const navigate = useNavigate()
+
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
@@ -29,10 +31,10 @@ function VisitorNavigation({ rutaActiva = '/programa-publico' }) {
           ))}
         </nav>
         <div className={styles.actions}>
-          <Button size="small" type="button" variant="secondary">
+          <Button onClick={() => navigate('/iniciar-sesion')} size="small" type="button" variant="secondary">
             Iniciar sesión
           </Button>
-          <Button size="small" type="button" variant="primary">
+          <Button onClick={() => navigate('/registro')} size="small" type="button" variant="primary">
             Crear cuenta
           </Button>
         </div>

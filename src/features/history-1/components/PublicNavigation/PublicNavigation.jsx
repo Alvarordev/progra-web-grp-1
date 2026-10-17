@@ -32,7 +32,7 @@ function PublicNavigation({ children, estado, rutaBase = '/', participante = nul
             <Link aria-current={rutaActiva === '/' ? 'page' : undefined} className={rutaActiva === '/' ? styles.activeLink : undefined} to={rutaBase}>Inicio</Link>
             <Link aria-current={rutaActiva === '/bases' ? 'page' : undefined} className={rutaActiva === '/bases' ? styles.activeLink : undefined} to="/bases">Bases del congreso</Link>
             <Link to={`${rutaBase}#topics`}>Ejes temáticos</Link>
-            <Link to="/programa">Programa</Link>
+            <Link to="/programa-publico">Programa</Link>
           </div>
           <div className={styles.actions}>
             <Link className={styles.secondaryAction} to="/iniciar-sesion">Iniciar sesión</Link>
