@@ -314,5 +314,3 @@ Las semillas son datos iniciales de la base local y se escriben en la primera le
 Los valores iniciales se materializan en la primera lectura de cada repositorio. `remove()` elimina solo su clave; la lectura posterior vuelve a proporcionar su valor inicial. Un valor vacío guardado continúa vacío. Un formato incompatible produce un error y conserva el contenido original.
 
 Los repositorios locales ofrecen además `subscribe(listener)` para que componentes simultáneos, como el encabezado y Configuración, reflejen el mismo guardado. `useStoredState` libera esta suscripción al desmontarse. Esta notificación no cambia el contrato asíncrono de lectura y escritura.
-
-Consulte el [mapa de navegación](../../../docs/navigation-map.md) y las [cuentas de demostración](../../../docs/implementation-batches.md).

@@ -25,7 +25,4 @@ git diff --check
 
 ## Integración
 
-- [Mapa de navegación y condiciones de acceso](./docs/navigation-map.md).
-- [Tres batches y cuentas de demostración](./docs/implementation-batches.md).
-
 La fidelidad visual se contrasta con el mockup de escritorio. Los datos de negocio se guardan en el navegador mediante los repositorios compartidos.
