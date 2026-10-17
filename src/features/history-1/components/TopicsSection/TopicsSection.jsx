@@ -32,7 +32,7 @@ function TopicsSection() {
     <section aria-labelledby="topics-title" className={styles.section} id="topics">
       <div className={styles.header}>
         <h2 id="topics-title">Ejes temáticos</h2>
-        <a href="#deadlines">Ver bases completas</a>
+        <Link to="/bases">Ver bases completas</Link>
       </div>
 
       <div className={styles.grid}>
@@ -48,3 +48,4 @@ function TopicsSection() {
 }
 
 export default TopicsSection
+import { Link } from 'react-router'

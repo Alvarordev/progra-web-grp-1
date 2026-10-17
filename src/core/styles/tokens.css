@@ -6,11 +6,13 @@
   --color-accent: #a67c2e;
   --color-bg: #fbfaf8;
   --color-surface: #ffffff;
+  --color-surface-muted: #f5f3f1;
   --color-border: #e4dfda;
   --color-text: #1f1a1b;
   --color-text-muted: #6f6663;
   --color-success: #1e7f4d;
   --color-warning: #b7791f;
+  --color-warning-strong: #855612;
   --color-danger: #b4322b;
   --color-info: #3b6fa8;
 
@@ -38,6 +40,7 @@
   --radius-small: 2px;
   --content-width: 1200px;
 
+  --font-size-caption: 10px;
   --font-size-label: 12px;
   --line-height-label: 16px;
   --font-size-help: 13px;

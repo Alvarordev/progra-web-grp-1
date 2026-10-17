@@ -1,5 +1,7 @@
+import { initialWorks, initialReviewers, initialPendingReviews, validateWorks, validateReviewers, validatePendingReviews } from './states/worksAssignmentState.js'
 import { createLocalStorageAdapter } from './persistence/localStorageAdapter.js'
 import createStateRepository from './persistence/createStateRepository.js'
+import createSessionRepository from './persistence/createSessionRepository.js'
 import {
   initialEdition,
   initialEditionStatus,
@@ -7,17 +9,42 @@ import {
   validateEditionStatus,
 } from './states/editionState.js'
 import { validateSession } from './states/sessionState.js'
-import { initialParticipant, validateParticipant } from './states/participantState.js'
+import { initialSessionPreferences, validateSessionPreferences } from './states/sessionPreferencesState.js'
+import { initialParticipant, validateParticipant, validateParticipants } from './states/participantState.js'
 import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
 import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
 import { initialSchedule, validateSchedule } from './states/scheduleState.js'
 import { initialCriteria, validateCriteria } from './states/criteriaState.js'
 import { validateReviews } from './states/reviewsState.js'
+import { validateDecisions } from './states/decisionsState.js'
+import { validateDemoCredentials } from './states/demoCredentialsState.js'
+import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
 const adapter = createLocalStorageAdapter()
+const tabAdapter = createLocalStorageAdapter(() => window.sessionStorage)
+
+export const sessionPreferencesRepository = createStateRepository({
+  adapter, name: 'session-preferences', defaultValue: initialSessionPreferences, validate: validateSessionPreferences,
+})
+
+export const participantsRepository = createStateRepository({
+  adapter, name: 'participants', defaultValue: [], validate: validateParticipants,
+})
+
+export const reviewerProfilesRepository = createStateRepository({
+  adapter, name: 'reviewer-profiles', defaultValue: {}, validate: validateReviewerProfiles,
+})
+
+export const demoCredentialsRepository = createStateRepository({
+  adapter, name: 'demo-credentials', defaultValue: [], validate: validateDemoCredentials,
+})
 
 export const reviewsRepository = createStateRepository({
   adapter, name: 'reviews', defaultValue: {}, validate: validateReviews,
+})
+
+export const decisionsRepository = createStateRepository({
+  adapter, name: 'decisions', defaultValue: {}, validate: validateDecisions,
 })
 
 export const workTypesRepository = createStateRepository({
@@ -51,11 +78,21 @@ export const editionStatusRepository = createStateRepository({
   validate: validateEditionStatus,
 })
 
-export const sessionRepository = createStateRepository({
+const persistentSessionRepository = createStateRepository({
   adapter,
   name: 'session',
   defaultValue: null,
   validate: validateSession,
+})
+
+const tabSessionRepository = createStateRepository({
+  adapter: tabAdapter, name: 'session', defaultValue: null, validate: validateSession,
+})
+
+export const sessionRepository = createSessionRepository({
+  persistentRepository: persistentSessionRepository,
+  tabRepository: tabSessionRepository,
+  preferencesRepository: sessionPreferencesRepository,
 })
 
 export const participantRepository = createStateRepository({
@@ -63,4 +100,16 @@ export const participantRepository = createStateRepository({
   name: 'participant',
   defaultValue: initialParticipant,
   validate: validateParticipant,
+})
+
+export const worksRepository = createStateRepository({
+  adapter, name: 'works', defaultValue: initialWorks, validate: validateWorks,
+})
+
+export const reviewersRepository = createStateRepository({
+  adapter, name: 'reviewers', defaultValue: initialReviewers, validate: validateReviewers,
+})
+
+export const pendingReviewsRepository = createStateRepository({
+  adapter, name: 'pending-reviews', defaultValue: initialPendingReviews, validate: validatePendingReviews,
 })

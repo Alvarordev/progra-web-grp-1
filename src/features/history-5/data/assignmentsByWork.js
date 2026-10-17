@@ -11,7 +11,11 @@ export const assignmentsByWork = {
     tipo: 'Artículo completo',
     autores: 'Rosa Quispe Ttito y 2 coautores',
     revisores: [
-      { id: 'demo-reviewer', nombre: 'Mg. Luis Ramírez Cárdenas' },
+      {
+        id: 'demo-reviewer',
+        ids: ['demo-reviewer', 'participant:luis.ramirez@ulima.edu.pe'],
+        nombre: 'Mg. Luis Ramírez Cárdenas',
+      },
       {
         id: 'reviewer-oscar',
         nombre: 'Dr. Óscar Nakamura',

@@ -19,6 +19,11 @@
   color: var(--color-text);
 }
 
+/* Recuadro más ancho para formularios con opciones lado a lado, como la decisión final. */
+.dialogWide {
+  width: min(100%, 820px);
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -32,6 +37,12 @@
   margin: 0;
   font-size: var(--font-size-subtitle);
   line-height: var(--line-height-subtitle);
+}
+
+.subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-help);
 }
 
 .closeButton {

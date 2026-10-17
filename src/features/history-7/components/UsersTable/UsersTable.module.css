@@ -1,0 +1,59 @@
+.blocked {
+  background: var(--color-danger-soft);
+}
+
+.userName,
+.userMail {
+  display: block;
+}
+
+.userMail {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-label);
+  font-weight: 400;
+  line-height: var(--line-height-label);
+}
+
+.roleTag {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-small);
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  line-height: var(--space-6);
+}
+
+.roleAuthor {
+  color: var(--color-info);
+}
+
+.roleReviewer {
+  color: var(--color-warning);
+}
+
+.roleCommittee {
+  color: var(--color-primary);
+}
+
+.statusActive {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.statusBlocked {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.actions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-8) 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}

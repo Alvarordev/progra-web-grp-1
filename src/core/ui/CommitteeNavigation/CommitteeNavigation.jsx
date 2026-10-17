@@ -30,7 +30,7 @@ function CommitteeNavigation({
               <NavLink
                 aria-current={esRutaActiva ? 'page' : undefined}
                 className={({ isActive: estaActiva }) =>
-                  `${styles.link} ${estaActiva ? styles.active : ''}`
+                  `${styles.link} ${estaActiva || esRutaActiva ? styles.active : ''}`
                 }
                 end={!esConfiguracion}
                 key={elemento.to}
@@ -41,7 +41,7 @@ function CommitteeNavigation({
             )
           })}
         </nav>
-        <UserProfile {...usuario} />
+        <UserProfile {...usuario} permitirCerrarSesion={Boolean(usuario)} />
       </div>
     </div>
   )

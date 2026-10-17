@@ -5,12 +5,13 @@ import Footer from '../../../core/ui/Footer/Footer.jsx'
 import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { criteriaRepository, reviewsRepository } from '../../../core/utils/repositories.js'
+import { criteriaRepository, decisionsRepository, reviewsRepository } from '../../../core/utils/repositories.js'
 import ConsolidatedKpis from '../components/ConsolidatedKpis/ConsolidatedKpis.jsx'
 import ConsolidatedScoreTable from '../components/ConsolidatedScoreTable/ConsolidatedScoreTable.jsx'
 import ReviewerCommentsPanel from '../components/ReviewerCommentsPanel/ReviewerCommentsPanel.jsx'
 import DecisionModal from '../components/DecisionModal/DecisionModal.jsx'
 import { assignmentsByWork } from '../data/assignmentsByWork.js'
+import { workDocumentUrl } from '../data/workDocument.js'
 import { buildConsolidation } from '../utils/consolidation.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
@@ -26,7 +27,22 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
   const trabajo = assignmentsByWork[codigo]
   const reviewsState = useStoredState(reviewsRepository, {})
   const criteriaState = useStoredState(criteriaRepository, [])
-  const cargando = reviewsState.loading || criteriaState.loading
+  const decisionsState = useStoredState(decisionsRepository, {})
+  const cargando = reviewsState.loading || criteriaState.loading || decisionsState.loading
+  const decisionGuardada = decisionsState.value[codigo] ?? null
+  const decisionPublicada = decisionGuardada?.status === 'published'
+  const etiquetaDecision = { aceptar: 'Aceptado', rechazar: 'Rechazado' }[decisionGuardada?.decision] ?? ''
+  const estadoDecision = decisionPublicada
+    ? `Decisión publicada: ${etiquetaDecision}`
+    : decisionGuardada ? 'Borrador de decisión' : 'Decisión pendiente'
+
+  // Guarda un borrador o la decisión publicada, y la pantalla se actualiza al terminar el guardado.
+  async function guardarDecision({ decision, feedback, status }) {
+    await decisionsState.save({
+      ...decisionsState.value,
+      [codigo]: { decision, feedback, status, updatedAt: new Date().toISOString() },
+    })
+  }
   const consolidado = trabajo && !cargando
     ? buildConsolidation({
         codigo,
@@ -60,7 +76,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                   <div className={styles.tags}>
                     <span>{codigo}</span>
                     <span className={styles.status}>
-                      En revisión · {consolidado.resumen.entregadas} de {consolidado.resumen.totalRevisiones} entregadas
+                      En revisión · {consolidado.resumen.entregadas} de {consolidado.resumen.totalRevisiones} entregadas · {estadoDecision}
                     </span>
                   </div>
                   <h1 id="titulo-trabajo">{trabajo.title}</h1>
@@ -70,11 +86,11 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 </div>
 
                 <div className={styles.actions}>
-                  <Button variant="secondary" type="button">
+                  <Button variant="secondary" type="button" onClick={() => window.open(workDocumentUrl, '_blank', 'noopener')}>
                     Ver documento
                   </Button>
                   <Button variant="primary" type="button" onClick={() => setDecisionAbierta(true)}>
-                    Registrar decisión final
+                    {decisionPublicada ? 'Ver decisión final' : 'Registrar decisión final'}
                   </Button>
                 </div>
               </section>
@@ -91,13 +107,15 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
               </section>
 
               <section className={styles.block} aria-labelledby="titulo-comentarios">
-                <h2 id="titulo-comentarios">Comentarios de los revisores</h2>
+                <h2 id="titulo-comentarios">Comentarios al autor reunidos</h2>
                 <ReviewerCommentsPanel revisiones={consolidado.filas} />
               </section>
 
               {decisionAbierta && (
                 <DecisionModal
                   alCerrar={() => setDecisionAbierta(false)}
+                  alGuardar={guardarDecision}
+                  decisionGuardada={decisionGuardada}
                   codigo={codigo}
                   resumen={consolidado.resumen}
                   filas={consolidado.filas}

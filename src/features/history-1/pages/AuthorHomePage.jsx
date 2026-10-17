@@ -4,9 +4,10 @@ import AuthorNavigation from '../../../core/ui/AuthorNavigation/AuthorNavigation
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Header from '../../../core/ui/Header/Header.jsx'
 import {
-  participantRepository,
   sessionRepository,
 } from '../../../core/utils/repositories.js'
+import { getParticipantAccounts } from '../../../core/utils/accounts.js'
+import RegistrationNotice from '../components/RegistrationNotice/RegistrationNotice.jsx'
 import styles from './AuthorHomePage.module.css'
 
 const steps = [
@@ -45,15 +46,21 @@ function AuthorHomePage() {
 
     async function loadParticipant() {
       try {
-        const [session, storedParticipant] = await Promise.all([
+        const [session, accounts] = await Promise.all([
           sessionRepository.get(),
-          participantRepository.get(),
+          getParticipantAccounts(),
         ])
 
         if (!active) return
 
-        if (!session || !storedParticipant || session.userId !== storedParticipant.userId) {
-          navigate('/registro', { replace: true })
+        const storedParticipant = accounts.find(account => account.userId === session?.userId)
+        if (!session || !storedParticipant) {
+          navigate('/iniciar-sesion', { replace: true })
+          return
+        }
+
+        if (storedParticipant.role === 'reviewer') {
+          navigate('/mi-cuenta', { replace: true })
           return
         }
 
@@ -108,13 +115,7 @@ function AuthorHomePage() {
       <AuthorNavigation rutaActiva="/autor" usuario={usuario} />
       <main className={styles.main}>
         <div className={styles.content}>
-          <div className={styles.successBanner} role="status">
-            <span aria-hidden="true" className={styles.successIcon}>✓</span>
-            <span>
-              Cuenta creada correctamente. Le enviamos un correo de verificación a{' '}
-              {participant.email}.
-            </span>
-          </div>
+          <RegistrationNotice />
 
           <section aria-labelledby="welcome-title" className={styles.welcome}>
             <p className={styles.eyebrow}>BIENVENIDA</p>
@@ -126,6 +127,7 @@ function AuthorHomePage() {
               23:59; después de esa fecha los envíos quedan en modo lectura.
             </p>
             <div className={styles.actions}>
+              {participant.role === 'both' && <Link className={styles.secondaryAction} to="/mi-cuenta">Ir a mi cuenta de revisor</Link>}
               <Link className={styles.primaryAction} to="/autor/nuevo-trabajo">
                 Registrar mi primer trabajo
               </Link>

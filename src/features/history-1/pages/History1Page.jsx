@@ -3,6 +3,7 @@ import HeroSection from '../components/HeroSection/HeroSection.jsx'
 import PublicNavigation from '../components/PublicNavigation/PublicNavigation.jsx'
 import TopicsSection from '../components/TopicsSection/TopicsSection.jsx'
 import styles from './History1Page.module.css'
+import useActiveAccount from '../../../core/utils/useActiveAccount.js'
 
 const deadlines = [
   ['Cierre de recepción de trabajos', '30/09/2026'],
@@ -19,10 +20,17 @@ const criteria = [
 ]
 
 function History1Page() {
+  const accountState = useActiveAccount()
+
   return (
-    <PublicNavigation rutaBase="/history-1">
+    <PublicNavigation
+      cargando={accountState.loading}
+      error={accountState.error}
+      participante={accountState.participant}
+      rutaBase="/history-1"
+    >
       <main>
-        <HeroSection />
+        {!accountState.loading && <HeroSection rol={accountState.participant?.role} />}
         <TopicsSection />
         <div className={styles.infoGrid}>
           <InfoSection
