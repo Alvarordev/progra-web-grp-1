@@ -1,16 +1,14 @@
-import { getReviewActivity } from '../../../../core/utils/reviewerAssignments.js'
 import styles from '../AccountPanels/AccountPanels.module.css'
 
-function ReviewerActivity({ asignaciones }) {
-  const activity = getReviewActivity(asignaciones)
+function ReviewerActivity({ actividad }) {
   const rows = [
-    { label: 'Revisiones asignadas', value: activity.assigned },
+    { label: 'Revisiones asignadas', value: actividad?.asignadas ?? 0 },
     {
       label: 'Revisiones entregadas',
-      value: activity.completed,
+      value: actividad?.entregadas ?? 0,
       className: styles.completed,
     },
-    { label: 'Pendientes', value: activity.pending, className: styles.pending },
+    { label: 'Pendientes', value: actividad?.pendientes ?? 0, className: styles.pending },
   ]
 
   return (

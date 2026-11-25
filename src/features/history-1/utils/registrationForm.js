@@ -33,7 +33,8 @@ export function validateRegistrationForm(form) {
     errors.institution = 'Seleccione una institución.'
   }
   if (!getPasswordRequirements(form.password).every(item => item.valid)) {
-    errors.password = 'Mínimo 8 caracteres, con una mayúscula y un número.'
+    errors.password =
+      'Mínimo 8 caracteres, una mayúscula y un número; máximo 72 bytes UTF-8.'
   }
   if (form.password !== form.confirmPassword) {
     errors.confirmPassword = 'Las contraseñas no coinciden.'

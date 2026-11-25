@@ -145,7 +145,7 @@ function EvaluationScreen({ codigo }) {
         const userId = session?.userId ?? 'demo-reviewer'
         const saved = reviews[getReviewKey(userId, codigo)]
         const review = saved
-        const currentCriteria = configuredCriteria.map(item => {
+        const currentCriteria = (saved?.criteria ?? configuredCriteria).map(item => {
           const previous = saved?.criteria.find(criterion => criterion.id === item.id)
           return {
             ...item,
@@ -172,7 +172,7 @@ function EvaluationScreen({ codigo }) {
         }
         setSentAt(deliveryDate)
         if (saved?.status === 'draft') {
-          setNotice('Borrador recuperado de este navegador.')
+          setNotice('Borrador recuperado del backend.')
         } else if (review) {
           setNotice(buildSentNotice(deliveryDate))
         } else {
@@ -243,7 +243,7 @@ function EvaluationScreen({ codigo }) {
       setSentAt(status === 'submitted' ? now : null)
       setErrors([])
       setNotice(
-        status === 'draft' ? 'Borrador guardado en este navegador.' : buildSentNotice(now)
+        status === 'draft' ? 'Borrador guardado en el backend.' : buildSentNotice(now)
       )
     } catch (error) {
       setErrors([error.message])

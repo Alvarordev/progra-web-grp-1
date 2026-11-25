@@ -10,8 +10,7 @@ import {
   validatePendingReviews,
 } from './states/worksAssignmentState.js'
 import createStateRepository from './persistence/createStateRepository.js'
-import createSessionRepository from './persistence/createSessionRepository.js'
-import { validateSession } from './states/sessionState.js'
+import { consultarSesion, cerrarSesion } from './usuariosApi.js'
 import {
   initialSessionPreferences,
   validateSessionPreferences,
@@ -21,7 +20,6 @@ import {
   validateParticipant,
   validateParticipants,
 } from './states/participantState.js'
-import { initialReviews, validateReviews } from './states/reviewsState.js'
 import { validateDemoCredentials } from './states/demoCredentialsState.js'
 import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
@@ -49,11 +47,7 @@ export const demoCredentialsRepository = createStateRepository({
   validate: validateDemoCredentials,
 })
 
-export const reviewsRepository = createStateRepository({
-  name: 'reviews',
-  defaultValue: initialReviews,
-  validate: validateReviews,
-})
+export { repositorioRevisiones as reviewsRepository } from './revisionesApi.js'
 
 export {
   criteriaRepository,
@@ -64,24 +58,7 @@ export {
   workTypesRepository,
 } from './editionRepositories.js'
 
-const persistentSessionRepository = createStateRepository({
-  name: 'session',
-  defaultValue: null,
-  validate: validateSession,
-})
-
-const tabSessionRepository = createStateRepository({
-  storage: 'sessionStorage',
-  name: 'session',
-  defaultValue: null,
-  validate: validateSession,
-})
-
-export const sessionRepository = createSessionRepository({
-  persistentRepository: persistentSessionRepository,
-  tabRepository: tabSessionRepository,
-  preferencesRepository: sessionPreferencesRepository,
-})
+export const sessionRepository = { get: consultarSesion, remove: cerrarSesion }
 
 export const participantRepository = createStateRepository({
   name: 'participant',

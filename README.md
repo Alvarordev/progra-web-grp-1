@@ -18,12 +18,12 @@ e inicia sesión en `/iniciar-sesion`.
 
 ## Cuentas de prueba
 
-### Comité organizador
+### Cuentas del backend
 
 Levanta PostgreSQL y la API del repositorio `progra-web-backend`, ejecuta
 `npm run db:migrate` y carga los datos de ejemplo con `npm run db:seed`.
-Entra con `ana.salazar@ulima.edu.pe` y la contraseña `DEMO_PASSWORD` que
-configuraste al cargar los datos.
+Entra con la contraseña `DEMO_PASSWORD` que configuraste al cargar los datos.
+Registro, login, perfil, intereses y contraseñas se guardan en PostgreSQL.
 
 Vite envía `/api` al backend en `http://127.0.0.1:3000` durante desarrollo y
 previsualización. Puedes configurar `BACKEND_URL` en `.env.local` si el backend
@@ -31,34 +31,39 @@ usa otra dirección. Por defecto se usa la edición de mayor año. Si necesitas
 otra, define su ID en `VITE_EDICION_ID` y reinicia Vite. El despliegue del build
 debe servir `/api` desde el mismo origen que el frontend.
 
-### Perfiles precreados
+| Correo                          | Rol     |
+| ------------------------------- | ------- |
+| `rosa.quispe@aloe.ulima.edu.pe` | Autor   |
+| `luis.ramirez@ulima.edu.pe`     | Revisor |
+| `ana.salazar@ulima.edu.pe`      | Comité  |
 
-Todos usan la contraseña **`Congreso2026`**.
+También puedes crear una cuenta nueva desde `/registro` como autor, revisor o
+ambos. La contraseña necesita 8 caracteres, una mayúscula y un número, hasta
+72 bytes UTF-8. Autor y Ambos requieren carrera/código; todos aceptan las bases.
 
-| Nombre                       | Correo                               | Rol                 |
-| ---------------------------- | ------------------------------------ | ------------------- |
-| Rosa María Quispe Ttito      | `rosa.quispe@aloe.ulima.edu.pe`      | Autor               |
-| Diego Alonso Chávez Manrique | `diego.chavez@aloe.ulima.edu.pe`     | Autor               |
-| Sofía Bustamante León        | `sofia.bustamante@aloe.ulima.edu.pe` | Autor               |
-| Mg. Luis Ramírez Cárdenas    | `luis.ramirez@ulima.edu.pe`          | Revisor             |
-| Dr. Óscar Nakamura Trigoso   | `onakamura@pucp.edu.pe`              | Revisor             |
-| Mg. Carmen Effio Vargas      | `carmen.effio@ulima.edu.pe`          | Revisor             |
-| Mg. Renzo Bustamante Loayza  | `renzo.bustamante@up.edu.pe`         | Revisor             |
-| Dra. Milagros Yupanqui Ríos  | `milagros.yupanqui@ulima.edu.pe`     | Revisor             |
-| Ing. Jorge Palomino Ávila    | `jorge.palomino@ulima.edu.pe`        | Revisor (bloqueado) |
+## Recuperación y Mi cuenta
 
-- La cuenta de Jorge Palomino está bloqueada a propósito, para probar ese caso: no
-  puede iniciar sesión.
-- La cuenta de Rosa Quispe es la más completa: tiene trabajos en borrador, en revisión,
-  aceptado y rechazado.
-- También puedes crear una cuenta nueva desde `/registro` (autor, revisor o ambos). La
-  contraseña necesita 8 caracteres, una mayúscula y un número.
+Levanta el servicio de correo de Compose junto con PostgreSQL. En desarrollo,
+los códigos llegan a Mailpit en `http://127.0.0.1:8025`. La recuperación utiliza
+un código de seis dígitos enviado por el servidor, con vencimiento, límite de
+intentos y una prueba de uso único para guardar la nueva contraseña.
+
+Mi cuenta guarda datos personales e intereses mediante `/api/usuarios/perfil`.
+La actividad y la bandeja usan asignaciones de PostgreSQL. Las evaluaciones se
+consultan/guardan con las rutas de revisión del backend y actualizan esa actividad.
+Cambiar contraseña comprueba la actual y mantiene la sesión actual con una cookie
+nueva; las otras sesiones se invalidan. Recuperarla cierra todas las sesiones.
 
 ## Datos y reinicio
 
-La configuración de ediciones se guarda en PostgreSQL mediante la API. Limpiar
-los datos del navegador reinicia los estados locales de demostración de las demás
-historias. La sesión del comité usa una cookie HTTP-only del backend.
+Las cuentas, las sesiones, los perfiles, los intereses y la configuración de
+ediciones se guardan en PostgreSQL mediante la API. La cookie HttpOnly
+`congreso.sid` representa la sesión de cualquier rol. Sin Recordarme es temporal;
+con Recordarme dura 7 días. La sesión del servidor también comprueba bloqueo y rol.
+
+Limpiar localStorage no borra usuarios de PostgreSQL ni cambia sus permisos.
+Solo la preferencia de Recordarme se conserva localmente para Historia 1.
+Los registros locales de otras historias mantienen su alcance de demostración.
 
 ## Verificación
 
@@ -83,4 +88,9 @@ npm run format
 
 ## Integración
 
-La fidelidad visual se contrasta con el mockup de escritorio. Los repositorios compartidos conectan la configuración de la edición con la API y mantienen los datos de demostración de las demás historias.
+La fidelidad visual se contrasta con el mockup de escritorio. `clienteApi.js`
+centraliza HTTP y cookies, `usuariosApi.js` expone las operaciones de cuentas y
+`accounts.js` conserva aliases de integración. Las funciones nuevas y las rutas
+del backend se nombran en español; los nombres de componentes existentes se
+conservan para mantener sus imports. Usa el mismo host para frontend y API al
+trabajar con cookies, o utiliza el proxy `/api` de Vite.

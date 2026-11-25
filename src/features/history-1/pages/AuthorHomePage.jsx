@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import AuthorNavigation from '../../../core/ui/AuthorNavigation/AuthorNavigation.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Header from '../../../core/ui/Header/Header.jsx'
-import { sessionRepository } from '../../../core/utils/repositories.js'
-import { getParticipantAccounts } from '../../../core/utils/accounts.js'
+import { obtenerCuentaActiva } from '../../../core/utils/accounts.js'
 import useConference from '../../../core/utils/useConference.js'
 import { getReceptionNotice, receptionIsOpen } from '../../../core/utils/reception.js'
 import RegistrationNotice from '../components/RegistrationNotice/RegistrationNotice.jsx'
@@ -50,21 +49,15 @@ function AuthorHomePage() {
   useEffect(() => {
     let active = true
 
-    async function loadParticipant() {
+    async function cargarParticipante() {
       try {
-        const [session, accounts] = await Promise.all([
-          sessionRepository.get(),
-          getParticipantAccounts(),
-        ])
+        const storedParticipant = await obtenerCuentaActiva()
 
         if (!active) {
           return
         }
 
-        const storedParticipant = accounts.find(
-          account => account.userId === session?.userId
-        )
-        if (!session || !storedParticipant) {
+        if (!storedParticipant) {
           navigate('/iniciar-sesion', { replace: true })
           return
         }
@@ -86,7 +79,7 @@ function AuthorHomePage() {
       }
     }
 
-    loadParticipant()
+    cargarParticipante()
     return () => {
       active = false
     }

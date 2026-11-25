@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '../../../../core/ui/Button/Button.jsx'
-import { demoCredentialsRepository } from '../../../../core/utils/repositories.js'
-import {
-  createPasswordCredential,
-  getPasswordRequirements,
-} from '../../../../core/utils/passwords.js'
+import { restablecerContrasena } from '../../../../core/utils/usuariosApi.js'
+import { getPasswordRequirements } from '../../../../core/utils/passwords.js'
 import styles from './NewPasswordForm.module.css'
 
-function NewPasswordForm({ correo }) {
+function NewPasswordForm({ correo, token }) {
   const navigate = useNavigate()
   const titleRef = useRef(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -26,7 +23,7 @@ function NewPasswordForm({ correo }) {
     titleRef.current?.focus()
   }, [])
 
-  async function handleSubmit(event) {
+  async function guardarContrasena(event) {
     event.preventDefault()
     if (saving) {
       return
@@ -41,22 +38,18 @@ function NewPasswordForm({ correo }) {
     setError('')
     setSaveError('')
     try {
-      const credential = createPasswordCredential(correo, password)
-      const credentials = await demoCredentialsRepository.get()
-      await demoCredentialsRepository.save([
-        ...credentials.filter(item => item.email !== credential.email),
-        credential,
-      ])
+      await restablecerContrasena(token, password, confirmation)
       navigate('/iniciar-sesion', {
         state: {
-          recoveryEmail: credential.email,
-          recoveryMessage:
-            'Contraseña actualizada en este navegador. Ingrese con su nueva contraseña.',
+          recoveryEmail: correo.trim().toLowerCase(),
+          recoveryMessage: 'Contraseña actualizada. Ingrese con su nueva contraseña.',
         },
         replace: true,
       })
     } catch (cause) {
-      setSaveError(`No se pudo actualizar la contraseña. ${cause.message}`)
+      setSaveError(
+        `No se pudo actualizar la contraseña. ${cause.errores?.password || cause.message}`
+      )
     } finally {
       setSaving(false)
     }
@@ -68,9 +61,14 @@ function NewPasswordForm({ correo }) {
         Cree su nueva contraseña
       </h1>
       <p className={styles.intro}>
-        La nueva contraseña reemplaza a la anterior en este navegador.
+        La nueva contraseña reemplaza a la anterior de su cuenta.
       </p>
-      <form aria-busy={saving} className={styles.form} noValidate onSubmit={handleSubmit}>
+      <form
+        aria-busy={saving}
+        className={styles.form}
+        noValidate
+        onSubmit={guardarContrasena}
+      >
         <label htmlFor="new-password">Nueva contraseña</label>
         <div className={styles.passwordField}>
           <input
