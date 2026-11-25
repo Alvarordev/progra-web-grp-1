@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '../Button/Button.jsx'
-import { sessionRepository } from '../../utils/repositories.js'
+import { endAccountSession } from '../../utils/accounts.js'
 import styles from './UserProfile.module.css'
 
 function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
@@ -16,7 +16,7 @@ function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
     setClosing(true)
     setError('')
     try {
-      await sessionRepository.remove()
+      await endAccountSession()
       navigate('/iniciar-sesion', { replace: true })
     } catch (cause) {
       setError(cause.message)

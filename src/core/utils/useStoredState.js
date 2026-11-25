@@ -43,7 +43,7 @@ export default function useStoredState(repository, initialValue, enabled = true)
     setSaving(true)
     setError('')
     try {
-      const data = await repository.save(nextValue)
+      const data = await repository.save(nextValue, value)
       setValue(data)
       return data
     } catch (cause) {

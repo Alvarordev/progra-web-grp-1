@@ -1,3 +1,8 @@
+import {
+  endCommitteeSession,
+  getCommitteeSession,
+  startCommitteeSession,
+} from './conferenceApi.js'
 import { splitAccountName } from './accountNames.js'
 import { initialUsers } from './states/usersState.js'
 import { roleValues } from './directory.js'
@@ -15,10 +20,7 @@ import {
   validateRegistrationDetails,
 } from './states/participantState.js'
 
-import {
-  defaultCommitteeAccount,
-  defaultCommitteeCredential,
-} from './states/defaultCommitteeState.js'
+import { defaultCommitteeAccount } from './states/defaultCommitteeState.js'
 
 export function getAccountHome(role) {
   if (role === 'committee') {
@@ -31,6 +33,10 @@ export async function getActiveAccount() {
   const session = await sessionRepository.get()
   if (!session) {
     return null
+  }
+  if (session.role === 'committee') {
+    const committee = await getCommitteeSession()
+    return committee?.userId === session.userId ? committee : null
   }
   const accounts = await getParticipantAccounts()
   const participant = accounts.find(account => account.userId === session.userId)
@@ -146,6 +152,9 @@ export async function getParticipantAccounts() {
 
 export async function startAccountSession(participant, remember = false) {
   const { userId, name, role } = participant
+  if (role !== 'committee' && (await sessionRepository.get())?.role === 'committee') {
+    await endCommitteeSession()
+  }
   // Se mantiene la ficha activa para los consumidores existentes.
   await participantRepository.save(participant)
   await sessionRepository.start({ userId, name, role }, remember)
@@ -177,21 +186,25 @@ export async function registerParticipant(participant, password) {
   await participantsRepository.save([...accounts, { ...participant, email }])
 }
 
-export async function authenticateParticipant(email, password) {
+export async function endAccountSession() {
+  const session = await sessionRepository.get()
+  if (session?.role === 'committee') {
+    await endCommitteeSession()
+  }
+  await sessionRepository.remove()
+}
+
+export async function authenticateParticipant(email, password, remember = false) {
   const normalizedEmail = email.trim().toLowerCase()
   const accounts = await getParticipantAccounts()
   const participant = accounts.find(
     account => account.email.trim().toLowerCase() === normalizedEmail
   )
-  if (!participant) {
-    return null
+  if (!participant || participant.role === 'committee') {
+    return startCommitteeSession(normalizedEmail, password, remember)
   }
   const credentials = await demoCredentialsRepository.get()
-  const credential =
-    credentials.find(item => item.email === normalizedEmail) ??
-    (normalizedEmail === defaultCommitteeAccount.email
-      ? defaultCommitteeCredential
-      : null)
+  const credential = credentials.find(item => item.email === normalizedEmail)
   const managed = (await usersRepository.get()).find(
     user => user.correo.toLowerCase() === normalizedEmail
   )

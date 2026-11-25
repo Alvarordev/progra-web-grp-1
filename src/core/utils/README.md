@@ -276,23 +276,16 @@ Verificar de forma puntual el guardado, la recuperación después de recargar y
 la eliminación de datos. No conservar archivos de tests ni infraestructura
 de pruebas en el repositorio.
 
-## Cuenta predeterminada del comité organizador
+## Cuenta del comité organizador
 
-La aplicación incluye `admin@aloe.ulima.edu.pe`, con contraseña inicial
-`Admin1234` y rol `committee` («Comité organizador»). Al iniciar sesión abre
-`/configuracion`, desde donde se accede a las pantallas de Historia 2.
-`states/defaultCommitteeState.js` contiene la ficha y la credencial. La
-contraseña no se guarda en la sesión.
+El comité inicia sesión con una cuenta de PostgreSQL mediante
+`/api/usuarios/sesiones`. El backend administra la cookie HTTP-only. El
+navegador conserva la identidad para las pantallas existentes. Las cuentas de
+autor y revisor de la demostración siguen usando su flujo local.
 
-`getParticipantAccounts()` incorpora la ficha reservada a las cuentas existentes
-sin eliminar los demás participantes. El registro público solo admite autor,
-revisor o ambos y no permite registrar este correo nuevamente. El login usa la
-credencial incluida cuando no hay una credencial guardada para ese correo;
-una contraseña cambiada mediante recuperación tiene prioridad. Al eliminar
-las credenciales locales vuelve a estar disponible la contraseña inicial.
-Cerrar sesión elimina solo la identidad activa, conservando las demás cuentas.
-Esta cuenta forma parte de la demostración local; los permisos reales
-corresponderán al backend.
+Los repositorios de datos generales, estado, cronograma, ejes, tipos y criterios
+de la edición consumen `/api/ediciones`. Los catálogos traducen el guardado de la
+pantalla a la operación sobre el elemento que cambió.
 
 ## Integración de las historias
 

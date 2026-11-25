@@ -100,7 +100,7 @@ export default function useConference() {
           }),
         }
       }
-      const result = await repositories[key].save(value)
+      const result = await repositories[key].save(value, data[key])
       await refresh()
       return result
     } catch (cause) {

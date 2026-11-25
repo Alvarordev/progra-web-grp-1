@@ -1,4 +1,4 @@
-// Cuenta incluida para la demostración local del comité organizador.
+// Ficha histórica de la demostración local del comité organizador.
 export const defaultCommitteeAccount = {
   userId: 'default-committee',
   names: 'Comité',
@@ -7,9 +7,4 @@ export const defaultCommitteeAccount = {
   email: 'admin@aloe.ulima.edu.pe',
   institution: 'Universidad de Lima',
   role: 'committee',
-}
-
-export const defaultCommitteeCredential = {
-  email: defaultCommitteeAccount.email,
-  password: 'Admin1234',
 }

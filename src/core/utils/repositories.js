@@ -11,12 +11,6 @@ import {
 } from './states/worksAssignmentState.js'
 import createStateRepository from './persistence/createStateRepository.js'
 import createSessionRepository from './persistence/createSessionRepository.js'
-import {
-  initialEdition,
-  initialEditionStatus,
-  validateEdition,
-  validateEditionStatus,
-} from './states/editionState.js'
 import { validateSession } from './states/sessionState.js'
 import {
   initialSessionPreferences,
@@ -27,10 +21,6 @@ import {
   validateParticipant,
   validateParticipants,
 } from './states/participantState.js'
-import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
-import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
-import { initialSchedule, validateSchedule } from './states/scheduleState.js'
-import { initialCriteria, validateCriteria } from './states/criteriaState.js'
 import { initialReviews, validateReviews } from './states/reviewsState.js'
 import { validateDemoCredentials } from './states/demoCredentialsState.js'
 import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
@@ -65,42 +55,14 @@ export const reviewsRepository = createStateRepository({
   validate: validateReviews,
 })
 
-export const workTypesRepository = createStateRepository({
-  name: 'work-types',
-  defaultValue: initialWorkTypes,
-  validate: validateWorkTypes,
-})
-
-export const thematicAxesRepository = createStateRepository({
-  name: 'thematic-axes',
-  defaultValue: thematicAxes,
-  validate: validateThematicAxes,
-})
-
-export const scheduleRepository = createStateRepository({
-  name: 'schedule',
-  defaultValue: initialSchedule,
-  validate: validateSchedule,
-})
-
-export const criteriaRepository = createStateRepository({
-  name: 'criteria',
-  defaultValue: initialCriteria,
-  validate: validateCriteria,
-})
-
-// Punto de composición: aquí se sustituirán los repositorios por los de la API.
-export const editionRepository = createStateRepository({
-  name: 'edition',
-  defaultValue: initialEdition,
-  validate: validateEdition,
-})
-
-export const editionStatusRepository = createStateRepository({
-  name: 'edition-status',
-  defaultValue: initialEditionStatus,
-  validate: validateEditionStatus,
-})
+export {
+  criteriaRepository,
+  editionRepository,
+  editionStatusRepository,
+  scheduleRepository,
+  thematicAxesRepository,
+  workTypesRepository,
+} from './editionRepositories.js'
 
 const persistentSessionRepository = createStateRepository({
   name: 'session',

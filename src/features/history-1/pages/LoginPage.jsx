@@ -40,7 +40,7 @@ function LoginPage() {
     setStorageError('')
 
     try {
-      const participant = await authenticateParticipant(email, password)
+      const participant = await authenticateParticipant(email, password, remember)
       if (!participant) {
         setError(true)
         return

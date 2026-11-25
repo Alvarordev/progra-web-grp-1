@@ -18,13 +18,18 @@ e inicia sesión en `/iniciar-sesion`.
 
 ## Cuentas de prueba
 
-Estas cuentas ya existen al abrir la aplicación por primera vez.
-
 ### Comité organizador
 
-| Correo                    | Contraseña  | Al ingresar           |
-| ------------------------- | ----------- | --------------------- |
-| `admin@aloe.ulima.edu.pe` | `Admin1234` | Abre `/configuracion` |
+Levanta PostgreSQL y la API del repositorio `progra-web-backend`, ejecuta
+`npm run db:migrate` y carga los datos de ejemplo con `npm run db:seed`.
+Entra con `ana.salazar@ulima.edu.pe` y la contraseña `DEMO_PASSWORD` que
+configuraste al cargar los datos.
+
+Vite envía `/api` al backend en `http://127.0.0.1:3000` durante desarrollo y
+previsualización. Puedes configurar `BACKEND_URL` en `.env.local` si el backend
+usa otra dirección. Por defecto se usa la edición de mayor año. Si necesitas
+otra, define su ID en `VITE_EDICION_ID` y reinicia Vite. El despliegue del build
+debe servir `/api` desde el mismo origen que el frontend.
 
 ### Perfiles precreados
 
@@ -40,7 +45,6 @@ Todos usan la contraseña **`Congreso2026`**.
 | Mg. Carmen Effio Vargas      | `carmen.effio@ulima.edu.pe`          | Revisor             |
 | Mg. Renzo Bustamante Loayza  | `renzo.bustamante@up.edu.pe`         | Revisor             |
 | Dra. Milagros Yupanqui Ríos  | `milagros.yupanqui@ulima.edu.pe`     | Revisor             |
-| Dra. Ana Salazar Bermúdez    | `ana.salazar@ulima.edu.pe`           | Comité              |
 | Ing. Jorge Palomino Ávila    | `jorge.palomino@ulima.edu.pe`        | Revisor (bloqueado) |
 
 - La cuenta de Jorge Palomino está bloqueada a propósito, para probar ese caso: no
@@ -52,12 +56,9 @@ Todos usan la contraseña **`Congreso2026`**.
 
 ## Datos y reinicio
 
-No hay backend: todo se guarda en el `localStorage` del navegador, con claves que
-empiezan por `congress:`. Las contraseñas se guardan sin cifrar porque es solo una
-demostración local, no una autenticación real.
-
-Para volver al estado inicial, borra los datos del sitio desde las herramientas del
-navegador (Aplicación → Almacenamiento local) y recarga la página.
+La configuración de ediciones se guarda en PostgreSQL mediante la API. Limpiar
+los datos del navegador reinicia los estados locales de demostración de las demás
+historias. La sesión del comité usa una cookie HTTP-only del backend.
 
 ## Verificación
 
@@ -82,4 +83,4 @@ npm run format
 
 ## Integración
 
-La fidelidad visual se contrasta con el mockup de escritorio. Los datos de negocio se guardan en el navegador mediante los repositorios compartidos.
+La fidelidad visual se contrasta con el mockup de escritorio. Los repositorios compartidos conectan la configuración de la edición con la API y mantienen los datos de demostración de las demás historias.
