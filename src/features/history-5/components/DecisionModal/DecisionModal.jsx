@@ -9,7 +9,7 @@ const opciones = [
   { value: 'rechazar', label: 'Rechazar', descripcion: 'No participa en esta edición.' },
 ]
 
-function DecisionModal({ alCerrar, codigo, resumen, filas, datos, decision }) {
+function DecisionModal({ alCerrar, alGuardar, codigo, resumen, filas, decision }) {
   const enviados = filas.filter(fila => !fila.pendiente && fila.comentarioAutor)
   const pendientes = filas.filter(fila => fila.pendiente).map(fila => fila.revisor)
   const textoPrecargado = enviados.map(fila => fila.comentarioAutor).join(' ')
@@ -34,37 +34,7 @@ function DecisionModal({ alCerrar, codigo, resumen, filas, datos, decision }) {
     setSaving(true)
     setError('')
     try {
-      const record = {
-        resultado: result,
-        retroalimentacion: feedback.trim(),
-        status: publish ? 'published' : 'draft',
-        updatedAt: new Date().toISOString(),
-        promedio: resumen.promedioGeneral,
-        puntajes: datos.criteria.map((criterion, index) => ({
-          criterio: `${criterion.nombre} (${criterion.peso} %)`,
-          nota: String(
-            filas
-              .filter(row => !row.pendiente)
-              .reduce((sum, row) => sum + Number(row.criterios[index]?.puntaje || 0), 0) /
-              Math.max(1, resumen.entregadas)
-          ),
-        })),
-        revisiones: enviados.map(row => ({
-          recomendacion: row.recomendacion,
-          comentario: row.comentarioAutor,
-        })),
-      }
-      await datos.save('decisions', { ...datos.decisions, [codigo]: record })
-      if (publish) {
-        await datos.save(
-          'works',
-          datos.works.map(work =>
-            work.codigo === codigo
-              ? { ...work, estado: result === 'aceptar' ? 'Aceptado' : 'Rechazado' }
-              : work
-          )
-        )
-      }
+      await alGuardar(result, feedback.trim(), publish)
       alCerrar()
     } catch (cause) {
       setError(cause.message)
