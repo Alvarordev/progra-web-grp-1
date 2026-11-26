@@ -16,7 +16,7 @@ export function aRevisionLocal(revision) {
     recommendation: revision.recomendacion ?? '',
     authorComment: revision.comentarioAutor ?? '',
     committeeComment: revision.comentarioComite ?? '',
-    updatedAt: revision.fechaEnvio ?? null,
+    updatedAt: revision.actualizadaEn ?? null,
     criteria: revision.criterios.map(nota => ({
       id: String(nota.criterioId),
       nombre: nota.criterio.nombre,
@@ -39,8 +39,8 @@ export function aAsignacion(revision) {
     estado = 'Entregada'
     tipoEstado = 'entregada'
     accion = undefined
-    fecha = revision.fechaEnvio
-      ? `Enviada el ${fechaCorta(revision.fechaEnvio)} · ${etiqueta}`
+    fecha = revision.actualizadaEn
+      ? `Enviada el ${fechaCorta(revision.actualizadaEn)} · ${etiqueta}`
       : `Enviada · ${etiqueta}`
   } else if (vencida) {
     estado = 'Vencida'
