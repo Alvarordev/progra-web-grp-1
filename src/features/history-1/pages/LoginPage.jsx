@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
-import {
-  authenticateParticipant,
-  getAccountHome,
-  startAccountSession,
-} from '../../../core/utils/accounts.js'
+import { iniciarSesionCuenta, obtenerInicioCuenta } from '../../../core/utils/accounts.js'
 import { sessionPreferencesRepository } from '../../../core/utils/repositories.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { initialSessionPreferences } from '../../../core/utils/states/sessionPreferencesState.js'
@@ -27,7 +23,7 @@ function LoginPage() {
   const remember = rememberOverride ?? preferences.value.remember
   const busy = loading || preferences.loading
 
-  async function handleSubmit(event) {
+  async function enviarFormulario(event) {
     event.preventDefault()
     if (busy || preferences.error) {
       return
@@ -40,14 +36,13 @@ function LoginPage() {
     setStorageError('')
 
     try {
-      const participant = await authenticateParticipant(email, password, remember)
+      const participant = await iniciarSesionCuenta(email, password, remember)
       if (!participant) {
         setError(true)
         return
       }
 
-      await startAccountSession(participant, remember)
-      navigate(getAccountHome(participant.role))
+      navigate(obtenerInicioCuenta(participant.role))
     } catch (cause) {
       setStorageError(cause.message)
     } finally {
@@ -80,7 +75,7 @@ function LoginPage() {
               {storageError || preferences.error}
             </p>
           )}
-          <form aria-busy={busy} onSubmit={handleSubmit}>
+          <form aria-busy={busy} onSubmit={enviarFormulario}>
             <label htmlFor="email">Correo institucional</label>
             <input
               aria-describedby={error ? 'login-email-error' : undefined}

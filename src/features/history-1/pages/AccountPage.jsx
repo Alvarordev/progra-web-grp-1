@@ -1,4 +1,3 @@
-import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
 import { Link, Navigate, useOutletContext } from 'react-router'
 import Header from '../../../core/ui/Header/Header.jsx'
@@ -8,11 +7,7 @@ import AuthorNavigation from '../../../core/ui/AuthorNavigation/AuthorNavigation
 import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
-import {
-  reviewsRepository,
-  thematicAxesRepository,
-} from '../../../core/utils/repositories.js'
-import { getReviewerAssignments } from '../../../core/utils/reviewerAssignments.js'
+import { thematicAxesRepository } from '../../../core/utils/repositories.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import AccountSettings from '../components/AccountSettings/AccountSettings.jsx'
 import ReviewerActivity from '../components/ReviewerActivity/ReviewerActivity.jsx'
@@ -33,30 +28,20 @@ function getRoleLabel(role) {
 function AccountPage() {
   const participant = useOutletContext()
   const profileState = useReviewerProfile()
-  const conference = useConference()
   const isReviewer = ['reviewer', 'both'].includes(participant.role)
   const axesState = useStoredState(thematicAxesRepository, [], isReviewer)
-  const reviewsState = useStoredState(reviewsRepository, {}, isReviewer)
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [notice, setNotice] = useState('')
   const [saveError, setSaveError] = useState('')
-  const loading =
-    profileState.loading || (isReviewer && (axesState.loading || reviewsState.loading))
-  const loadError =
-    profileState.error || (isReviewer ? axesState.error || reviewsState.error : '')
+  const loading = profileState.loading || (isReviewer && axesState.loading)
+  const loadError = profileState.error || (isReviewer ? axesState.error : '')
   const blocked = loading || Boolean(loadError) || profileState.saving || passwordSaving
-  const assignments = getReviewerAssignments(
-    reviewsState.value,
-    profileState.reviewerId,
-    conference.works,
-    conference.reviewers
-  )
   const user = {
     ...getReviewerUser(profileState.loading ? participant : profileState.profile),
     rol: getRoleLabel(participant.role),
   }
 
-  async function handleSave(profile) {
+  async function guardarCuenta(profile) {
     if (blocked) {
       return
     }
@@ -66,8 +51,8 @@ function AccountPage() {
       await profileState.save(profile)
       setNotice(
         isReviewer
-          ? 'Datos personales y líneas de interés guardados en este navegador.'
-          : 'Datos personales guardados en este navegador.'
+          ? 'Datos personales y líneas de interés guardados.'
+          : 'Datos personales guardados.'
       )
     } catch (cause) {
       setSaveError(cause.message)
@@ -125,7 +110,7 @@ function AccountPage() {
         {!loading && !loadError && (
           <div className={styles.columns}>
             <AccountSettings
-              alGuardar={handleSave}
+              alGuardar={guardarCuenta}
               bloqueado={blocked}
               ejes={axesState.value}
               mostrarIntereses={isReviewer}
@@ -137,7 +122,7 @@ function AccountPage() {
                 bloqueado={profileState.saving}
                 correo={profileState.profile.email}
               />
-              {isReviewer && <ReviewerActivity asignaciones={assignments} />}
+              {isReviewer && <ReviewerActivity actividad={profileState.actividad} />}
             </div>
           </div>
         )}

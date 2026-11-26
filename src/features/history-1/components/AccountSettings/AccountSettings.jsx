@@ -14,13 +14,13 @@ function AccountSettings({
   const availableIds = new Set(ejes.map(axis => axis.id))
   const selectedIds = draft.interestIds.filter(id => availableIds.has(id))
 
-  function handleChange(event) {
+  function cambiarCampo(event) {
     const { name, value } = event.target
     setDraft(current => ({ ...current, [name]: value }))
     setError('')
   }
 
-  function toggleInterest(id) {
+  function alternarInteres(id) {
     setDraft(current => ({
       ...current,
       interestIds: current.interestIds.includes(id)
@@ -29,7 +29,7 @@ function AccountSettings({
     }))
   }
 
-  function handleSubmit(event) {
+  function enviarPerfil(event) {
     event.preventDefault()
     if (bloqueado) {
       return
@@ -52,7 +52,7 @@ function AccountSettings({
       className={styles.stack}
       id="account-settings-form"
       noValidate
-      onSubmit={handleSubmit}
+      onSubmit={enviarPerfil}
     >
       <section aria-labelledby="personal-details-title" className={styles.panel}>
         <h2 id="personal-details-title">Datos personales</h2>
@@ -64,7 +64,7 @@ function AccountSettings({
               disabled={bloqueado}
               id="reviewer-names"
               name="names"
-              onChange={handleChange}
+              onChange={cambiarCampo}
               required
               value={draft.names}
             />
@@ -76,7 +76,7 @@ function AccountSettings({
               disabled={bloqueado}
               id="reviewer-surnames"
               name="surnames"
-              onChange={handleChange}
+              onChange={cambiarCampo}
               required
               value={draft.surnames}
             />
@@ -101,7 +101,7 @@ function AccountSettings({
               disabled={bloqueado}
               id="reviewer-institution"
               name="institution"
-              onChange={handleChange}
+              onChange={cambiarCampo}
               required
               value={draft.institution}
             />
@@ -134,7 +134,7 @@ function AccountSettings({
                   className={`${styles.interest} ${selected ? styles.selected : ''}`}
                   disabled={bloqueado}
                   key={axis.id}
-                  onClick={() => toggleInterest(axis.id)}
+                  onClick={() => alternarInteres(axis.id)}
                   size="small"
                   type="button"
                   variant="secondary"

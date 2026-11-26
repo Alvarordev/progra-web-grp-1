@@ -1,118 +1,86 @@
 import { useEffect, useState } from 'react'
-import {
-  participantRepository,
-  participantsRepository,
-  reviewerProfilesRepository,
-  sessionRepository,
-  thematicAxesRepository,
-  reviewersRepository,
-  usersRepository,
-} from './repositories.js'
-import { getParticipantAccounts } from './accounts.js'
-import {
-  demoReviewerId,
-  getReviewerProfile,
-  initialReviewerProfile,
-} from './states/reviewerProfilesState.js'
+import { consultarPerfil, guardarPerfil } from './usuariosApi.js'
 
-export default function useReviewerProfile() {
-  const [profile, setProfile] = useState(initialReviewerProfile)
-  const [reviewerId, setReviewerId] = useState(demoReviewerId)
+const extraerPerfil = datos => ({
+  names: datos.names,
+  surnames: datos.surnames,
+  email: datos.email,
+  institution: datos.institution,
+  interestIds: datos.interestIds,
+})
+
+export default function usePerfilUsuario() {
+  const [profile, setProfile] = useState({
+    names: '',
+    surnames: '',
+    email: '',
+    institution: '',
+    interestIds: [],
+  })
+  const [session, setSession] = useState(null)
+  const [actividad, setActividad] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [session, setSession] = useState(null)
 
   useEffect(() => {
-    let active = true
-    Promise.all([
-      reviewerProfilesRepository.get(),
-      sessionRepository.get(),
-      getParticipantAccounts(),
-    ])
-      .then(([profiles, session, accounts]) => {
-        if (!active) {
+    let activo = true
+    consultarPerfil()
+      .then(datos => {
+        if (!activo) {
           return
         }
-        const participant = accounts.find(account => account.userId === session?.userId)
-        setSession(participant ? { ...session, role: participant.role } : null)
-        setReviewerId(session?.userId ?? demoReviewerId)
-        setProfile(getReviewerProfile(profiles, session, participant))
+        setProfile(extraerPerfil(datos))
+        setSession(datos)
+        setActividad(datos.actividad)
       })
-      .catch(cause => {
-        if (active) {
-          setError(cause.message)
+      .catch(err => {
+        if (activo) {
+          setError(err.message)
         }
       })
       .finally(() => {
-        if (active) {
+        if (activo) {
           setLoading(false)
         }
       })
     return () => {
-      active = false
+      activo = false
     }
   }, [])
 
-  async function save(nextProfile) {
+  const guardar = async siguiente => {
     if (loading || saving || error) {
-      throw new Error('No se pudo cargar el perfil para guardarlo.')
+      throw new Error('Espere a que termine la operación actual.')
     }
     setSaving(true)
     try {
-      const profiles = await reviewerProfilesRepository.get()
-      await reviewerProfilesRepository.save({ ...profiles, [reviewerId]: nextProfile })
-      const accounts = await getParticipantAccounts()
-      const participant = accounts.find(account => account.userId === reviewerId)
-      if (participant) {
-        const updated = {
-          ...participant,
-          names: nextProfile.names,
-          surnames: nextProfile.surnames,
-          name: `${nextProfile.names} ${nextProfile.surnames}`,
-          institution: nextProfile.institution,
-        }
-        await participantsRepository.save(
-          accounts.map(account => (account.userId === reviewerId ? updated : account))
-        )
-        await participantRepository.save(updated)
-        const [users, reviewers, axes] = await Promise.all([
-          usersRepository.get(),
-          reviewersRepository.get(),
-          thematicAxesRepository.get(),
-        ])
-        await usersRepository.save(
-          users.map(user =>
-            user.correo.toLowerCase() === updated.email.toLowerCase()
-              ? { ...user, nombre: updated.name, institucion: updated.institution }
-              : user
-          )
-        )
-        await reviewersRepository.save(
-          reviewers.map(reviewer =>
-            reviewer.userId === reviewerId
-              ? {
-                  ...reviewer,
-                  nombre: updated.name,
-                  institucion: updated.institution,
-                  lineasInteres: axes
-                    .filter(axis => nextProfile.interestIds.includes(axis.id))
-                    .map(axis => axis.nombre),
-                }
-              : reviewer
-          )
-        )
-        await sessionRepository.save({
-          userId: reviewerId,
-          name: updated.name,
-          role: updated.role,
-        })
+      const datos = {
+        names: siguiente.names,
+        surnames: siguiente.surnames,
+        institution: siguiente.institution,
       }
-      setProfile(nextProfile)
+      if (['reviewer', 'both'].includes(session.role)) {
+        datos.interestIds = siguiente.interestIds
+      }
+      const actualizado = await guardarPerfil(datos)
+      setProfile(extraerPerfil(actualizado))
+      setSession(actualizado)
+      setActividad(actualizado.actividad)
+      return actualizado
     } finally {
       setSaving(false)
     }
   }
 
-  return { profile, reviewerId, session, loading, saving, error, save }
+  return {
+    profile,
+    session,
+    actividad,
+    reviewerId: session?.userId,
+    loading,
+    saving,
+    error,
+    save: guardar,
+  }
 }

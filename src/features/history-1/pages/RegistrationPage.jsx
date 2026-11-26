@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import {
-  getAccountHome,
-  registerParticipant,
-  startAccountSession,
+  obtenerInicioCuenta,
+  registrarParticipante,
+  iniciarSesionCuenta,
 } from '../../../core/utils/accounts.js'
 import { requiresAcademicDetails } from '../../../core/utils/states/participantState.js'
 import {
@@ -15,18 +15,27 @@ import {
 } from '../utils/registrationForm.js'
 import PublicNavigation from '../components/PublicNavigation/PublicNavigation.jsx'
 import AcademicFields from '../components/AcademicFields/AcademicFields.jsx'
+import useStoredState from '../../../core/utils/useStoredState.js'
+import {
+  scheduleRepository,
+  editionStatusRepository,
+} from '../../../core/utils/repositories.js'
+import { getReceptionNotice } from '../../../core/utils/reception.js'
 import styles from './RegistrationPage.module.css'
 
 const fieldNames = Object.keys(initialRegistrationForm)
 
 function RegistrationPage() {
   const navigate = useNavigate()
+  const cronograma = useStoredState(scheduleRepository, {})
+  const estadoEdicion = useStoredState(editionStatusRepository, '')
   const [form, setForm] = useState(initialRegistrationForm)
   const [touched, setTouched] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  const errors = validateRegistrationForm(form)
+  const [erroresServidor, setErroresServidor] = useState({})
+  const errors = { ...validateRegistrationForm(form), ...erroresServidor }
   const passwordRequirements = getRegistrationPasswordRequirements(form)
 
   function handleChange(event) {
@@ -39,6 +48,7 @@ function RegistrationPage() {
       ...(name === 'role' && value === 'reviewer' ? { degree: '', studentCode: '' } : {}),
     }))
     setSaveError('')
+    setErroresServidor({})
   }
 
   function handleBlur(event) {
@@ -49,7 +59,7 @@ function RegistrationPage() {
     setTouched(currentTouched => ({ ...currentTouched, [name]: true }))
   }
 
-  async function handleSubmit(event) {
+  async function registrarCuenta(event) {
     event.preventDefault()
     if (saving) {
       return
@@ -68,11 +78,19 @@ function RegistrationPage() {
     setSaveError('')
 
     try {
-      await registerParticipant(participant, form.password)
-      await startAccountSession(participant)
-      navigate(getAccountHome(form.role), { state: { accountCreated: true } })
+      await registrarParticipante({
+        ...participant,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      })
+      const cuenta = await iniciarSesionCuenta(form.email, form.password)
+      if (!cuenta) {
+        throw new Error('La cuenta fue creada. Inicie sesión para continuar.')
+      }
+      navigate(obtenerInicioCuenta(cuenta.role), { state: { accountCreated: true } })
     } catch (error) {
       setSaveError(error.message)
+      setErroresServidor(error.errores || {})
     } finally {
       setSaving(false)
     }
@@ -129,7 +147,7 @@ function RegistrationPage() {
                 {saveError}
               </p>
             )}
-            <form aria-busy={saving} noValidate onSubmit={handleSubmit}>
+            <form aria-busy={saving} noValidate onSubmit={registrarCuenta}>
               <div className={styles.fieldGroup}>
                 <label htmlFor="names">Nombres *</label>
                 <input
@@ -380,8 +398,12 @@ function RegistrationPage() {
               <>
                 <h2>Antes de registrarse</h2>
                 <p>
-                  La recepción de trabajos cierra el 15/12/2026 a las 23:59. Después de
-                  esa fecha no será posible editar los envíos.
+                  {cronograma.loading ||
+                  estadoEdicion.loading ||
+                  cronograma.error ||
+                  estadoEdicion.error
+                    ? 'Consulte las fechas vigentes en las bases del congreso.'
+                    : getReceptionNotice(estadoEdicion.value, cronograma.value)}
                 </p>
                 <p>
                   Si participa como revisor, deberá declarar sus líneas de interés para

@@ -1,31 +1,43 @@
-import { worksRepository, reviewersRepository } from '../core/utils/repositories.js'
 import { redirect } from 'react-router'
-import { getActiveAccount } from '../core/utils/accounts.js'
+import { obtenerCuentaActiva } from '../core/utils/accounts.js'
 import { hasRoleAccess } from '../core/utils/access.js'
-import { getReviewerAssignments } from '../core/utils/reviewerAssignments.js'
+import {
+  consultarAsignaciones,
+  consultarAccesoTrabajo,
+} from '../core/utils/usuariosApi.js'
 
-export function createAccessLoader(roles, message, requireAssignment = false) {
-  return async ({ params }) => {
-    const participant = await getActiveAccount()
+export const crearCargadorAcceso =
+  (roles, mensaje, requiereAsignacion = false) =>
+  async ({ params }) => {
+    const participant = await obtenerCuentaActiva()
     if (!participant) {
       return redirect('/iniciar-sesion')
     }
-    const hasAssignment =
-      !requireAssignment ||
-      getReviewerAssignments(
-        {},
-        participant.userId,
-        await worksRepository.get(),
-        await reviewersRepository.get()
-      ).some(item => item.codigo === params.codigo)
-    const allowed = hasRoleAccess(participant, roles) && hasAssignment
-    return {
-      participant,
-      allowed,
-      message:
-        hasRoleAccess(participant, roles) && !hasAssignment
-          ? 'Solo puede evaluar los trabajos que le han sido asignados como revisor.'
-          : message,
+    let message = mensaje
+    let allowed = hasRoleAccess(participant, roles)
+    if (allowed && requiereAsignacion) {
+      const asignaciones = await consultarAsignaciones()
+      allowed = asignaciones.some(asignacion => asignacion.codigo === params.codigo)
+      if (!allowed) {
+        message =
+          'Solo puede evaluar los trabajos que le han sido asignados como revisor.'
+      }
+    } else if (
+      allowed &&
+      params.codigo &&
+      ['author', 'both'].includes(participant.role)
+    ) {
+      try {
+        await consultarAccesoTrabajo(params.codigo)
+      } catch (err) {
+        if (err.status !== 403) {
+          throw err
+        }
+        allowed = false
+        message = 'Solo puede consultar sus propios trabajos.'
+      }
     }
+    return { participant, allowed, message }
   }
-}
+
+export { crearCargadorAcceso as createAccessLoader }

@@ -3,11 +3,8 @@ import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { reviewsRepository } from '../../../core/utils/repositories.js'
-import {
-  getReviewerAssignments,
-  getReviewActivity,
-} from '../../../core/utils/reviewerAssignments.js'
+import { consultarAsignaciones } from '../../../core/utils/usuariosApi.js'
+import { getReviewActivity } from '../../../core/utils/reviewerAssignments.js'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import Header from '../../../core/ui/Header/Header.jsx'
@@ -23,7 +20,7 @@ const filters = [
   { id: 'vencidas', label: 'Vencidas', warning: true },
 ]
 
-const initialReviews = {}
+const repositorioAsignaciones = { get: consultarAsignaciones }
 function matchesFilter(assignment, filterId) {
   if (filterId === 'todas') {
     return true
@@ -38,15 +35,10 @@ function matchesFilter(assignment, filterId) {
 }
 
 function ReviewerInboxPage() {
-  const reviewsState = useStoredState(reviewsRepository, initialReviews)
+  const reviewsState = useStoredState(repositorioAsignaciones, [])
   const profileState = useReviewerProfile()
   const conference = useConference()
-  const assignments = getReviewerAssignments(
-    reviewsState.value,
-    profileState.reviewerId,
-    conference.works,
-    conference.reviewers
-  )
+  const assignments = reviewsState.value
   const [selectedFilter, setSelectedFilter] = useState('todas')
   const {
     pending: pendingCount,

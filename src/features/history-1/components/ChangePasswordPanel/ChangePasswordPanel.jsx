@@ -1,12 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import Button from '../../../../core/ui/Button/Button.jsx'
-import { demoCredentialsRepository } from '../../../../core/utils/repositories.js'
-import {
-  createPasswordCredential,
-  getPasswordRequirements,
-  verifyPasswordCredential,
-} from '../../../../core/utils/passwords.js'
+import { getPasswordRequirements } from '../../../../core/utils/passwords.js'
+import { cambiarContrasena } from '../../../../core/utils/usuariosApi.js'
 import styles from '../AccountPanels/AccountPanels.module.css'
 
 const initialFields = { currentPassword: '', password: '', confirmation: '' }
@@ -16,16 +12,14 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [needsRecovery, setNeedsRecovery] = useState(false)
 
-  function handleChange(event) {
+  function cambiarCampo(event) {
     setFields(current => ({ ...current, [event.target.name]: event.target.value }))
     setError('')
     setSuccess('')
-    setNeedsRecovery(false)
   }
 
-  async function handleSubmit(event) {
+  async function actualizarContrasena(event) {
     event.preventDefault()
     if (bloqueado || saving) {
       return
@@ -45,27 +39,15 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
     setSaving(true)
     alCambiarEstado(true)
     try {
-      const credentials = await demoCredentialsRepository.get()
-      const email = correo.trim().toLowerCase()
-      const current = credentials.find(item => item.email === email)
-      if (!current) {
-        setNeedsRecovery(true)
-        throw new Error(
-          'Primero establezca su contraseña local desde «Recuperar contraseña».'
-        )
-      }
-      if (!verifyPasswordCredential(fields.currentPassword, current)) {
-        throw new Error('La contraseña actual no es correcta.')
-      }
-      const next = createPasswordCredential(email, fields.password)
-      await demoCredentialsRepository.save([
-        ...credentials.filter(item => item.email !== email),
-        next,
-      ])
+      await cambiarContrasena(
+        fields.currentPassword,
+        fields.password,
+        fields.confirmation
+      )
       setFields(initialFields)
-      setSuccess('Contraseña actualizada en este navegador.')
+      setSuccess('Contraseña actualizada.')
     } catch (cause) {
-      setError(cause.message)
+      setError(cause.errores?.password || cause.message)
     } finally {
       setSaving(false)
       alCambiarEstado(false)
@@ -79,7 +61,7 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
         aria-busy={saving}
         className={styles.passwordForm}
         noValidate
-        onSubmit={handleSubmit}
+        onSubmit={actualizarContrasena}
       >
         <div className={styles.field}>
           <label htmlFor="account-current-password">Contraseña actual</label>
@@ -88,7 +70,7 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
             disabled={bloqueado || saving}
             id="account-current-password"
             name="currentPassword"
-            onChange={handleChange}
+            onChange={cambiarCampo}
             required
             type="password"
             value={fields.currentPassword}
@@ -102,7 +84,7 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
             disabled={bloqueado || saving}
             id="account-new-password"
             name="password"
-            onChange={handleChange}
+            onChange={cambiarCampo}
             required
             type="password"
             value={fields.password}
@@ -118,7 +100,7 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
             disabled={bloqueado || saving}
             id="account-confirm-password"
             name="confirmation"
-            onChange={handleChange}
+            onChange={cambiarCampo}
             required
             type="password"
             value={fields.confirmation}
@@ -129,11 +111,9 @@ function ChangePasswordPanel({ correo, bloqueado, alCambiarEstado }) {
             {error}
           </p>
         )}
-        {needsRecovery && (
-          <Link state={{ recoveryEmail: correo }} to="/recuperar-contrasena">
-            Recuperar contraseña
-          </Link>
-        )}
+        <Link state={{ recoveryEmail: correo }} to="/recuperar-contrasena">
+          Recuperar contraseña
+        </Link>
         {success && (
           <p className={styles.success} role="status">
             ✓ {success}
