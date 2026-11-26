@@ -6,23 +6,38 @@ asignar revisores y publicar resultados.
 
 ## Cómo ejecutarlo
 
-Requisitos: Node.js 20.19 o superior, o bien 22.13 o superior.
+Requisitos: Node.js 22.13 o superior, Docker y Docker Compose. El frontend
+necesita el backend (API y PostgreSQL) para funcionar: todas las historias
+consumen `/api`.
 
-```bash
-npm install
-npm run dev
-```
+1. Backend (repositorio `progra-web-backend`, que se integra con este proyecto):
+   copia `env.local` a `.env`, define `SESSION_SECRET` (aleatorio, 32 caracteres
+   como mínimo) y `DEMO_PASSWORD` (12 caracteres como mínimo), y ejecuta:
 
-Luego abre la dirección que muestra la terminal (normalmente `http://localhost:5173`)
-e inicia sesión en `/iniciar-sesion`.
+   ```bash
+   npm ci
+   docker compose up -d --wait   # PostgreSQL y Mailpit
+   npm run db:migrate
+   npm run db:seed               # datos de ejemplo
+   npm start                     # API en http://127.0.0.1:3000
+   ```
+
+2. Frontend:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+Abre la dirección que muestra la terminal (normalmente `http://localhost:5173`)
+e inicia sesión en `/iniciar-sesion`. Mailpit queda en `http://127.0.0.1:8025`.
 
 ## Cuentas de prueba
 
 ### Cuentas del backend
 
-Levanta PostgreSQL y la API del repositorio `progra-web-backend`, ejecuta
-`npm run db:migrate` y carga los datos de ejemplo con `npm run db:seed`.
-Entra con la contraseña `DEMO_PASSWORD` que configuraste al cargar los datos.
+Con el backend levantado y los datos de ejemplo cargados, entra con la
+contraseña `DEMO_PASSWORD` que configuraste al cargarlos.
 Registro, login, perfil, intereses y contraseñas se guardan en PostgreSQL.
 
 Vite envía `/api` al backend en `http://127.0.0.1:3000` durante desarrollo y
@@ -83,14 +98,15 @@ npm run format
 ## Convenciones
 
 - [Normas de desarrollo](./AGENTS.md).
-- [Referencia de pantallas](./src/ejemplo/README.md).
-- [Persistencia de estados y futura migración a una API](./src/core/utils/README.md).
+- [Capa de API, persistencia y estados locales](./src/core/utils/README.md).
 
 ## Integración
 
 La fidelidad visual se contrasta con el mockup de escritorio. `clienteApi.js`
 centraliza HTTP y cookies, `usuariosApi.js` expone las operaciones de cuentas y
-`accounts.js` conserva aliases de integración. Las funciones nuevas y las rutas
+`accounts.js` conserva aliases de integración. `revisionesApi.js` y
+`decisionesApi.js` sirven a la revisión y el dictamen (Historia 5): las historias
+no tienen su propio cliente HTTP. Las funciones nuevas y las rutas
 del backend se nombran en español; los nombres de componentes existentes se
 conservan para mantener sus imports. Usa el mismo host para frontend y API al
 trabajar con cookies, o utiliza el proxy `/api` de Vite.

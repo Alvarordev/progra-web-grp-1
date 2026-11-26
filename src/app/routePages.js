@@ -31,7 +31,6 @@ export const ReviewsTrackingPage = lazy(
 export const InformationPage = lazy(
   () => import('../features/history-1/pages/InformationPage.jsx')
 )
-export const ExamplePage = lazy(() => import('../ejemplo/ExamplePage.jsx'))
 export const AuthorHomePage = lazy(
   () => import('../features/history-1/pages/AuthorHomePage.jsx')
 )

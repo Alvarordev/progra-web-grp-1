@@ -10,7 +10,6 @@ import {
   ReviewersListPage,
   ReviewsTrackingPage,
   InformationPage,
-  ExamplePage,
   AuthorHomePage,
   History1Page,
   CongressRulesPage,
@@ -42,10 +41,6 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <History1Page />,
-  },
-  {
-    path: '/ejemplo',
-    element: <ExamplePage />,
   },
   {
     path: '/history-1',

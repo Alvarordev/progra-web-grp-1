@@ -18,7 +18,7 @@ import {
 import styles from './EvaluationPage.module.css'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
-import useTrabajoEvaluacion from '../api/useTrabajoEvaluacion.js'
+import useTrabajoEvaluacion from '../utils/useTrabajoEvaluacion.js'
 
 function formatSentAt(sentAt) {
   return {

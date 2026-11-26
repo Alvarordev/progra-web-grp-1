@@ -10,7 +10,10 @@ mantienen sus repositorios de demostración.
 - `usuariosApi.js`: registro, sesiones, perfil, contraseña y recuperación.
 - `accounts.js`: coordinación de cuentas y aliases utilizados por otras pantallas.
 - `useReviewerProfile.js`: carga/guardado del perfil y actividad de PostgreSQL.
-- `revisionesApi.js`: adapta las evaluaciones de la API al formato de las pantallas.
+- `revisionesApi.js`: lee `/revisiones`, adapta las evaluaciones al formato de las
+  pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
+- `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
+  `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
 - `conferenceApi.js`: aliases para la integración existente de ediciones.
 - `editionRepositories.js`: edición, estado, fechas y catálogos mediante la API.
 - `repositories.js`: composición de repositorios remotos y locales.
@@ -109,6 +112,14 @@ El cronograma se representa como `AAAA-MM-DDTHH:mm` en Lima. `reception.js`
 combina estado y plazo para indicar si la recepción está abierta. Las fechas
 viajan a la API con zona horaria. Guardar borradores de configuración no publica
 automáticamente cambios de etapa o programación.
+
+## Revisión y dictamen (Historia 5)
+
+El consolidado del comité y la pantalla de evaluación leen `/revisiones` y
+`/trabajos` mediante `revisionesApi` y `decisionesApi`. El dictamen se guarda o
+publica con `PUT /api/decisiones/:trabajoId` y ya no usa localStorage. Los hooks
+`useConsolidado` y `useTrabajoEvaluacion` y los adaptadores que dependen de la
+pantalla están en `features/history-5/utils/`; no contienen llamadas HTTP.
 
 ## Estados locales de otras historias
 

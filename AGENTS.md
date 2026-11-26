@@ -1,7 +1,6 @@
 # Normas de desarrollo
 
-Estas normas aplican a todo el repositorio. Usa `src/ejemplo/` como referencia
-visual y de estructura, y sigue el patrón de composición de
+Estas normas aplican a todo el repositorio. Sigue el patrón de composición de
 `src/features/history-2/` para las nuevas historias.
 
 ## Principios
@@ -40,13 +39,19 @@ src/
 │   └── router.jsx                 # Configuración central de rutas
 ├── core/
 │   ├── styles/                    # Tokens y estilos globales
-│   └── ui/                        # Componentes compartidos entre historias
+│   ├── ui/                        # Componentes compartidos entre historias
+│   └── utils/                     # Cliente de la API (*Api.js), repositorios y hooks compartidos
 └── features/
     └── history-n/
         ├── pages/                 # Pantallas de la historia
-        └── components/            # Componentes propios de la historia
+        ├── components/            # Componentes propios de la historia
+        └── utils/                 # Lógica y hooks propios de la historia
 ```
 
+- Las llamadas al backend viven en `src/core/utils/` (`clienteApi.js` hace el
+  `fetch` y cada dominio tiene su `*Api.js`). Una historia no crea su propio
+  cliente HTTP ni una carpeta `api/`: importa las funciones de `core/utils` y,
+  si necesita adaptar los datos a su pantalla, lo hace en su `utils/`.
 - Mantén los componentes de uso transversal en `src/core/ui/`. Por ejemplo,
   antes de crear otro encabezado, pie de página, navegación, perfil o botón,
   comprueba los componentes existentes.

@@ -10,9 +10,8 @@ import ConsolidatedScoreTable from '../components/ConsolidatedScoreTable/Consoli
 import ReviewerCommentsPanel from '../components/ReviewerCommentsPanel/ReviewerCommentsPanel.jsx'
 import DecisionModal from '../components/DecisionModal/DecisionModal.jsx'
 
-import useConsolidadoHu5 from '../api/useConsolidadoHu5.js'
-import { aCuerpoDecision } from '../api/adaptadores.js'
-import { guardarDecision } from '../api/hu5Api.js'
+import useConsolidado from '../utils/useConsolidado.js'
+import { aCuerpoDecision, guardarDecision } from '../../../core/utils/decisionesApi.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
 const committeeUser = {
@@ -30,7 +29,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
     trabajo: work,
     consolidado: datosConsolidado,
     recargar,
-  } = useConsolidadoHu5(codigo)
+  } = useConsolidado(codigo)
   const trabajo = work
     ? {
         title: work.titulo,

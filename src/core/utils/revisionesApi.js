@@ -3,28 +3,32 @@ import { consultarSesion } from './usuariosApi.js'
 
 const suscriptores = new Set()
 
+export const obtenerRevisiones = () => solicitarApi('/revisiones')
+
+export const aRevisionLocal = fila => ({
+  criteria: fila.criterios.map(nota => ({
+    id: String(nota.criterioId ?? `nota-${nota.id}`),
+    nombre: nota.criterio.nombre,
+    peso: nota.criterio.peso,
+    puntaje: nota.puntaje ?? '',
+    comentario: nota.comentario,
+  })),
+  recommendation: fila.recomendacion,
+  authorComment: fila.comentarioAutor,
+  committeeComment: fila.comentarioComite,
+  status: fila.estado === 'enviada' ? 'submitted' : 'draft',
+  updatedAt: fila.actualizadaEn,
+})
+
 const leerRevisiones = async () => {
   const cuenta = await consultarSesion()
   if (!cuenta || !['reviewer', 'both', 'committee'].includes(cuenta.role)) {
     return { filas: [], datos: {} }
   }
-  const filas = await solicitarApi('/revisiones')
+  const filas = await obtenerRevisiones()
   const datos = {}
   for (const fila of filas) {
-    datos[`${fila.revisorId}:${fila.trabajo.codigo}`] = {
-      criteria: fila.criterios.map(nota => ({
-        id: String(nota.criterioId ?? `nota-${nota.id}`),
-        nombre: nota.criterio.nombre,
-        peso: nota.criterio.peso,
-        puntaje: nota.puntaje ?? '',
-        comentario: nota.comentario,
-      })),
-      recommendation: fila.recomendacion,
-      authorComment: fila.comentarioAutor,
-      committeeComment: fila.comentarioComite,
-      status: fila.estado === 'enviada' ? 'submitted' : 'draft',
-      updatedAt: fila.actualizadaEn,
-    }
+    datos[`${fila.revisorId}:${fila.trabajo.codigo}`] = aRevisionLocal(fila)
   }
   return { filas, datos }
 }

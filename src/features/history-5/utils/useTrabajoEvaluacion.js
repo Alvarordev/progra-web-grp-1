@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { aTrabajoEvaluacion } from './adaptadores.js'
-import { obtenerRevisiones } from './hu5Api.js'
+import { obtenerRevisiones } from '../../../core/utils/revisionesApi.js'
 
 const trabajoPendiente = { title: 'Trabajo asignado' }
 

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { buildConsolidation } from '../utils/consolidation.js'
-import { aDatosConsolidado, aDecisionLocal } from './adaptadores.js'
-import { obtenerRevisiones, obtenerTrabajos } from './hu5Api.js'
+import { obtenerRevisiones } from '../../../core/utils/revisionesApi.js'
+import { aDecisionLocal, obtenerTrabajos } from '../../../core/utils/decisionesApi.js'
+import { buildConsolidation } from './consolidation.js'
+import { aDatosConsolidado } from './adaptadores.js'
 
 const estadoInicial = { cargando: true, error: '', trabajo: null, consolidado: null }
 
-export default function useConsolidadoHu5(codigo) {
+export default function useConsolidado(codigo) {
   const [estado, setEstado] = useState(estadoInicial)
   const [version, setVersion] = useState(0)
 
