@@ -4,19 +4,15 @@ import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import CommitteeNavigation from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import Button from '../../../core/ui/Button/Button.jsx'
-import useConference from '../../../core/utils/useConference.js'
-import {
-  getReview,
-  getWorkReviewers,
-  reviewerIdentity,
-} from '../../../core/utils/assignments.js'
 
 import ConsolidatedKpis from '../components/ConsolidatedKpis/ConsolidatedKpis.jsx'
 import ConsolidatedScoreTable from '../components/ConsolidatedScoreTable/ConsolidatedScoreTable.jsx'
 import ReviewerCommentsPanel from '../components/ReviewerCommentsPanel/ReviewerCommentsPanel.jsx'
 import DecisionModal from '../components/DecisionModal/DecisionModal.jsx'
 
-import { buildConsolidation } from '../utils/consolidation.js'
+import useConsolidadoHu5 from '../api/useConsolidadoHu5.js'
+import { aCuerpoDecision } from '../api/adaptadores.js'
+import { guardarDecision } from '../api/hu5Api.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
 const committeeUser = {
@@ -28,36 +24,31 @@ const committeeUser = {
 function ConsolidatedReviewPage({ mostrarDecision = false }) {
   const { codigo } = useParams()
   const [decisionAbierta, setDecisionAbierta] = useState(mostrarDecision)
-  const conference = useConference()
-  const work = conference.works.find(item => item.codigo === codigo)
+  const {
+    cargando,
+    error,
+    trabajo: work,
+    consolidado: datosConsolidado,
+    recargar,
+  } = useConsolidadoHu5(codigo)
   const trabajo = work
     ? {
         title: work.titulo,
         eje: work.eje,
         tipo: work.tipo,
-        autores: work.autores.join(', '),
+        estado: work.estado,
+        autores: work.autor?.nombre ?? '',
       }
     : null
-  const cargando = conference.loading
-  const assigned = work ? getWorkReviewers(work, conference.reviewers) : []
-  const normalizedReviews = Object.fromEntries(
-    assigned.flatMap(reviewer => {
-      const review = getReview(conference.reviews, reviewer, codigo)
-      return review ? [[`${reviewerIdentity(reviewer)}:${codigo}`, review]] : []
-    })
-  )
-  const consolidado =
-    trabajo && !cargando
-      ? buildConsolidation({
-          codigo,
-          revisores: assigned.map(reviewer => ({
-            ...reviewer,
-            id: reviewerIdentity(reviewer),
-          })),
-          reviews: normalizedReviews,
-          criteria: conference.criteria,
-        })
-      : null
+  const consolidado = trabajo ? datosConsolidado : null
+
+  async function registrarDecision(resultado, retroalimentacion, publicar) {
+    await guardarDecision(
+      work.id,
+      aCuerpoDecision(resultado, retroalimentacion, publicar)
+    )
+    recargar()
+  }
 
   return (
     <div className={styles.page}>
@@ -75,7 +66,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
           </nav>
 
           {cargando && <p role="status">Cargando consolidado…</p>}
-          {conference.error && <p role="alert">{conference.error}</p>}
+          {error && <p role="alert">{error}</p>}
 
           {consolidado ? (
             <>
@@ -84,7 +75,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                   <div className={styles.tags}>
                     <span>{codigo}</span>
                     <span className={styles.status}>
-                      En revisión · {consolidado.resumen.entregadas} de{' '}
+                      {trabajo.estado} · {consolidado.resumen.entregadas} de{' '}
                       {consolidado.resumen.totalRevisiones} entregadas
                     </span>
                   </div>
@@ -97,7 +88,7 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 <div className={styles.actions}>
                   <a
                     className={styles.documentLink}
-                    href={work.documentUrl || '/Tema6_Mockups_f.pdf'}
+                    href={work.documentUrl ?? '/Tema6_Mockups_f.pdf'}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -137,8 +128,8 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 <DecisionModal
                   alCerrar={() => setDecisionAbierta(false)}
                   codigo={codigo}
-                  datos={conference}
-                  decision={conference.decisions[codigo]}
+                  alGuardar={registrarDecision}
+                  decision={work.decision}
                   resumen={consolidado.resumen}
                   filas={consolidado.filas}
                 />
