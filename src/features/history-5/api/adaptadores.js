@@ -27,6 +27,19 @@ export function aRevisionLocal(revision) {
   }
 }
 
+export function aTrabajoEvaluacion(revision) {
+  return {
+    title: revision.trabajo.titulo,
+    eje: revision.trabajo.eje,
+    tipo: revision.trabajo.tipo,
+    resumen:
+      revision.trabajo.resumen ||
+      'Consulte el documento del trabajo para realizar la evaluación.',
+    fechaLimite: fechaCorta(revision.fechaLimite),
+    documentUrl: revision.trabajo.documentUrl ?? null,
+  }
+}
+
 export function aAsignacion(revision) {
   const enviada = revision.estado === 'enviada'
   const vencida = !enviada && estaVencida(revision.fechaLimite)
