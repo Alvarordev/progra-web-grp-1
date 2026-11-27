@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import Button from '../../../core/ui/Button/Button.jsx'
 import BlockUserModal from '../components/BlockUserModal/BlockUserModal.jsx'
 import BoardPageLayout from '../components/BoardPageLayout/BoardPageLayout.jsx'
@@ -6,28 +6,33 @@ import PageHeading from '../components/PageHeading/PageHeading.jsx'
 import Toast from '../components/Toast/Toast.jsx'
 import UserFormModal from '../components/UserFormModal/UserFormModal.jsx'
 import UsersTable from '../components/UsersTable/UsersTable.jsx'
-import useStoredState from '../../../core/utils/useStoredState.js'
-import { directoryRepository } from '../../../core/utils/directory.js'
-import { initialUsers } from '../../../core/utils/states/usersState.js'
+import {
+  actualizarUsuario,
+  bloquearUsuario,
+  invitarUsuario,
+  listarUsuarios,
+  reactivarUsuario,
+} from '../../../core/utils/gestionUsuariosApi.js'
 import { roles, statusOptions } from '../data/congressData.js'
-import { buildActivity, inferFeminine } from '../utils/users.js'
+import { toUser, toUserBody } from '../utils/users.js'
 import styles from './UsersPage.module.css'
 
 const PAGE_SIZE = 8
 
+/* Quien tiene el rol «Ambos» cuenta como autor y como revisor. */
 function countByRole(users, role) {
-  return users.filter(user => user.rol === role).length
+  return users.filter(
+    user => user.rol === role || (user.rol === 'Ambos' && role !== 'Comité')
+  ).length
 }
 
 function UsersPage() {
   const idPrefix = useId()
-  const {
-    value: users,
-    loading,
-    saving,
-    error,
-    save,
-  } = useStoredState(directoryRepository, initialUsers)
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
   const busy = loading || saving
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
@@ -38,6 +43,31 @@ function UsersPage() {
   /* null = cerrado · { usuario: null } = invitar · { usuario } = editar */
   const [userForm, setUserForm] = useState(null)
   const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    listarUsuarios()
+      .then(rows => {
+        if (active) {
+          setUsers(rows.map(toUser))
+        }
+      })
+      .catch(cause => {
+        if (active) {
+          setError(cause.message)
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const institutions = useMemo(
     () => [...new Set(users.map(user => user.institucion))],
@@ -98,25 +128,56 @@ function UsersPage() {
     setPage(1)
   }
 
-  async function updateUser(userId, changes) {
+  function clearErrors() {
+    setError('')
+    setFieldErrors({})
+  }
+
+  /* Ejecuta una operación contra la API y controla el estado de guardado y de error. */
+  async function runSave(operation) {
+    setSaving(true)
+    clearErrors()
+    try {
+      return await operation()
+    } catch (cause) {
+      setError(cause.message)
+      setFieldErrors(cause.errores ?? {})
+      throw cause
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function replaceUser(row) {
+    const updated = toUser(row)
+    setUsers(current => current.map(user => (user.id === updated.id ? updated : user)))
+  }
+
+  async function confirmBlock(user, { motivo, notificar }) {
     if (busy) {
       return
     }
-    await save(users.map(user => (user.id === userId ? { ...user, ...changes } : user)))
-  }
-
-  async function confirmBlock(user, { motivo }) {
     try {
-      await updateUser(user.id, { bloqueado: true, motivoBloqueo: motivo })
+      const row = await runSave(() => bloquearUsuario(user.id, motivo, notificar))
+      replaceUser(row)
       setUserToBlock(null)
+      setToast(
+        row.revisionesPausadas
+          ? `Usuario bloqueado · ${row.revisionesPausadas} ${row.revisionesPausadas === 1 ? 'revisión queda' : 'revisiones quedan'} en pausa hasta reactivarlo`
+          : 'Usuario bloqueado'
+      )
     } catch {
       /* el error se muestra en el mensaje de estado */
     }
   }
 
   async function reactivateUser(user) {
+    if (busy) {
+      return
+    }
     try {
-      await updateUser(user.id, { bloqueado: false })
+      replaceUser(await runSave(() => reactivarUsuario(user.id)))
+      setToast('Usuario reactivado')
     } catch {
       /* el error se muestra en el mensaje de estado */
     }
@@ -130,40 +191,22 @@ function UsersPage() {
 
     try {
       if (editing) {
-        await updateUser(editing.id, {
-          nombre: data.nombre,
-          correo: data.correo,
-          rol: data.rol,
-          institucion: data.institucion,
-          femenino: inferFeminine(data.nombre) || editing.femenino,
-          actividad: buildActivity(
-            data.rol,
-            data.cantidad,
-            editing.rol === data.rol ? editing.actividad : ''
-          ),
-        })
+        replaceUser(await runSave(() => actualizarUsuario(editing.id, toUserBody(data))))
         setToast('Cambios guardados')
       } else {
-        await save([
-          {
-            id: Math.max(0, ...users.map(user => user.id)) + 1,
-            nombre: data.nombre,
-            correo: data.correo,
-            rol: data.rol,
-            femenino: inferFeminine(data.nombre),
-            institucion: data.institucion,
-            actividad: buildActivity(data.rol, data.cantidad),
-            bloqueado: false,
-          },
-          ...users,
-        ])
+        const row = await runSave(() => invitarUsuario(toUserBody(data)))
         /* El nuevo usuario aparece primero: se limpian filtros y se vuelve a la página 1. */
+        setUsers(current => [toUser(row), ...current])
         setSearch('')
         setRoleFilter('')
         setInstitutionFilter('')
         setStatusFilter('')
         setPage(1)
-        setToast('Invitación registrada en este navegador')
+        setToast(
+          row.correoEnviado
+            ? `Invitación enviada a ${row.correo}`
+            : 'Usuario creado, pero no se pudo enviar el correo de invitación'
+        )
       }
 
       setUserForm(null)
@@ -278,10 +321,12 @@ function UsersPage() {
           alCerrar={() => {
             if (!busy) {
               setUserForm(null)
+              clearErrors()
             }
           }}
           guardando={saving}
           errorGuardado={error}
+          erroresServidor={fieldErrors}
           alGuardar={saveUser}
           instituciones={institutions}
           usuario={userForm.usuario}
@@ -296,6 +341,7 @@ function UsersPage() {
           alCerrar={() => {
             if (!busy) {
               setUserToBlock(null)
+              clearErrors()
             }
           }}
           guardando={saving}

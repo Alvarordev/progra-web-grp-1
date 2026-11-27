@@ -5,11 +5,15 @@ import styles from './UsersTable.module.css'
 const roleClasses = {
   Autor: styles.roleAuthor,
   Revisor: styles.roleReviewer,
+  Ambos: styles.roleBoth,
   Comité: styles.roleCommittee,
 }
 
 function getRoleLabel(usuario) {
-  return usuario.femenino && usuario.rol !== 'Comité' ? `${usuario.rol}a` : usuario.rol
+  if (!usuario.femenino || usuario.rol === 'Comité') {
+    return usuario.rol
+  }
+  return usuario.rol === 'Ambos' ? 'Ambas' : `${usuario.rol}a`
 }
 
 function getStatusLabel(usuario) {

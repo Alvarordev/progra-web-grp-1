@@ -18,7 +18,7 @@ const COLORS = {
   info: [38, 99, 160],
 }
 
-/* Color del texto del valor de cada indicador, según su "tono" en congressData. */
+/* Color del texto del valor de cada indicador, según su "tono" (ver utils/metrics.js). */
 const TONE_COLORS = {
   info: COLORS.text,
   success: COLORS.success,
@@ -32,6 +32,7 @@ const STATUS_COLORS = {
   Aceptado: COLORS.success,
   Rechazado: COLORS.danger,
   'En revisión': COLORS.warning,
+  Enviado: COLORS.info,
   Borrador: COLORS.muted,
 }
 

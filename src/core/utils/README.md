@@ -12,6 +12,8 @@ mantienen sus repositorios de demostración.
 - `useReviewerProfile.js`: carga/guardado del perfil y actividad de PostgreSQL.
 - `revisionesApi.js`: lee `/revisiones`, adapta las evaluaciones al formato de las
   pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
+- `gestionUsuariosApi.js` y `metricasApi.js`: gestión de usuarios (listar, invitar,
+  editar, bloquear, reactivar) y métricas del comité (Historia 7).
 - `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
   `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
 - `asignacionesApi.js`: consume las rutas de trabajos recibidos, candidatos,

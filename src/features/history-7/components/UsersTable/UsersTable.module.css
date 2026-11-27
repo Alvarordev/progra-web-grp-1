@@ -32,6 +32,10 @@
   color: var(--color-warning);
 }
 
+.roleBoth {
+  color: var(--color-accent);
+}
+
 .roleCommittee {
   color: var(--color-primary);
 }

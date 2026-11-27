@@ -1,7 +1,6 @@
 import { useId, useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import { parseCount } from '../../utils/users.js'
 import styles from './UserFormModal.module.css'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -10,6 +9,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function UserFormModal({
   guardando = false,
   errorGuardado = '',
+  erroresServidor = {},
   alCerrar,
   alGuardar,
   instituciones,
@@ -20,15 +20,15 @@ function UserFormModal({
   const isDefaultCommittee = usuario?.userId === 'default-committee'
   const idPrefix = useId()
   const [values, setValues] = useState({
-    nombre: usuario?.nombre ?? '',
+    nombres: usuario?.nombres ?? '',
+    apellidos: usuario?.apellidos ?? '',
     correo: usuario?.correo ?? '',
     rol: usuario?.rol ?? '',
     institucion: usuario?.institucion ?? '',
-    cantidad: usuario ? parseCount(usuario.actividad) : '0',
   })
   const [errors, setErrors] = useState({})
-
-  const isCommittee = values.rol === 'Comité'
+  /* Los errores del servidor se muestran hasta que la persona edita ese campo. */
+  const visibleErrors = { ...erroresServidor, ...errors }
 
   function setValue(name, value) {
     setValues(current => ({ ...current, [name]: value }))
@@ -39,8 +39,11 @@ function UserFormModal({
     const found = {}
     const email = values.correo.trim().toLowerCase()
 
-    if (!values.nombre.trim()) {
-      found.nombre = 'Ingrese el nombre completo.'
+    if (!values.nombres.trim()) {
+      found.nombres = 'Ingrese los nombres.'
+    }
+    if (!values.apellidos.trim()) {
+      found.apellidos = 'Ingrese los apellidos.'
     }
 
     if (!email) {
@@ -62,13 +65,6 @@ function UserFormModal({
       found.institucion = 'Ingrese la institución.'
     }
 
-    if (!isCommittee) {
-      const total = Number(values.cantidad)
-      if (values.cantidad === '' || !Number.isInteger(total) || total < 0) {
-        found.cantidad = 'Ingrese un número entero igual o mayor que 0.'
-      }
-    }
-
     return found
   }
 
@@ -85,11 +81,11 @@ function UserFormModal({
     }
 
     alGuardar({
-      nombre: values.nombre.trim(),
+      nombres: values.nombres.trim(),
+      apellidos: values.apellidos.trim(),
       correo: values.correo.trim(),
       rol: values.rol,
       institucion: values.institucion.trim(),
-      cantidad: isCommittee ? '' : values.cantidad,
     })
   }
 
@@ -97,23 +93,20 @@ function UserFormModal({
     const id = `${idPrefix}-${name}`
     return {
       id,
-      'aria-describedby': errors[name] ? `${id}-error` : undefined,
-      'aria-invalid': errors[name] ? 'true' : undefined,
+      'aria-describedby': visibleErrors[name] ? `${id}-error` : undefined,
+      'aria-invalid': visibleErrors[name] ? 'true' : undefined,
     }
   }
 
   function renderError(name) {
     return (
-      errors[name] && (
+      visibleErrors[name] && (
         <p className={styles.error} id={`${idPrefix}-${name}-error`}>
-          {errors[name]}
+          {visibleErrors[name]}
         </p>
       )
     )
   }
-
-  const countLabel =
-    values.rol === 'Revisor' ? 'Número de revisiones' : 'Número de trabajos'
 
   return (
     <Modal alCerrar={alCerrar} titulo={isEditing ? 'Editar usuario' : 'Invitar usuario'}>
@@ -121,21 +114,35 @@ function UserFormModal({
         <fieldset className={styles.body} disabled={guardando}>
           {!isEditing && (
             <p className={styles.intro}>
-              La invitación queda registrada en este navegador. La persona podrá crear su
-              cuenta con el correo y el rol indicados.
+              Se creará la cuenta con el correo y el rol indicados y se enviará un aviso
+              al correo. La persona define su contraseña desde «¿Olvidó su contraseña?».
             </p>
           )}
 
-          <div className={styles.field}>
-            <label htmlFor={`${idPrefix}-nombre`}>Nombre completo *</label>
-            <input
-              {...fieldProps('nombre')}
-              autoComplete="off"
-              onChange={event => setValue('nombre', event.target.value)}
-              type="text"
-              value={values.nombre}
-            />
-            {renderError('nombre')}
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label htmlFor={`${idPrefix}-nombres`}>Nombres *</label>
+              <input
+                {...fieldProps('nombres')}
+                autoComplete="off"
+                onChange={event => setValue('nombres', event.target.value)}
+                type="text"
+                value={values.nombres}
+              />
+              {renderError('nombres')}
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor={`${idPrefix}-apellidos`}>Apellidos *</label>
+              <input
+                {...fieldProps('apellidos')}
+                autoComplete="off"
+                onChange={event => setValue('apellidos', event.target.value)}
+                type="text"
+                value={values.apellidos}
+              />
+              {renderError('apellidos')}
+            </div>
           </div>
 
           <div className={styles.field}>
@@ -151,39 +158,20 @@ function UserFormModal({
             {renderError('correo')}
           </div>
 
-          <div className={styles.row}>
-            <div className={styles.field}>
-              <label htmlFor={`${idPrefix}-rol`}>Rol *</label>
-              <select
-                {...fieldProps('rol')}
-                disabled={isDefaultCommittee}
-                onChange={event => setValue('rol', event.target.value)}
-                value={values.rol}
-              >
-                <option value="">Seleccione…</option>
-                <option value="Autor">Autor</option>
-                <option value="Revisor">Revisor</option>
-                <option value="Ambos">Ambos</option>
-                <option value="Comité">Comité</option>
-              </select>
-              {renderError('rol')}
-            </div>
-
-            <div className={styles.field}>
-              <label htmlFor={`${idPrefix}-cantidad`}>{countLabel}</label>
-              <input
-                {...fieldProps('cantidad')}
-                disabled={isCommittee}
-                inputMode="numeric"
-                min="0"
-                onChange={event => setValue('cantidad', event.target.value)}
-                step="1"
-                type="number"
-                value={isCommittee ? '' : values.cantidad}
-              />
-              {isCommittee && <p className={styles.help}>No aplica para el comité.</p>}
-              {renderError('cantidad')}
-            </div>
+          <div className={styles.field}>
+            <label htmlFor={`${idPrefix}-rol`}>Rol *</label>
+            <select
+              {...fieldProps('rol')}
+              onChange={event => setValue('rol', event.target.value)}
+              value={values.rol}
+            >
+              <option value="">Seleccione…</option>
+              <option value="Autor">Autor</option>
+              <option value="Revisor">Revisor</option>
+              <option value="Ambos">Ambos</option>
+              <option value="Comité">Comité</option>
+            </select>
+            {renderError('rol')}
           </div>
 
           <div className={styles.field}>
