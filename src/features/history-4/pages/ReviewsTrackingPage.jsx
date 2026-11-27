@@ -1,208 +1,269 @@
-import { remindersRepository } from '../../../core/utils/repositories.js'
-import { useState as usarEstado } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import Encabezado from '../../../core/ui/Header/Header.jsx'
 import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavigation.jsx'
 import PiePagina from '../../../core/ui/Footer/Footer.jsx'
 import Pagination from '../../../core/ui/Pagination/Pagination.jsx'
-import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import Boton from '../../../core/ui/Button/Button.jsx'
 import ModalReasignar from '../components/ReassignModal/ReassignModal.jsx'
-import { Link } from 'react-router'
-import useConference from '../../../core/utils/useConference.js'
-import { getPendingReviews, getReview } from '../../../core/utils/assignments.js'
+import {
+  enviarRecordatorioRevision,
+  enviarRecordatoriosPendientes,
+  obtenerSeguimientoRevisiones,
+  reasignarRevision,
+  retirarRevision,
+} from '../../../core/utils/asignacionesApi.js'
+import useUsuarioComite from '../utils/useUsuarioComite.js'
 import estilos from './ReviewsTrackingPage.module.css'
 
-const usuarioComite = {
-  nombre: 'Dra. Ana Salazar Bermúdez',
-  rol: 'Rol: Comité organizador',
-  iniciales: 'AS',
+const estadoInicial = {
+  cierreEtapaRevisionTexto: null,
+  alertaVencidas: { activa: false, cantidad: 0, mensaje: null },
+  resumen: {
+    totalAsignadas: 0,
+    entregadas: 0,
+    pendientesEnPlazo: 0,
+    vencidas: 0,
+  },
+  pendientes: [],
 }
 
 export default function PaginaSeguimientoRevisiones() {
-  const conference = useConference()
-  const revisionesPendientes = getPendingReviews(
-    conference.works,
-    conference.reviewers,
-    conference.reviews
-  )
-  const listaRevisores = conference.reviewers.filter(reviewer => !reviewer.bloqueado)
-  const ocupado = conference.busy
-  const errorAlmacenamiento = conference.error
+  const usuarioComite = useUsuarioComite()
 
-  const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = usarEstado(false)
-  const [page, setPage] = usarEstado(1)
-  const [notificacion, cambiarNotificacion] = usarEstado('')
+  const [datos, setDatos] = useState(estadoInicial)
+  const [cargando, setCargando] = useState(true)
+  const [guardando, setGuardando] = useState(false)
+  const [errorCarga, setErrorCarga] = useState('')
+  const [errorModal, setErrorModal] = useState('')
 
-  const [modalReasignarAbierto, cambiarModalReasignarAbierto] = usarEstado(false)
-  const [elementoSeleccionadoReasignar, cambiarElementoSeleccionadoReasignar] =
-    usarEstado(null)
+  const [filtrarSoloVencidas, cambiarFiltrarSoloVencidas] = useState(false)
+  const [pagina, setPagina] = useState(1)
+  const [notificacion, cambiarNotificacion] = useState('')
 
-  const cantidadVencidas = revisionesPendientes.filter(
-    elemento => elemento.esVencida
-  ).length
-  const cantidadEnPlazo = revisionesPendientes.filter(
-    elemento => !elemento.esVencida
-  ).length
-  const totalAsignadas = conference.works.reduce(
-    (sum, work) => sum + work.revisoresAsignados.length,
-    0
-  )
-  const totalEntregadas = conference.works.reduce(
-    (sum, work) =>
-      sum +
-      work.revisoresAsignados.filter(id => {
-        const reviewer = conference.reviewers.find(item => item.id === id)
-        return (
-          reviewer &&
-          getReview(conference.reviews, reviewer, work.codigo)?.status === 'submitted'
-        )
-      }).length,
-    0
-  )
+  const [modalAbierto, cambiarModalAbierto] = useState(false)
+  const [modoModal, cambiarModoModal] = useState('reasignar')
+  const [itemSeleccionado, cambiarItemSeleccionado] = useState(null)
+
+  const recargarSeguimiento = useCallback(async () => {
+    const respuesta = await obtenerSeguimientoRevisiones()
+    setDatos({
+      cierreEtapaRevisionTexto: respuesta.cierreEtapaRevisionTexto ?? '—',
+      alertaVencidas: respuesta.alertaVencidas ?? estadoInicial.alertaVencidas,
+      resumen: respuesta.resumen ?? estadoInicial.resumen,
+      pendientes: respuesta.pendientes ?? [],
+    })
+  }, [])
+
+  useEffect(() => {
+    let activo = true
+    obtenerSeguimientoRevisiones()
+      .then(respuesta => {
+        if (activo) {
+          setDatos({
+            cierreEtapaRevisionTexto: respuesta.cierreEtapaRevisionTexto ?? '—',
+            alertaVencidas: respuesta.alertaVencidas ?? estadoInicial.alertaVencidas,
+            resumen: respuesta.resumen ?? estadoInicial.resumen,
+            pendientes: respuesta.pendientes ?? [],
+          })
+        }
+      })
+      .catch(causa => {
+        if (activo) {
+          setErrorCarga(causa.message)
+        }
+      })
+      .finally(() => {
+        if (activo) {
+          setCargando(false)
+        }
+      })
+    return () => {
+      activo = false
+    }
+  }, [])
+
+  const ocupado = cargando || guardando
+  const { resumen, alertaVencidas, pendientes } = datos
 
   const listaMostrada = filtrarSoloVencidas
-    ? revisionesPendientes.filter(elemento => elemento.esVencida)
-    : revisionesPendientes
+    ? pendientes.filter(elemento => elemento.esVencida)
+    : pendientes
 
-  const pageSize = 6
-  const currentPage = Math.min(
-    page,
-    Math.max(1, Math.ceil(listaMostrada.length / pageSize))
+  const porPagina = 6
+  const paginaActual = Math.min(
+    pagina,
+    Math.max(1, Math.ceil(listaMostrada.length / porPagina))
   )
-  const visibleReviews = listaMostrada.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+  const revisionesVisibles = listaMostrada.slice(
+    (paginaActual - 1) * porPagina,
+    paginaActual * porPagina
   )
 
-  async function recordReminders(items) {
+  const mostrarAviso = texto => {
+    cambiarNotificacion(texto)
+    setTimeout(() => cambiarNotificacion(''), 5000)
+  }
+
+  const manejarRecordarTodos = async () => {
+    if (ocupado || listaMostrada.length === 0) {
+      return
+    }
+    setGuardando(true)
+    setErrorCarga('')
+    try {
+      const respuesta = await enviarRecordatoriosPendientes(
+        filtrarSoloVencidas ? { soloVencidas: true } : {}
+      )
+      await recargarSeguimiento()
+      mostrarAviso(
+        `${respuesta.totalEnviados} recordatorio(s) registrado(s) correctamente.`
+      )
+    } catch (causa) {
+      setErrorCarga(causa.message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const manejarRecordarIndividual = async elemento => {
     if (ocupado) {
       return
     }
+    setGuardando(true)
+    setErrorCarga('')
     try {
-      const existing = await remindersRepository.get()
-      await remindersRepository.save([
-        ...existing,
-        ...items.map(item => ({
-          id: crypto.randomUUID(),
-          codigo: item.codigo,
-          revisorId: item.revisorId,
-          createdAt: new Date().toISOString(),
-        })),
-      ])
-      cambiarNotificacion(
-        `${items.length} recordatorio(s) registrado(s) en este navegador.`
-      )
-    } catch (cause) {
-      cambiarNotificacion(cause.message)
+      await enviarRecordatorioRevision(elemento.asignacionId)
+      await recargarSeguimiento()
+      mostrarAviso(`Recordatorio enviado a ${elemento.revisor} para ${elemento.codigo}.`)
+    } catch (causa) {
+      setErrorCarga(causa.message)
+    } finally {
+      setGuardando(false)
     }
   }
-  const manejarRecordarTodos = () => recordReminders(revisionesPendientes)
-  const manejarRecordarIndividual = item => recordReminders([item])
 
-  const manejarAbrirReasignacion = elemento => {
-    cambiarElementoSeleccionadoReasignar(elemento)
-    cambiarModalReasignarAbierto(true)
+  const abrirModalAccion = (elemento, modo) => {
+    setErrorModal('')
+    cambiarModoModal(modo)
+    cambiarItemSeleccionado(elemento)
+    cambiarModalAbierto(true)
   }
 
   const manejarConfirmarReasignacion = async ({
-    pendienteId,
+    asignacionId,
     revisorAnterior,
     nuevoRevisorId,
     nuevoRevisorNombre,
     motivo,
+    permitirMismaInstitucion,
+    justificacion,
   }) => {
-    if (ocupado || errorAlmacenamiento) {
+    if (ocupado) {
       return false
     }
-
-    const pending = revisionesPendientes.find(item => item.id === pendienteId)
-    if (!pending) {
-      return false
-    }
-    const candidate = listaRevisores.find(reviewer => reviewer.id === nuevoRevisorId)
-    const work = conference.works.find(item => item.codigo === pending.codigo)
-    if (
-      !candidate ||
-      work.revisoresAsignados.includes(candidate.id) ||
-      work.details?.autores?.some(author => author.correo === candidate.email)
-    ) {
-      return false
-    }
+    setGuardando(true)
+    setErrorModal('')
     try {
-      await conference.save(
-        'works',
-        conference.works.map(item =>
-          item.codigo === pending.codigo
-            ? {
-                ...item,
-                revisoresAsignados: item.revisoresAsignados.map(id =>
-                  id === pending.revisorId ? nuevoRevisorId : id
-                ),
-                reassignmentReason: motivo,
-                assignedAt: new Date().toISOString(),
-              }
-            : item
-        )
+      await reasignarRevision(asignacionId, {
+        nuevoRevisorId,
+        motivo,
+        permitirMismaInstitucion,
+        justificacion,
+      })
+      await recargarSeguimiento()
+      mostrarAviso(
+        `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
       )
-    } catch {
+      return true
+    } catch (causa) {
+      setErrorModal(causa.message)
+      return false
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const manejarConfirmarRetiro = async ({
+    asignacionId,
+    codigo,
+    revisorAnterior,
+    motivo,
+  }) => {
+    if (ocupado) {
       return false
     }
-
-    cambiarNotificacion(
-      `Trabajo reasignado de ${revisorAnterior} a ${nuevoRevisorNombre}. Motivo registrado: "${motivo}".`
-    )
-    setTimeout(() => cambiarNotificacion(''), 6000)
-    return true
+    setGuardando(true)
+    setErrorModal('')
+    try {
+      await retirarRevision(asignacionId, motivo)
+      await recargarSeguimiento()
+      mostrarAviso(
+        `Se retiró a ${revisorAnterior} del trabajo ${codigo}. Motivo registrado: "${motivo}".`
+      )
+      return true
+    } catch (causa) {
+      setErrorModal(causa.message)
+      return false
+    } finally {
+      setGuardando(false)
+    }
   }
 
   return (
     <div className={estilos.pagina}>
-      <Encabezado estado="En revisión" />
+      <Encabezado />
       <NavegacionComite rutaActiva="/seguimiento" usuario={usuarioComite} />
 
       <main className={estilos.contenidoPrincipal}>
-        {errorAlmacenamiento ? <p role="alert">{errorAlmacenamiento}</p> : null}
+        {errorCarga ? <p role="alert">{errorCarga}</p> : null}
 
-        <fieldset
-          className={estilos.grupoCampos}
-          disabled={ocupado || Boolean(errorAlmacenamiento)}
-        >
+        <fieldset className={estilos.grupoCampos} disabled={ocupado}>
           <div className={estilos.filaEncabezado}>
             <div>
               <h1 className={estilos.titulo}>Seguimiento de revisiones</h1>
               <p className={estilos.subtitulo}>
-                Pendientes ordenadas por fecha límite · cierre de la etapa:{' '}
-                {formatScheduleDate(conference.schedule.review ?? '')}
+                {cargando
+                  ? 'Cargando revisiones pendientes…'
+                  : `Pendientes ordenadas por fecha límite · cierre de la etapa: ${datos.cierreEtapaRevisionTexto || '—'}`}
               </p>
             </div>
             <div>
-              <Boton variant="secondary" type="button" onClick={manejarRecordarTodos}>
+              <Boton
+                variant="secondary"
+                type="button"
+                disabled={ocupado || listaMostrada.length === 0}
+                onClick={manejarRecordarTodos}
+              >
                 Recordatorio a todos los pendientes
               </Boton>
             </div>
           </div>
 
           {notificacion ? (
-            <div className={estilos.bannerNotificacion}>
+            <div className={estilos.bannerNotificacion} role="status">
               <span>✓ {notificacion}</span>
             </div>
           ) : null}
 
-          {cantidadVencidas > 0 ? (
+          {alertaVencidas.activa ? (
             <div className={estilos.cajaAlertaVencidas}>
               <div className={estilos.alertaIzquierda}>
                 <span className={estilos.iconoAlerta} aria-hidden="true">
                   !
                 </span>
                 <span>
-                  <strong>{cantidadVencidas} revisiones vencidas.</strong> Considere
-                  reasignar para no retrasar la publicación de resultados.
+                  <strong>{alertaVencidas.cantidad} revisiones vencidas.</strong>{' '}
+                  Considere reasignar para no retrasar la publicación de resultados.
                 </span>
               </div>
               <button
                 type="button"
                 className={estilos.botonAlternarAlerta}
-                onClick={() => cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)}
+                onClick={() => {
+                  cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)
+                  setPagina(1)
+                }}
               >
                 {filtrarSoloVencidas ? 'Ver todas las pendientes' : 'Ver solo vencidas'}
               </button>
@@ -222,14 +283,16 @@ export default function PaginaSeguimientoRevisiones() {
                 </tr>
               </thead>
               <tbody>
-                {visibleReviews.map(elemento => (
+                {revisionesVisibles.map(elemento => (
                   <tr
-                    key={elemento.id}
+                    key={elemento.asignacionId}
                     className={elemento.esVencida ? estilos.filaVencida : ''}
                   >
                     <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
                     <td className={estilos.celdaTitulo}>
-                      <Link to={`/trabajos-recibidos/${elemento.codigo}/consolidado`}>
+                      <Link
+                        to={`/trabajos-recibidos/${encodeURIComponent(elemento.codigo)}/consolidado`}
+                      >
                         <strong>{elemento.trabajo}</strong>
                       </Link>
                     </td>
@@ -241,35 +304,61 @@ export default function PaginaSeguimientoRevisiones() {
                           : estilos.celdaFechaNormal
                       }
                     >
-                      {elemento.fechaLimite}
+                      {elemento.fechaLimiteTexto}
                     </td>
                     <td>
                       {elemento.esVencida ? (
-                        <span className={estilos.insigniaVencida}>{elemento.estado}</span>
+                        <span className={estilos.insigniaVencida}>
+                          {elemento.etiquetaEstado}
+                        </span>
                       ) : (
                         <span className={estilos.insigniaPendiente}>
-                          {elemento.estado}
+                          {elemento.etiquetaEstado}
                         </span>
                       )}
                     </td>
                     <td className={estilos.celdaAccion}>
-                      {elemento.esVencida ? (
+                      <div className={estilos.accionesFila}>
+                        {elemento.esVencida ? (
+                          <button
+                            type="button"
+                            className={estilos.botonAccionTexto}
+                            onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                          >
+                            Reasignar
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className={estilos.botonAccionTexto}
+                              onClick={() => manejarRecordarIndividual(elemento)}
+                            >
+                              Recordar
+                            </button>
+                            <span aria-hidden="true" className={estilos.separadorAccion}>
+                              ·
+                            </span>
+                            <button
+                              type="button"
+                              className={estilos.botonAccionTexto}
+                              onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                            >
+                              Reasignar
+                            </button>
+                          </>
+                        )}
+                        <span aria-hidden="true" className={estilos.separadorAccion}>
+                          ·
+                        </span>
                         <button
                           type="button"
                           className={estilos.botonAccionTexto}
-                          onClick={() => manejarAbrirReasignacion(elemento)}
+                          onClick={() => abrirModalAccion(elemento, 'retirar')}
                         >
-                          Reasignar
+                          Retirar
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={estilos.botonAccionTexto}
-                          onClick={() => manejarRecordarIndividual(elemento)}
-                        >
-                          Recordar
-                        </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -278,26 +367,28 @@ export default function PaginaSeguimientoRevisiones() {
           </div>
 
           <Pagination
-            pagina={currentPage}
+            pagina={paginaActual}
             total={listaMostrada.length}
-            porPagina={pageSize}
-            alCambiar={setPage}
+            porPagina={porPagina}
+            alCambiar={setPagina}
           />
 
           <div className={estilos.cuadriculaResumenInferior}>
             <div className={estilos.tarjetaResumenInferior}>
               <span className={estilos.etiquetaResumen}>Revisiones entregadas</span>
               <span className={estilos.valorResumenExito}>
-                {totalEntregadas} de {totalAsignadas}
+                {resumen.entregadas} de {resumen.totalAsignadas}
               </span>
             </div>
             <div className={estilos.tarjetaResumenInferior}>
               <span className={estilos.etiquetaResumen}>Pendientes en plazo</span>
-              <span className={estilos.valorResumenAdvertencia}>{cantidadEnPlazo}</span>
+              <span className={estilos.valorResumenAdvertencia}>
+                {resumen.pendientesEnPlazo}
+              </span>
             </div>
             <div className={estilos.tarjetaResumenInferior}>
               <span className={estilos.etiquetaResumen}>Vencidas</span>
-              <span className={estilos.valorResumenPeligro}>{cantidadVencidas}</span>
+              <span className={estilos.valorResumenPeligro}>{resumen.vencidas}</span>
             </div>
           </div>
         </fieldset>
@@ -305,15 +396,19 @@ export default function PaginaSeguimientoRevisiones() {
 
       <PiePagina />
 
-      <ModalReasignar
-        guardando={ocupado}
-        error={errorAlmacenamiento}
-        abierto={modalReasignarAbierto}
-        alCerrar={() => cambiarModalReasignarAbierto(false)}
-        itemPendiente={elementoSeleccionadoReasignar}
-        revisores={listaRevisores}
-        alConfirmarReasignacion={manejarConfirmarReasignacion}
-      />
+      {modalAbierto && itemSeleccionado && (
+        <ModalReasignar
+          key={`${modoModal}:${itemSeleccionado.asignacionId}`}
+          modo={modoModal}
+          guardando={guardando}
+          error={errorModal}
+          abierto={modalAbierto}
+          alCerrar={() => cambiarModalAbierto(false)}
+          itemPendiente={itemSeleccionado}
+          alConfirmarReasignacion={manejarConfirmarReasignacion}
+          alConfirmarRetiro={manejarConfirmarRetiro}
+        />
+      )}
     </div>
   )
 }

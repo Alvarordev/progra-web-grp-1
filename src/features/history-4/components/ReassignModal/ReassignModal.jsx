@@ -1,32 +1,90 @@
-import { useState as usarEstado } from 'react'
+import { useEffect, useState } from 'react'
 import ModalBase from '../../../../core/ui/Modal/Modal.jsx'
 import Boton from '../../../../core/ui/Button/Button.jsx'
+import { obtenerCandidatosAsignacion } from '../../../../core/utils/asignacionesApi.js'
 import estilos from './ReassignModal.module.css'
 
 export default function ModalReasignar({
+  modo = 'reasignar',
   guardando = false,
   error = '',
   abierto = false,
   alCerrar,
   itemPendiente,
-  revisores = [],
   alConfirmarReasignacion,
+  alConfirmarRetiro,
 }) {
-  const [nuevoRevisorId, cambiarNuevoRevisorId] = usarEstado('')
-  const [motivo, cambiarMotivo] = usarEstado('')
-  const [errorValidacion, cambiarErrorValidacion] = usarEstado('')
+  const esRetiro = modo === 'retirar'
+  const [nuevoRevisorId, cambiarNuevoRevisorId] = useState('')
+  const [motivo, cambiarMotivo] = useState('')
+  const [permitirMismaInstitucion, cambiarPermitirMismaInstitucion] = useState(false)
+  const [errorValidacion, cambiarErrorValidacion] = useState('')
+
+  const [candidatos, setCandidatos] = useState([])
+  const [cargandoCandidatos, setCargandoCandidatos] = useState(
+    Boolean(abierto && itemPendiente && !esRetiro)
+  )
+
+  useEffect(() => {
+    if (!abierto || !itemPendiente || esRetiro) {
+      return undefined
+    }
+
+    let activo = true
+    obtenerCandidatosAsignacion({ codigos: [itemPendiente.codigo] })
+      .then(respuesta => {
+        if (activo) {
+          setCandidatos(respuesta.candidatos ?? [])
+        }
+      })
+      .catch(causa => {
+        if (activo) {
+          cambiarErrorValidacion(causa.message)
+        }
+      })
+      .finally(() => {
+        if (activo) {
+          setCargandoCandidatos(false)
+        }
+      })
+    return () => {
+      activo = false
+    }
+  }, [abierto, esRetiro, itemPendiente])
 
   if (!abierto || !itemPendiente) {
     return null
   }
 
-  const candidatos = revisores.filter(revisor => revisor.id !== itemPendiente.revisorId)
+  const disponibles = candidatos.filter(
+    revisor => revisor.id !== itemPendiente.revisorId && !revisor.yaAsignado
+  )
+  const seleccionado = disponibles.find(revisor => revisor.id === nuevoRevisorId)
+  const tieneConflictoInstitucion = seleccionado?.conflicto?.tipo === 'institucion'
 
-  const enviarReasignacion = async evento => {
+  const manejarEnvio = async evento => {
     evento.preventDefault()
-    if (guardando) {
+    if (guardando || cargandoCandidatos) {
       return
     }
+
+    if (esRetiro) {
+      if (!motivo.trim()) {
+        cambiarErrorValidacion('El motivo del retiro es obligatorio.')
+        return
+      }
+      const retirado = await alConfirmarRetiro({
+        asignacionId: itemPendiente.asignacionId,
+        codigo: itemPendiente.codigo,
+        revisorAnterior: itemPendiente.revisor,
+        motivo: motivo.trim(),
+      })
+      if (retirado) {
+        alCerrar()
+      }
+      return
+    }
+
     if (!nuevoRevisorId) {
       cambiarErrorValidacion('Debe seleccionar un nuevo revisor.')
       return
@@ -35,25 +93,27 @@ export default function ModalReasignar({
       cambiarErrorValidacion('El motivo de la reasignación es obligatorio.')
       return
     }
-
-    const nuevoRevisor = revisores.find(revisor => revisor.id === nuevoRevisorId)
+    if (tieneConflictoInstitucion && !permitirMismaInstitucion) {
+      cambiarErrorValidacion(
+        'Confirme la excepción para asignar a un revisor de la misma institución.'
+      )
+      return
+    }
 
     const guardado = await alConfirmarReasignacion({
-      pendienteId: itemPendiente.id,
+      asignacionId: itemPendiente.asignacionId,
       codigo: itemPendiente.codigo,
       revisorAnterior: itemPendiente.revisor,
       nuevoRevisorId,
-      nuevoRevisorNombre: nuevoRevisor?.nombre || '',
+      nuevoRevisorNombre: seleccionado?.nombre || '',
       motivo: motivo.trim(),
+      permitirMismaInstitucion: tieneConflictoInstitucion ? true : undefined,
+      justificacion: tieneConflictoInstitucion ? motivo.trim() : undefined,
     })
 
-    if (!guardado) {
-      return
+    if (guardado) {
+      alCerrar()
     }
-    cambiarMotivo('')
-    cambiarNuevoRevisorId('')
-    cambiarErrorValidacion('')
-    alCerrar()
   }
 
   return (
@@ -63,17 +123,23 @@ export default function ModalReasignar({
           alCerrar()
         }
       }}
-      titulo="Reasignar revisor"
+      titulo={esRetiro ? 'Retirar revisor' : 'Reasignar revisor'}
     >
-      <form onSubmit={enviarReasignacion}>
-        <fieldset className={estilos.cuerpoModal} disabled={guardando}>
+      <form onSubmit={manejarEnvio}>
+        <fieldset
+          className={estilos.cuerpoModal}
+          disabled={guardando || cargandoCandidatos}
+        >
           <div className={estilos.resumenElemento}>
             <p className={estilos.tituloTrabajo}>
               <strong>{itemPendiente.codigo}</strong> · {itemPendiente.trabajo}
             </p>
             <p className={estilos.revisorActual}>
               Revisor actual: <strong>{itemPendiente.revisor}</strong>
-              <span className={estilos.alertaVencida}> ({itemPendiente.estado})</span>
+              <span className={estilos.alertaVencida}>
+                {' '}
+                ({itemPendiente.etiquetaEstado ?? itemPendiente.estado})
+              </span>
             </p>
           </div>
 
@@ -83,38 +149,75 @@ export default function ModalReasignar({
             </p>
           )}
 
-          <div className={estilos.grupoCampo}>
-            <label className={estilos.etiqueta} htmlFor="selector-nuevo-revisor">
-              SELECCIONAR NUEVO REVISOR *
-            </label>
-            <select
-              id="selector-nuevo-revisor"
-              className={estilos.selector}
-              value={nuevoRevisorId}
-              onChange={evento => {
-                cambiarNuevoRevisorId(evento.target.value)
-                cambiarErrorValidacion('')
-              }}
-            >
-              <option value="">Seleccione un revisor disponible…</option>
-              {candidatos.map(revisor => (
-                <option key={revisor.id} value={revisor.id}>
-                  {revisor.nombre} ({revisor.institucion} — {revisor.asignadas} revisiones
-                  asignadas)
+          {!esRetiro && (
+            <div className={estilos.grupoCampo}>
+              <label className={estilos.etiqueta} htmlFor="selector-nuevo-revisor">
+                SELECCIONAR NUEVO REVISOR *
+              </label>
+              <select
+                id="selector-nuevo-revisor"
+                className={estilos.selector}
+                value={nuevoRevisorId}
+                onChange={evento => {
+                  cambiarNuevoRevisorId(evento.target.value)
+                  cambiarPermitirMismaInstitucion(false)
+                  cambiarErrorValidacion('')
+                }}
+              >
+                <option value="">
+                  {cargandoCandidatos
+                    ? 'Cargando revisores disponibles…'
+                    : 'Seleccione un revisor disponible…'}
                 </option>
-              ))}
-            </select>
-          </div>
+                {disponibles.map(revisor => {
+                  const esCoautor = revisor.conflicto?.tipo === 'coautor'
+                  let sufijoConflicto = ''
+                  if (esCoautor) {
+                    sufijoConflicto = ' · Coautor (bloqueado)'
+                  } else if (revisor.conflicto?.tipo === 'institucion') {
+                    sufijoConflicto = ' · Misma institución'
+                  }
+                  return (
+                    <option key={revisor.id} value={revisor.id} disabled={esCoautor}>
+                      {revisor.nombre} ({revisor.institucion} — {revisor.asignadas}{' '}
+                      asignadas{sufijoConflicto})
+                    </option>
+                  )
+                })}
+              </select>
+            </div>
+          )}
+
+          {!esRetiro && tieneConflictoInstitucion && (
+            <div className={estilos.grupoCampo}>
+              <label className={estilos.etiqueta}>
+                <input
+                  type="checkbox"
+                  checked={permitirMismaInstitucion}
+                  onChange={evento => {
+                    cambiarPermitirMismaInstitucion(evento.target.checked)
+                    cambiarErrorValidacion('')
+                  }}
+                />{' '}
+                Confirmar asignación a revisor de la misma institución (el motivo quedará
+                como justificación)
+              </label>
+            </div>
+          )}
 
           <div className={estilos.grupoCampo}>
             <label className={estilos.etiqueta} htmlFor="motivo-cambio">
-              MOTIVO DE LA REASIGNACIÓN *
+              {esRetiro ? 'MOTIVO DEL RETIRO *' : 'MOTIVO DE LA REASIGNACIÓN *'}
             </label>
             <textarea
               id="motivo-cambio"
               className={estilos.areaTexto}
               rows={3}
-              placeholder="Explique el motivo del cambio (ej. incumplimiento de plazo, sobrecarga o indisponibilidad)…"
+              placeholder={
+                esRetiro
+                  ? 'Explique el motivo por el cual se retira al revisor del trabajo…'
+                  : 'Explique el motivo del cambio (ej. incumplimiento de plazo, sobrecarga o indisponibilidad)…'
+              }
               value={motivo}
               onChange={evento => {
                 cambiarMotivo(evento.target.value)
@@ -122,7 +225,7 @@ export default function ModalReasignar({
               }}
             />
             <span className={estilos.textoAyuda}>
-              Este motivo quedará registrado en el historial de la edición.
+              Este motivo quedará registrado en el historial de asignaciones del trabajo.
             </span>
           </div>
 
@@ -130,8 +233,12 @@ export default function ModalReasignar({
             <Boton variant="secondary" type="button" onClick={alCerrar}>
               Cancelar
             </Boton>
-            <Boton variant="primary" type="submit">
-              Confirmar reasignación
+            <Boton
+              variant={esRetiro ? 'destructive' : 'primary'}
+              type="submit"
+              loading={guardando}
+            >
+              {esRetiro ? 'Confirmar retiro' : 'Confirmar reasignación'}
             </Boton>
           </footer>
         </fieldset>

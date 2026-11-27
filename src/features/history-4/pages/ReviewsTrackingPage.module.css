@@ -198,6 +198,19 @@
 
 .celdaAccion {
   text-align: right;
+  white-space: nowrap;
+}
+
+.accionesFila {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.separadorAccion {
+  color: var(--color-text-muted, #6f6663);
+  font-size: 12px;
 }
 
 .botonAccionTexto {
