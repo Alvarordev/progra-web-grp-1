@@ -14,6 +14,8 @@ mantienen sus repositorios de demostración.
   pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
 - `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
   `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
+- `asignacionesApi.js`: consume las rutas de trabajos recibidos, candidatos,
+  asignación individual/en lote, revisores, seguimiento y recordatorios (Historia 4).
 - `conferenceApi.js`: aliases para la integración existente de ediciones.
 - `editionRepositories.js`: edición, estado, fechas y catálogos mediante la API.
 - `repositories.js`: composición de repositorios remotos y locales.
