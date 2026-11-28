@@ -231,7 +231,9 @@ function UsersPage() {
         titulo="Usuarios"
       />
 
-      <p role="status">{loading ? 'Cargando usuarios…' : error}</p>
+      <p className={styles.status} role="status">
+        {loading ? 'Cargando usuarios…' : error}
+      </p>
 
       <form
         className={styles.filters}

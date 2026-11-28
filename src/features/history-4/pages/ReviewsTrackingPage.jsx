@@ -243,151 +243,160 @@ export default function PaginaSeguimientoRevisiones() {
             </div>
           ) : null}
 
-          {alertaVencidas.activa ? (
-            <div className={estilos.cajaAlertaVencidas}>
-              <div className={estilos.alertaIzquierda}>
-                <span className={estilos.iconoAlerta} aria-hidden="true">
-                  !
-                </span>
-                <span>
-                  <strong>{alertaVencidas.cantidad} revisiones vencidas.</strong>{' '}
-                  Considere reasignar para no retrasar la publicación de resultados.
-                </span>
-              </div>
-              <button
-                type="button"
-                className={estilos.botonAlternarAlerta}
-                onClick={() => {
-                  cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)
-                  setPagina(1)
-                }}
-              >
-                {filtrarSoloVencidas ? 'Ver todas las pendientes' : 'Ver solo vencidas'}
-              </button>
-            </div>
-          ) : null}
-
-          <div className={estilos.contenedorTabla}>
-            <table className={estilos.tablaSeguimiento}>
-              <thead>
-                <tr>
-                  <th>CÓDIGO</th>
-                  <th>TRABAJO</th>
-                  <th>REVISOR</th>
-                  <th>FECHA LÍMITE</th>
-                  <th>ESTADO</th>
-                  <th className={estilos.columnaAccion}>ACCIÓN</th>
-                </tr>
-              </thead>
-              <tbody>
-                {revisionesVisibles.map(elemento => (
-                  <tr
-                    key={elemento.asignacionId}
-                    className={elemento.esVencida ? estilos.filaVencida : ''}
+          {!cargando && (
+            <>
+              {alertaVencidas.activa ? (
+                <div className={estilos.cajaAlertaVencidas}>
+                  <div className={estilos.alertaIzquierda}>
+                    <span className={estilos.iconoAlerta} aria-hidden="true">
+                      !
+                    </span>
+                    <span>
+                      <strong>{alertaVencidas.cantidad} revisiones vencidas.</strong>{' '}
+                      Considere reasignar para no retrasar la publicación de resultados.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={estilos.botonAlternarAlerta}
+                    onClick={() => {
+                      cambiarFiltrarSoloVencidas(!filtrarSoloVencidas)
+                      setPagina(1)
+                    }}
                   >
-                    <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
-                    <td className={estilos.celdaTitulo}>
-                      <Link
-                        to={`/trabajos-recibidos/${encodeURIComponent(elemento.codigo)}/consolidado`}
+                    {filtrarSoloVencidas
+                      ? 'Ver todas las pendientes'
+                      : 'Ver solo vencidas'}
+                  </button>
+                </div>
+              ) : null}
+
+              <div className={estilos.contenedorTabla}>
+                <table className={estilos.tablaSeguimiento}>
+                  <thead>
+                    <tr>
+                      <th>CÓDIGO</th>
+                      <th>TRABAJO</th>
+                      <th>REVISOR</th>
+                      <th>FECHA LÍMITE</th>
+                      <th>ESTADO</th>
+                      <th className={estilos.columnaAccion}>ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {revisionesVisibles.map(elemento => (
+                      <tr
+                        key={elemento.asignacionId}
+                        className={elemento.esVencida ? estilos.filaVencida : ''}
                       >
-                        <strong>{elemento.trabajo}</strong>
-                      </Link>
-                    </td>
-                    <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
-                    <td
-                      className={
-                        elemento.esVencida
-                          ? estilos.celdaFechaVencida
-                          : estilos.celdaFechaNormal
-                      }
-                    >
-                      {elemento.fechaLimiteTexto}
-                    </td>
-                    <td>
-                      {elemento.esVencida ? (
-                        <span className={estilos.insigniaVencida}>
-                          {elemento.etiquetaEstado}
-                        </span>
-                      ) : (
-                        <span className={estilos.insigniaPendiente}>
-                          {elemento.etiquetaEstado}
-                        </span>
-                      )}
-                    </td>
-                    <td className={estilos.celdaAccion}>
-                      <div className={estilos.accionesFila}>
-                        {elemento.esVencida ? (
-                          <button
-                            type="button"
-                            className={estilos.botonAccionTexto}
-                            onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                        <td className={estilos.celdaCodigo}>{elemento.codigo}</td>
+                        <td className={estilos.celdaTitulo}>
+                          <Link
+                            to={`/trabajos-recibidos/${encodeURIComponent(elemento.codigo)}/consolidado`}
                           >
-                            Reasignar
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              type="button"
-                              className={estilos.botonAccionTexto}
-                              onClick={() => manejarRecordarIndividual(elemento)}
-                            >
-                              Recordar
-                            </button>
+                            <strong>{elemento.trabajo}</strong>
+                          </Link>
+                        </td>
+                        <td className={estilos.celdaRevisor}>{elemento.revisor}</td>
+                        <td
+                          className={
+                            elemento.esVencida
+                              ? estilos.celdaFechaVencida
+                              : estilos.celdaFechaNormal
+                          }
+                        >
+                          {elemento.fechaLimiteTexto}
+                        </td>
+                        <td>
+                          {elemento.esVencida ? (
+                            <span className={estilos.insigniaVencida}>
+                              {elemento.etiquetaEstado}
+                            </span>
+                          ) : (
+                            <span className={estilos.insigniaPendiente}>
+                              {elemento.etiquetaEstado}
+                            </span>
+                          )}
+                        </td>
+                        <td className={estilos.celdaAccion}>
+                          <div className={estilos.accionesFila}>
+                            {elemento.esVencida ? (
+                              <button
+                                type="button"
+                                className={estilos.botonAccionTexto}
+                                onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                              >
+                                Reasignar
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className={estilos.botonAccionTexto}
+                                  onClick={() => manejarRecordarIndividual(elemento)}
+                                >
+                                  Recordar
+                                </button>
+                                <span
+                                  aria-hidden="true"
+                                  className={estilos.separadorAccion}
+                                >
+                                  ·
+                                </span>
+                                <button
+                                  type="button"
+                                  className={estilos.botonAccionTexto}
+                                  onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                                >
+                                  Reasignar
+                                </button>
+                              </>
+                            )}
                             <span aria-hidden="true" className={estilos.separadorAccion}>
                               ·
                             </span>
                             <button
                               type="button"
                               className={estilos.botonAccionTexto}
-                              onClick={() => abrirModalAccion(elemento, 'reasignar')}
+                              onClick={() => abrirModalAccion(elemento, 'retirar')}
                             >
-                              Reasignar
+                              Retirar
                             </button>
-                          </>
-                        )}
-                        <span aria-hidden="true" className={estilos.separadorAccion}>
-                          ·
-                        </span>
-                        <button
-                          type="button"
-                          className={estilos.botonAccionTexto}
-                          onClick={() => abrirModalAccion(elemento, 'retirar')}
-                        >
-                          Retirar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <Pagination
-            pagina={paginaActual}
-            total={listaMostrada.length}
-            porPagina={porPagina}
-            alCambiar={setPagina}
-          />
+              <Pagination
+                pagina={paginaActual}
+                total={listaMostrada.length}
+                porPagina={porPagina}
+                alCambiar={setPagina}
+              />
 
-          <div className={estilos.cuadriculaResumenInferior}>
-            <div className={estilos.tarjetaResumenInferior}>
-              <span className={estilos.etiquetaResumen}>Revisiones entregadas</span>
-              <span className={estilos.valorResumenExito}>
-                {resumen.entregadas} de {resumen.totalAsignadas}
-              </span>
-            </div>
-            <div className={estilos.tarjetaResumenInferior}>
-              <span className={estilos.etiquetaResumen}>Pendientes en plazo</span>
-              <span className={estilos.valorResumenAdvertencia}>
-                {resumen.pendientesEnPlazo}
-              </span>
-            </div>
-            <div className={estilos.tarjetaResumenInferior}>
-              <span className={estilos.etiquetaResumen}>Vencidas</span>
-              <span className={estilos.valorResumenPeligro}>{resumen.vencidas}</span>
-            </div>
-          </div>
+              <div className={estilos.cuadriculaResumenInferior}>
+                <div className={estilos.tarjetaResumenInferior}>
+                  <span className={estilos.etiquetaResumen}>Revisiones entregadas</span>
+                  <span className={estilos.valorResumenExito}>
+                    {resumen.entregadas} de {resumen.totalAsignadas}
+                  </span>
+                </div>
+                <div className={estilos.tarjetaResumenInferior}>
+                  <span className={estilos.etiquetaResumen}>Pendientes en plazo</span>
+                  <span className={estilos.valorResumenAdvertencia}>
+                    {resumen.pendientesEnPlazo}
+                  </span>
+                </div>
+                <div className={estilos.tarjetaResumenInferior}>
+                  <span className={estilos.etiquetaResumen}>Vencidas</span>
+                  <span className={estilos.valorResumenPeligro}>{resumen.vencidas}</span>
+                </div>
+              </div>
+            </>
+          )}
         </fieldset>
       </main>
 

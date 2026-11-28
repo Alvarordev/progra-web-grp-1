@@ -99,7 +99,7 @@ function EvaluationScreen({ codigo }) {
         }
         setSentAt(deliveryDate)
         if (saved?.status === 'draft') {
-          setNotice('Borrador recuperado del backend.')
+          setNotice('Se recuperó su borrador guardado.')
         } else if (review) {
           setNotice(buildSentNotice(deliveryDate))
         } else {
@@ -228,9 +228,6 @@ function EvaluationScreen({ codigo }) {
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {loading && <p role="status">Cargando evaluación…</p>}
-          {loadError && <p role="alert">{loadError}</p>}
-          {trabajoError && <p role="alert">{trabajoError}</p>}
           <nav aria-label="Ruta de navegación" className={styles.breadcrumb}>
             <Link to="/bandeja-revision">Mi bandeja</Link>
             <span aria-hidden="true">›</span>
@@ -238,253 +235,273 @@ function EvaluationScreen({ codigo }) {
             <span aria-hidden="true">›</span>
             <span>Evaluación</span>
           </nav>
-
-          {notice && (
-            <p
-              className={submitted ? styles.successNotice : styles.draftNotice}
-              role="status"
-            >
-              {notice}
-            </p>
-          )}
-
-          {errors.length > 0 && (
-            <div
-              className={`${styles.errorNotice} ${scoreErrorsOnly ? styles.visuallyHidden : ''}`}
-              role="alert"
-            >
-              <strong>Revisa estos campos antes de enviar:</strong>
-              <ul>
-                {errors.map(error => (
-                  <li key={error}>{error}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <section className={styles.workPanel} aria-labelledby="work-title">
-            <div className={styles.workDetails}>
-              <div className={styles.workTags}>
-                <span>{codigo}</span>
-                <span>{trabajo.eje}</span>
-                <span>{trabajo.tipo}</span>
-                {submitted && <span className={styles.readOnlyTag}>Solo lectura</span>}
-                {submitted && recommendationLabel && (
-                  <span className={styles.recommendationTag}>
-                    Recomendación: {recommendationLabel.toLowerCase()}
-                  </span>
-                )}
-              </div>
-              <h1 id="work-title">{trabajo.title}</h1>
-              <p>{trabajo.resumen}</p>
-              <small>Revisión ciega: no verá los nombres de los autores.</small>
-            </div>
-            <div className={styles.workActions}>
-              <Button
-                variant="secondary"
-                type="button"
-                disabled={!trabajo.documentUrl}
-                onClick={() =>
-                  window.open(trabajo.documentUrl, '_blank', 'noopener,noreferrer')
-                }
-              >
-                {trabajo.documentUrl ? 'Abrir documento' : 'Sin documento'}
-              </Button>
-              <p>Vence el {trabajo.fechaLimite ?? '—'}</p>
-            </div>
-          </section>
-
-          <form onSubmit={sendRecommendation}>
-            <fieldset
-              className={styles.formFields}
-              disabled={loading || saving || Boolean(loadError)}
-            >
-              <div className={styles.evaluationLayout}>
-                <section
-                  className={styles.criteriaPanel}
-                  aria-labelledby="criteria-title"
+          {loading && <p role="status">Cargando evaluación…</p>}
+          {loadError && <p role="alert">{loadError}</p>}
+          {trabajoError && <p role="alert">{trabajoError}</p>}
+          {!loading && (
+            <>
+              {notice && (
+                <p
+                  className={submitted ? styles.successNotice : styles.draftNotice}
+                  role="status"
                 >
-                  <h2 id="criteria-title" className={styles.visuallyHidden}>
-                    Evaluación por criterios
-                  </h2>
-                  <div className={styles.tableHeader}>
-                    <span>Criterio</span>
-                    <span>Peso</span>
-                    <span>Puntaje (0–20)</span>
-                    <span>Comentario del criterio</span>
-                  </div>
+                  {notice}
+                </p>
+              )}
 
-                  {criteria.map(criterion => {
-                    const scoreInvalid =
-                      (attempted || criterion.puntaje !== '') &&
-                      !isValidScore(criterion.puntaje)
-
-                    return (
-                      <div className={styles.criterionRow} key={criterion.id}>
-                        <strong>{criterion.nombre}</strong>
-                        <span className={styles.weight}>{criterion.peso} %</span>
-                        <label
-                          className={styles.visuallyHidden}
-                          htmlFor={`score-${criterion.id}`}
-                        >
-                          Puntaje para {criterion.nombre}, de 0 a 20
-                        </label>
-                        <div className={styles.scoreField}>
-                          <input
-                            id={`score-${criterion.id}`}
-                            className={styles.scoreInput}
-                            type="number"
-                            min="0"
-                            max="20"
-                            step="1"
-                            value={criterion.puntaje}
-                            disabled={submitted}
-                            aria-invalid={scoreInvalid}
-                            aria-describedby={`score-error-${criterion.id}`}
-                            onChange={event =>
-                              updateCriterion(criterion.id, 'puntaje', event.target.value)
-                            }
-                            aria-label={`Puntaje para ${criterion.nombre}`}
-                          />
-                          {scoreInvalid && (
-                            <small
-                              className={styles.fieldError}
-                              id={`score-error-${criterion.id}`}
-                            >
-                              Ingrese un puntaje entre 0 y 20.
-                            </small>
-                          )}
-                        </div>
-                        <label
-                          className={styles.visuallyHidden}
-                          htmlFor={`comment-${criterion.id}`}
-                        >
-                          Comentario para {criterion.nombre}
-                        </label>
-                        <textarea
-                          id={`comment-${criterion.id}`}
-                          className={styles.criterionComment}
-                          rows="2"
-                          placeholder="Escriba su comentario..."
-                          value={criterion.comentario}
-                          disabled={submitted}
-                          onChange={event =>
-                            updateCriterion(
-                              criterion.id,
-                              'comentario',
-                              event.target.value
-                            )
-                          }
-                        />
-                      </div>
-                    )
-                  })}
-
-                  <div className={styles.averageRow}>
-                    <span>
-                      Promedio ponderado provisional ({scoredCriteria.length} de{' '}
-                      {criteria.length} criterios)
-                    </span>
-                    <strong>{average}</strong>
-                  </div>
-                </section>
-
-                <aside className={styles.sidePanel}>
-                  <fieldset className={styles.recommendationPanel} disabled={submitted}>
-                    <legend>Recomendación *</legend>
-                    {recommendationOptions.map(option => (
-                      <label
-                        className={`${styles.recommendationOption} ${recommendation === option.value ? styles.selectedRecommendation : ''}`}
-                        key={option.value}
-                      >
-                        <input
-                          type="radio"
-                          name="recommendation"
-                          value={option.value}
-                          checked={recommendation === option.value}
-                          onChange={event => {
-                            setRecommendation(event.target.value)
-                            setErrors([])
-                          }}
-                        />
-                        {option.label}
-                      </label>
+              {errors.length > 0 && (
+                <div
+                  className={`${styles.errorNotice} ${scoreErrorsOnly ? styles.visuallyHidden : ''}`}
+                  role="alert"
+                >
+                  <strong>Revisa estos campos antes de enviar:</strong>
+                  <ul>
+                    {errors.map(error => (
+                      <li key={error}>{error}</li>
                     ))}
-                  </fieldset>
-                  {submitted && (
-                    <dl className={styles.deliveryPanel} aria-label="Datos de la entrega">
-                      <div>
-                        <dt>Enviada</dt>
-                        <dd>
-                          {sentAt
-                            ? `${formatSentAt(sentAt).fecha} · ${formatSentAt(sentAt).hora}`
-                            : '—'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Fecha límite</dt>
-                        <dd>{trabajo.fechaLimite ?? '—'}</dd>
-                      </div>
-                    </dl>
-                  )}
-                  <p className={styles.confidentialNote}>
-                    Los comentarios al autor se publican con el dictamen. Las
-                    observaciones al comité son confidenciales.
-                  </p>
-                </aside>
-              </div>
-
-              <div className={styles.commentsLayout}>
-                <label className={styles.field}>
-                  <span>Comentarios al autor *</span>
-                  <textarea
-                    rows="3"
-                    value={authorComment}
-                    disabled={submitted}
-                    onChange={event => {
-                      setAuthorComment(event.target.value)
-                      setErrors([])
-                    }}
-                    placeholder="Escriba la retroalimentación que podrá consultar el autor..."
-                  />
-                </label>
-                <label className={styles.field}>
-                  <span>Observaciones al comité (confidencial)</span>
-                  <textarea
-                    rows="3"
-                    value={committeeComment}
-                    disabled={submitted}
-                    onChange={event => setCommitteeComment(event.target.value)}
-                    placeholder="Estas observaciones solo las verá el comité..."
-                  />
-                </label>
-              </div>
-
-              {!submitted && (
-                <div className={styles.formFooter}>
-                  <p>Puede guardar un borrador y continuar la evaluación más tarde.</p>
-                  <div className={styles.formActions}>
-                    <Button
-                      disabled={loading || saving || Boolean(loadError)}
-                      variant="secondary"
-                      type="button"
-                      onClick={saveDraft}
-                    >
-                      Guardar borrador
-                    </Button>
-                    <Button
-                      disabled={loading || Boolean(loadError)}
-                      loading={saving}
-                      variant="primary"
-                      type="submit"
-                    >
-                      Enviar recomendación
-                    </Button>
-                  </div>
+                  </ul>
                 </div>
               )}
-            </fieldset>
-          </form>
+
+              <section className={styles.workPanel} aria-labelledby="work-title">
+                <div className={styles.workDetails}>
+                  <div className={styles.workTags}>
+                    <span>{codigo}</span>
+                    <span>{trabajo.eje}</span>
+                    <span>{trabajo.tipo}</span>
+                    {submitted && (
+                      <span className={styles.readOnlyTag}>Solo lectura</span>
+                    )}
+                    {submitted && recommendationLabel && (
+                      <span className={styles.recommendationTag}>
+                        Recomendación: {recommendationLabel.toLowerCase()}
+                      </span>
+                    )}
+                  </div>
+                  <h1 id="work-title">{trabajo.title}</h1>
+                  <p>{trabajo.resumen}</p>
+                  <small>Revisión ciega: no verá los nombres de los autores.</small>
+                </div>
+                <div className={styles.workActions}>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    disabled={!trabajo.documentUrl}
+                    onClick={() =>
+                      window.open(trabajo.documentUrl, '_blank', 'noopener,noreferrer')
+                    }
+                  >
+                    {trabajo.documentUrl ? 'Abrir documento' : 'Sin documento'}
+                  </Button>
+                  <p>Vence el {trabajo.fechaLimite ?? '—'}</p>
+                </div>
+              </section>
+
+              <form onSubmit={sendRecommendation}>
+                <fieldset
+                  className={styles.formFields}
+                  disabled={loading || saving || Boolean(loadError)}
+                >
+                  <div className={styles.evaluationLayout}>
+                    <section
+                      className={styles.criteriaPanel}
+                      aria-labelledby="criteria-title"
+                    >
+                      <h2 id="criteria-title" className={styles.visuallyHidden}>
+                        Evaluación por criterios
+                      </h2>
+                      <div className={styles.tableHeader}>
+                        <span>Criterio</span>
+                        <span>Peso</span>
+                        <span>Puntaje (0–20)</span>
+                        <span>Comentario del criterio</span>
+                      </div>
+
+                      {criteria.map(criterion => {
+                        const scoreInvalid =
+                          (attempted || criterion.puntaje !== '') &&
+                          !isValidScore(criterion.puntaje)
+
+                        return (
+                          <div className={styles.criterionRow} key={criterion.id}>
+                            <strong>{criterion.nombre}</strong>
+                            <span className={styles.weight}>{criterion.peso} %</span>
+                            <label
+                              className={styles.visuallyHidden}
+                              htmlFor={`score-${criterion.id}`}
+                            >
+                              Puntaje para {criterion.nombre}, de 0 a 20
+                            </label>
+                            <div className={styles.scoreField}>
+                              <input
+                                id={`score-${criterion.id}`}
+                                className={styles.scoreInput}
+                                type="number"
+                                min="0"
+                                max="20"
+                                step="1"
+                                value={criterion.puntaje}
+                                disabled={submitted}
+                                aria-invalid={scoreInvalid}
+                                aria-describedby={`score-error-${criterion.id}`}
+                                onChange={event =>
+                                  updateCriterion(
+                                    criterion.id,
+                                    'puntaje',
+                                    event.target.value
+                                  )
+                                }
+                                aria-label={`Puntaje para ${criterion.nombre}`}
+                              />
+                              {scoreInvalid && (
+                                <small
+                                  className={styles.fieldError}
+                                  id={`score-error-${criterion.id}`}
+                                >
+                                  Ingrese un puntaje entre 0 y 20.
+                                </small>
+                              )}
+                            </div>
+                            <label
+                              className={styles.visuallyHidden}
+                              htmlFor={`comment-${criterion.id}`}
+                            >
+                              Comentario para {criterion.nombre}
+                            </label>
+                            <textarea
+                              id={`comment-${criterion.id}`}
+                              className={styles.criterionComment}
+                              rows="2"
+                              placeholder="Escriba su comentario..."
+                              value={criterion.comentario}
+                              disabled={submitted}
+                              onChange={event =>
+                                updateCriterion(
+                                  criterion.id,
+                                  'comentario',
+                                  event.target.value
+                                )
+                              }
+                            />
+                          </div>
+                        )
+                      })}
+
+                      <div className={styles.averageRow}>
+                        <span>
+                          Promedio ponderado provisional ({scoredCriteria.length} de{' '}
+                          {criteria.length} criterios)
+                        </span>
+                        <strong>{average}</strong>
+                      </div>
+                    </section>
+
+                    <aside className={styles.sidePanel}>
+                      <fieldset
+                        className={styles.recommendationPanel}
+                        disabled={submitted}
+                      >
+                        <legend>Recomendación *</legend>
+                        {recommendationOptions.map(option => (
+                          <label
+                            className={`${styles.recommendationOption} ${recommendation === option.value ? styles.selectedRecommendation : ''}`}
+                            key={option.value}
+                          >
+                            <input
+                              type="radio"
+                              name="recommendation"
+                              value={option.value}
+                              checked={recommendation === option.value}
+                              onChange={event => {
+                                setRecommendation(event.target.value)
+                                setErrors([])
+                              }}
+                            />
+                            {option.label}
+                          </label>
+                        ))}
+                      </fieldset>
+                      {submitted && (
+                        <dl
+                          className={styles.deliveryPanel}
+                          aria-label="Datos de la entrega"
+                        >
+                          <div>
+                            <dt>Enviada</dt>
+                            <dd>
+                              {sentAt
+                                ? `${formatSentAt(sentAt).fecha} · ${formatSentAt(sentAt).hora}`
+                                : '—'}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Fecha límite</dt>
+                            <dd>{trabajo.fechaLimite ?? '—'}</dd>
+                          </div>
+                        </dl>
+                      )}
+                      <p className={styles.confidentialNote}>
+                        Los comentarios al autor se publican con el dictamen. Las
+                        observaciones al comité son confidenciales.
+                      </p>
+                    </aside>
+                  </div>
+
+                  <div className={styles.commentsLayout}>
+                    <label className={styles.field}>
+                      <span>Comentarios al autor *</span>
+                      <textarea
+                        rows="3"
+                        value={authorComment}
+                        disabled={submitted}
+                        onChange={event => {
+                          setAuthorComment(event.target.value)
+                          setErrors([])
+                        }}
+                        placeholder="Escriba la retroalimentación que podrá consultar el autor..."
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span>Observaciones al comité (confidencial)</span>
+                      <textarea
+                        rows="3"
+                        value={committeeComment}
+                        disabled={submitted}
+                        onChange={event => setCommitteeComment(event.target.value)}
+                        placeholder="Estas observaciones solo las verá el comité..."
+                      />
+                    </label>
+                  </div>
+
+                  {!submitted && (
+                    <div className={styles.formFooter}>
+                      <p>
+                        Puede guardar un borrador y continuar la evaluación más tarde.
+                      </p>
+                      <div className={styles.formActions}>
+                        <Button
+                          disabled={loading || saving || Boolean(loadError)}
+                          variant="secondary"
+                          type="button"
+                          onClick={saveDraft}
+                        >
+                          Guardar borrador
+                        </Button>
+                        <Button
+                          disabled={loading || Boolean(loadError)}
+                          loading={saving}
+                          variant="primary"
+                          type="submit"
+                        >
+                          Enviar recomendación
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </fieldset>
+              </form>
+            </>
+          )}
         </div>
       </main>
 
