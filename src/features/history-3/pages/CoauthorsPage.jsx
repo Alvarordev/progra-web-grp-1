@@ -5,11 +5,10 @@ import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.js
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
 import useConference from '../../../core/utils/useConference.js'
-import {
-  receptionIsOpen,
-  saveSubmission,
-  toSubmission,
-} from '../../../core/utils/submissions.js'
+import { receptionIsOpen } from '../../../core/utils/submissions.js'
+import { actualizarTrabajo } from '../../../core/utils/trabajosApi.js'
+import { aCuerpoTrabajo, aTrabajoLocal } from '../utils/adaptadores.js'
+import useMisTrabajos from '../utils/useMisTrabajos.js'
 import styles from './CoauthorsPage.module.css'
 
 const emptyCoauthor = { nombre: '', correo: '', institucion: 'Universidad de Lima' }
@@ -19,13 +18,9 @@ function CoauthorsPage() {
   const [params] = useSearchParams()
   const code = params.get('borrador')
   const conference = useConference()
-  const raw = conference.works.find(
-    work =>
-      work.codigo === code &&
-      (work.ownerId === conference.account?.userId ||
-        work.ownerEmail === conference.account?.email)
-  )
-  const trabajo = raw ? toSubmission(raw) : null
+  const misTrabajos = useMisTrabajos()
+  const raw = misTrabajos.trabajos.find(work => work.codigo === code)
+  const trabajo = raw ? aTrabajoLocal(raw) : null
   const [authorsDraft, setAutores] = useState(null)
   const autores = authorsDraft ?? trabajo?.autores ?? []
   const [selectedCorrespondence, setCorrespondencia] = useState(null)
@@ -56,23 +51,22 @@ function CoauthorsPage() {
     setSaving(true)
     setErrorEnvio('')
     try {
-      await saveSubmission({
-        account: conference.account,
-        submission: {
+      // PUT /api/trabajos/:id con la lista de coautores; si send es true, se envía al comité
+      const cuerpo = aCuerpoTrabajo({
+        trabajo: {
           ...trabajo,
           autores: authors.map(author => ({
             ...author,
             correspondencia: author.correo === correspondence,
-            rol:
-              author.correo === correspondence ? 'Autor de correspondencia' : 'Coautor',
           })),
         },
-        code,
-        send,
-        status: conference.status,
-        schedule: conference.schedule,
+        tipos: conference.types,
+        ejes: conference.axes,
+        correoAutor: conference.account?.email,
+        enviar: send,
       })
-      await conference.refresh()
+      await actualizarTrabajo(raw.id, cuerpo)
+      await misTrabajos.recargar()
       return true
     } catch (cause) {
       setErrorEnvio(cause.message)
@@ -134,7 +128,7 @@ function CoauthorsPage() {
     }
   }
 
-  if (conference.loading) {
+  if (conference.loading || misTrabajos.cargando) {
     return (
       <AuthorPageLayout>
         <p role="status">Cargando coautores…</p>
@@ -180,7 +174,7 @@ function CoauthorsPage() {
       </div>
 
       <p aria-live="polite" className={errorEnvio ? styles.sendError : styles.feedback}>
-        {conference.error || errorEnvio || mensaje}
+        {conference.error || misTrabajos.error || errorEnvio || mensaje}
       </p>
 
       <div className={styles.layout}>

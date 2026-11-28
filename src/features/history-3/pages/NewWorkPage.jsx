@@ -7,12 +7,10 @@ import FormField from '../components/FormField/FormField.jsx'
 import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
 import { sampleWork } from '../../../core/utils/states/submissionState.js'
 import useConference from '../../../core/utils/useConference.js'
-import {
-  emptySubmission,
-  receptionIsOpen,
-  saveSubmission,
-  toSubmission,
-} from '../../../core/utils/submissions.js'
+import { emptySubmission, receptionIsOpen } from '../../../core/utils/submissions.js'
+import { actualizarTrabajo, crearTrabajo } from '../../../core/utils/trabajosApi.js'
+import { aCuerpoTrabajo, aTrabajoLocal } from '../utils/adaptadores.js'
+import useMisTrabajos from '../utils/useMisTrabajos.js'
 import { getReceptionNotice } from '../../../core/utils/reception.js'
 import styles from './NewWorkPage.module.css'
 
@@ -54,21 +52,18 @@ function NewWorkPage() {
   const conference = useConference()
   const [searchParams, setSearchParams] = useSearchParams()
   const code = searchParams.get('borrador')
-  const stored = conference.works.find(
-    work =>
-      work.codigo === code &&
-      (work.ownerId === conference.account?.userId ||
-        work.ownerEmail === conference.account?.email)
-  )
+  const misTrabajos = useMisTrabajos()
+  // Si la URL trae ?borrador=TRB-..., se busca ese trabajo entre los del backend
+  const stored = misTrabajos.trabajos.find(work => work.codigo === code)
   const [draft, setDraft] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const open = receptionIsOpen(conference.status, conference.schedule)
-  const busy = conference.busy || saving
+  const busy = conference.busy || misTrabajos.cargando || saving
   const trabajo = draft ?? getInitialWork()
   function getInitialWork() {
     if (stored) {
-      return toSubmission(stored)
+      return aTrabajoLocal(stored)
     }
     if (conference.account?.email === 'rosa.quispe@aloe.ulima.edu.pe') {
       return sampleWork
@@ -130,16 +125,21 @@ function NewWorkPage() {
     }
     setSaving(true)
     setSaveError('')
-    try {
-      const savedCode = await saveSubmission({
-        account: conference.account,
-        submission: trabajo,
-        code,
-        status: conference.status,
-        schedule: conference.schedule,
+     try {
+      // Se guarda siempre como borrador, el envio al comité se hace en Coautores
+      const cuerpo = aCuerpoTrabajo({
+        trabajo,
+        tipos: conference.types,
+        ejes: conference.axes,
+        correoAutor: conference.account?.email,
       })
+      // Si el trabajo ya existe se edita (PUT); si no, se crea (POST)
+      const guardado = stored
+        ? await actualizarTrabajo(stored.id, cuerpo)
+        : await crearTrabajo(cuerpo)
+      const savedCode = guardado.codigo
       setSearchParams({ borrador: savedCode }, { replace: true })
-      await conference.refresh()
+      await misTrabajos.recargar()
       if (sendNext) {
         navigate(`/autor/nuevo-trabajo/coautores?borrador=${savedCode}`)
       } else {
@@ -166,7 +166,8 @@ function NewWorkPage() {
     }
   }
 
-  if (conference.loading) {
+
+  if (conference.loading || misTrabajos.cargando) {
     return (
       <AuthorPageLayout>
         <p role="status">Cargando trabajo…</p>
@@ -302,8 +303,9 @@ function NewWorkPage() {
         </section>
       )}
 
-      {(conference.error || saveError) && (
-        <p role="alert">{conference.error || saveError}</p>
+
+      {(conference.error || misTrabajos.error || saveError) && (
+        <p role="alert">{conference.error || misTrabajos.error || saveError}</p>
       )}
       <div className={styles.layout}>
         <form

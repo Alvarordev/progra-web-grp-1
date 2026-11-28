@@ -13,17 +13,17 @@ import TrackingPanel from '../components/TrackingPanel/TrackingPanel.jsx'
 import WorkDataPanel from '../components/WorkDataPanel/WorkDataPanel.jsx'
 import WorkHeading from '../components/WorkHeading/WorkHeading.jsx'
 import useConference from '../../../core/utils/useConference.js'
-import { getAuthorWorks } from '../../../core/utils/submissions.js'
+import { aTrabajoLocal } from '../utils/adaptadores.js'
+import useTrabajoAutor from '../utils/useTrabajoAutor.js'
 import styles from './WorkDetailPage.module.css'
 
 function WorkDetailPage() {
   const { codigo } = useParams()
   const conference = useConference()
-  const trabajo = getAuthorWorks(
-    conference.works,
-    conference.account,
-    conference.decisions
-  ).find(work => work.codigo === codigo)
+  const detalle = useTrabajoAutor(codigo)
+  const trabajo = detalle.trabajo
+    ? aTrabajoLocal(detalle.trabajo, conference.decisions[codigo])
+    : null
 
   const [finalModal, setFinalModal] = useState(false)
   const [finalNotice, setFinalNotice] = useState('')
@@ -42,10 +42,11 @@ function WorkDetailPage() {
     }
   }
 
-  if (conference.loading || conference.error) {
+  const errorCarga = conference.error || detalle.error
+  if (conference.loading || detalle.cargando || errorCarga) {
     return (
       <AuthorPageLayout>
-        <p role="status">{conference.error || 'Cargando trabajo…'}</p>
+        <p role="status">{errorCarga || 'Cargando trabajo…'}</p>
       </AuthorPageLayout>
     )
   }

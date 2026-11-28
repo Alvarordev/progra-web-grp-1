@@ -8,7 +8,9 @@ import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.js
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import WorkCard from '../components/WorkCard/WorkCard.jsx'
 import useConference from '../../../core/utils/useConference.js'
-import { getAuthorWorks, receptionIsOpen } from '../../../core/utils/submissions.js'
+import { receptionIsOpen } from '../../../core/utils/submissions.js'
+import { aTrabajoLocal } from '../utils/adaptadores.js'
+import useMisTrabajos from '../utils/useMisTrabajos.js'
 import styles from './MyWorksPage.module.css'
 
 const filters = [
@@ -23,6 +25,7 @@ const filters = [
 function MyWorksPage() {
   const navigate = useNavigate()
   const conference = useConference()
+  const misTrabajos = useMisTrabajos()
   const open = receptionIsOpen(conference.status, conference.schedule)
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -33,7 +36,9 @@ function MyWorksPage() {
   const trabajos =
     searchParams.get('vista') === 'vacia'
       ? []
-      : getAuthorWorks(conference.works, conference.account, conference.decisions)
+      : misTrabajos.trabajos.map(trabajo =>
+          aTrabajoLocal(trabajo, conference.decisions[trabajo.codigo])
+        )
   const codigoEnviado = location.state?.enviado
 
   const texto = busqueda.trim().toLowerCase()
@@ -64,10 +69,12 @@ function MyWorksPage() {
     }))
     .filter(filtro => filtro.estado === 'todos' || filtro.cantidad > 0)
 
-  if (conference.loading || conference.error) {
+ 
+  const errorCarga = conference.error || misTrabajos.error
+  if (conference.loading || misTrabajos.cargando || errorCarga) {
     return (
       <AuthorPageLayout>
-        <p role="status">{conference.error || 'Cargando trabajos…'}</p>
+        <p role="status">{errorCarga || 'Cargando trabajos…'}</p>
       </AuthorPageLayout>
     )
   }
