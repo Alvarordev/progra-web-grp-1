@@ -1,0 +1,6 @@
+docs
+output
+*.zip
+.playwright-mcp
+dist
+node_modules
