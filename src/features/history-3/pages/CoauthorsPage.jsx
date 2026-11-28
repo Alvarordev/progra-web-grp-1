@@ -18,7 +18,7 @@ function CoauthorsPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const code = params.get('borrador')
-  const conference = useConference()
+  const conference = useConference('axes', 'types')
   const misTrabajos = useMisTrabajos()
   const raw = misTrabajos.trabajos.find(work => work.codigo === code)
   const trabajo = raw ? aTrabajoLocal(raw) : null

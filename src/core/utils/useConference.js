@@ -1,114 +1,50 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { getActiveAccount } from './accounts.js'
+import { useCacheRemota } from './cacheRemota.js'
 import {
   criteriaRepository,
-  decisionsRepository,
-  editionRepository,
-  editionStatusRepository,
-  reviewersRepository,
-  reviewsRepository,
-  scheduleRepository,
   thematicAxesRepository,
+  useEdicionActual,
   workTypesRepository,
-  worksRepository,
-} from './repositories.js'
+} from './editionRepositories.js'
+import useActiveAccount from './useActiveAccount.js'
 
-const repositories = {
-  edition: editionRepository,
-  works: worksRepository,
-  reviewers: reviewersRepository,
-  reviews: reviewsRepository,
-  decisions: decisionsRepository,
-  criteria: criteriaRepository,
-  status: editionStatusRepository,
-  schedule: scheduleRepository,
+const catalogos = {
   axes: thematicAxesRepository,
   types: workTypesRepository,
-}
-const initialData = {
-  edition: {},
-  works: [],
-  reviewers: [],
-  reviews: {},
-  decisions: {},
-  criteria: [],
-  status: '',
-  schedule: {},
-  axes: [],
-  types: [],
-  account: null,
+  criteria: criteriaRepository,
 }
 
-export default function useConference() {
-  const [data, setData] = useState(initialData)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const active = useRef(false)
-  const pending = useRef(false)
+function useCatalogo(nombre, solicitados) {
+  return useCacheRemota(catalogos[nombre].cache, solicitados.includes(nombre))
+}
 
-  const refresh = useCallback(async () => {
-    const entries = await Promise.all(
-      Object.entries(repositories).map(async ([key, repository]) => [
-        key,
-        await repository.get(),
-      ])
-    )
-    const account = await getActiveAccount()
-    const next = { ...Object.fromEntries(entries), account }
-    if (active.current) {
-      setData(next)
-    }
-    return next
-  }, [])
-
-  useEffect(() => {
-    active.current = true
-    refresh()
-      .catch(cause => {
-        if (active.current) {
-          setError(cause.message)
-        }
-      })
-      .finally(() => {
-        if (active.current) {
-          setLoading(false)
-        }
-      })
-    return () => {
-      active.current = false
-    }
-  }, [refresh])
-
-  async function save(key, value) {
-    if (loading || pending.current) {
-      throw new Error('Espere a que termine la operación actual.')
-    }
-    pending.current = true
-    setSaving(true)
-    setError('')
-    try {
-      const result = await repositories[key].save(value, data[key])
-      await refresh()
-      return result
-    } catch (cause) {
-      setError(cause.message)
-      throw cause
-    } finally {
-      pending.current = false
-      if (active.current) {
-        setSaving(false)
-      }
-    }
-  }
+export default function useConference(...solicitados) {
+  const edicion = useEdicionActual()
+  const cuenta = useActiveAccount()
+  const axes = useCatalogo('axes', solicitados)
+  const types = useCatalogo('types', solicitados)
+  const criteria = useCatalogo('criteria', solicitados)
+  const loading =
+    edicion.loading ||
+    cuenta.loading ||
+    [axes, types, criteria].some(item => item.cargando)
+  const error = [
+    edicion.error,
+    cuenta.error,
+    axes.error,
+    types.error,
+    criteria.error,
+  ].find(Boolean)
 
   return {
-    ...data,
+    edition: edicion.edition ?? {},
+    status: edicion.status,
+    schedule: edicion.schedule,
+    account: cuenta.participant,
+    axes: axes.valor ?? [],
+    types: types.valor ?? [],
+    criteria: criteria.valor ?? [],
     loading,
-    saving,
-    error,
-    save,
-    refresh,
-    busy: loading || saving || Boolean(error),
+    error: error ?? '',
+    busy: loading || Boolean(error),
   }
 }

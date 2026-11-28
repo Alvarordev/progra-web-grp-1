@@ -48,7 +48,7 @@ function validateWork(trabajo) {
 
 function NewWorkPage() {
   const navigate = useNavigate()
-  const conference = useConference()
+  const conference = useConference('axes', 'types')
   const [searchParams, setSearchParams] = useSearchParams()
   const code = searchParams.get('borrador')
   const misTrabajos = useMisTrabajos()

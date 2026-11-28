@@ -93,10 +93,13 @@ function mapCatalog(resource, fields) {
   const cache = crearCacheRemota(read, vigenciaEdicion)
 
   return {
+    cache,
     get: cache.leer,
     subscribe: cache.suscribir,
     async save(value, previous) {
-      const before = new Map((previous ?? (await cache.leer())).map(item => [item.id, item]))
+      const before = new Map(
+        (previous ?? (await cache.leer())).map(item => [item.id, item])
+      )
       const after = new Map(value.map(item => [item.id, item]))
       const changes = []
       for (const [id, item] of after) {

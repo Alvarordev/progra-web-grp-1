@@ -28,7 +28,6 @@ const estadoInicial = {
 }
 
 export default function PaginaSeguimientoRevisiones() {
-
   const [datos, setDatos] = useState(estadoInicial)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)

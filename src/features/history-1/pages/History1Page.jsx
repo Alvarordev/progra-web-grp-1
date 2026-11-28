@@ -9,7 +9,7 @@ import useActiveAccount from '../../../core/utils/useActiveAccount.js'
 
 function History1Page() {
   const accountState = useActiveAccount()
-  const conference = useConference()
+  const conference = useConference('axes', 'criteria')
   const deadlines = [
     [
       'Cierre de recepción de trabajos',

@@ -16,7 +16,8 @@ const primeraLetra = texto =>
 export function obtenerUsuarioVisible(cuenta) {
   return {
     nombre: cuenta.name,
-    iniciales: `${primeraLetra(cuenta.names)}${primeraLetra(cuenta.surnames)}`.toUpperCase(),
+    iniciales:
+      `${primeraLetra(cuenta.names)}${primeraLetra(cuenta.surnames)}`.toUpperCase(),
     rol: etiquetasRol[cuenta.role] ?? etiquetasRol.author,
   }
 }
