@@ -11,29 +11,34 @@ const limaTime = new Intl.DateTimeFormat('en-CA', {
   hourCycle: 'h23',
 })
 
-let editionPathRequest
+let editionIdRequest
 
-async function getEditionPath() {
+/* ID de la edición con la que trabaja la aplicación: VITE_EDICION_ID o la de mayor año. */
+export async function obtenerEdicionId() {
   const configured = import.meta.env.VITE_EDICION_ID?.trim()
   if (configured) {
     if (!/^[1-9]\d*$/.test(configured)) {
       throw new Error('VITE_EDICION_ID debe ser un ID de edición válido.')
     }
-    return `/ediciones/${configured}`
+    return Number(configured)
   }
 
-  editionPathRequest ??= requestConference('/ediciones')
+  editionIdRequest ??= requestConference('/ediciones')
     .then(editions => {
       if (!editions.length) {
         throw new Error('Configure una edición del congreso en el backend.')
       }
-      return `/ediciones/${editions[0].id}`
+      return editions[0].id
     })
     .catch(cause => {
-      editionPathRequest = undefined
+      editionIdRequest = undefined
       throw cause
     })
-  return editionPathRequest
+  return editionIdRequest
+}
+
+async function getEditionPath() {
+  return `/ediciones/${await obtenerEdicionId()}`
 }
 
 function formatLocalTime(value) {

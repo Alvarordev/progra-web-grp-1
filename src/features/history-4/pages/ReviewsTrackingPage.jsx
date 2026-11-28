@@ -13,7 +13,7 @@ import {
   reasignarRevision,
   retirarRevision,
 } from '../../../core/utils/asignacionesApi.js'
-import useUsuarioComite from '../utils/useUsuarioComite.js'
+import useUsuarioComite from '../../../core/utils/useUsuarioComite.js'
 import estilos from './ReviewsTrackingPage.module.css'
 
 const estadoInicial = {

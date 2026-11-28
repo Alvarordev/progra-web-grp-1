@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-/* Carga una vez los datos de un endpoint. `cargar` debe ser una función estable
-   (por ejemplo, una función importada de core/utils/*Api.js). */
+/* Carga los datos de un endpoint y permite volver a pedirlos con `recargar`.
+   `cargar` debe ser una función estable (por ejemplo, una importada de
+   core/utils/*Api.js). Mientras se recarga se conservan los datos anteriores. */
 export default function useRemoteData(cargar) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let activo = true
@@ -14,6 +16,7 @@ export default function useRemoteData(cargar) {
       .then(resultado => {
         if (activo) {
           setData(resultado)
+          setError('')
         }
       })
       .catch(causa => {
@@ -30,7 +33,9 @@ export default function useRemoteData(cargar) {
     return () => {
       activo = false
     }
-  }, [cargar])
+  }, [cargar, version])
 
-  return { data, loading, error }
+  const recargar = useCallback(() => setVersion(actual => actual + 1), [])
+
+  return { data, loading, error, recargar }
 }

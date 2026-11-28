@@ -3,7 +3,13 @@ import Button from '../../../../core/ui/Button/Button.jsx'
 import { formatDate } from '../../utils/sessionSchedule.js'
 import styles from './SessionsTable.module.css'
 
-function SessionsTable({ alEditar, idsEnConflicto, sesiones }) {
+function SessionsTable({
+  alEditar,
+  alEliminar,
+  deshabilitado = false,
+  idsEnConflicto,
+  sesiones,
+}) {
   return (
     <div
       aria-label="Lista de sesiones del congreso"
@@ -51,6 +57,7 @@ function SessionsTable({ alEditar, idsEnConflicto, sesiones }) {
                   <div className={styles.actions}>
                     <Button
                       aria-label={`Editar ${sesion.nombre}`}
+                      disabled={deshabilitado}
                       onClick={() => alEditar(sesion)}
                       size="small"
                       type="button"
@@ -64,8 +71,19 @@ function SessionsTable({ alEditar, idsEnConflicto, sesiones }) {
                       className={styles.actionLink}
                       to={`/programa/asignar-trabajos?sesion=${sesion.id}`}
                     >
-                      Trabajos
+                      Trabajos ({sesion.trabajos.length})
                     </Link>
+                    <span aria-hidden="true">·</span>
+                    <Button
+                      aria-label={`Eliminar ${sesion.nombre}`}
+                      disabled={deshabilitado}
+                      onClick={() => alEliminar(sesion)}
+                      size="small"
+                      type="button"
+                      variant="tertiary"
+                    >
+                      Eliminar
+                    </Button>
                   </div>
                 </td>
               </tr>

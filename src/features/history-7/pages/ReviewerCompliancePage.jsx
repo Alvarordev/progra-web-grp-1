@@ -4,7 +4,7 @@ import PageHeading from '../components/PageHeading/PageHeading.jsx'
 import ReviewerComplianceTable from '../components/ReviewerComplianceTable/ReviewerComplianceTable.jsx'
 import { obtenerCumplimientoRevisores } from '../../../core/utils/metricasApi.js'
 import { formatAverageDays } from '../utils/metrics.js'
-import useRemoteData from '../utils/useRemoteData.js'
+import useRemoteData from '../../../core/utils/useRemoteData.js'
 import styles from './ReviewerCompliancePage.module.css'
 
 const summaryToneClasses = {

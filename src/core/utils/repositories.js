@@ -1,4 +1,3 @@
-import { initialProgram, validateProgram } from './states/programState.js'
 import { validateDecisions } from './states/decisionsState.js'
 import { initialUsers, validateUsers } from './states/usersState.js'
 import {
@@ -88,12 +87,6 @@ export const usersRepository = createStateRepository({
   name: 'users',
   defaultValue: initialUsers,
   validate: validateUsers,
-})
-
-export const programRepository = createStateRepository({
-  name: 'program',
-  defaultValue: initialProgram,
-  validate: validateProgram,
 })
 
 export const decisionsRepository = createStateRepository({
