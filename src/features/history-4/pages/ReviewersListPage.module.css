@@ -1,0 +1,312 @@
+.pagina {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg, #fbfaf8);
+}
+
+.contenidoPrincipal {
+  width: 100%;
+  max-width: var(--container-width, 1360px);
+  margin: 0 auto;
+  padding: 28px 24px 56px 24px;
+  flex: 1;
+}
+
+.grupoCampos {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filaEncabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.titulo {
+  font-family: var(--font-family-serif, 'Source Serif 4', serif);
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--color-text, #1f1a1b);
+}
+
+.subtitulo {
+  font-family: var(--font-family-sans, 'Inter', sans-serif);
+  font-size: 13px;
+  color: var(--color-text-muted, #6f6663);
+  margin: 0;
+}
+
+.notificacionExito {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background-color: var(--color-success-soft, #e8f4ed);
+  border: 1px solid var(--color-success, #1e7f4d);
+  color: var(--color-success, #1e7f4d);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.barraFiltros {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.controlesFiltro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.selectorFiltro {
+  height: 36px;
+  min-width: 200px;
+  padding: 0 30px 0 12px;
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 13px;
+  color: var(--color-text, #1f1a1b);
+  background-color: var(--color-surface, #ffffff);
+}
+
+.botonFiltroVencidas {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  background-color: var(--color-primary-soft, #f6e9ec);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 12px;
+  color: var(--color-primary, #7a2231);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filtroVencidasActivo {
+  border-color: var(--color-primary, #7a2231);
+}
+
+.contenedorBusqueda {
+  width: 280px;
+  max-width: 100%;
+}
+
+.campoBusqueda {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 13px;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-text, #1f1a1b);
+}
+
+.contenedorTabla {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+  overflow-x: auto;
+}
+
+.tablaRevisores {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.tablaRevisores th {
+  background-color: #f6f3ef;
+  padding: 11px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted, #6f6663);
+  border-bottom: 1px solid var(--color-border, #e4dfda);
+  letter-spacing: 0.04em;
+}
+
+.tablaRevisores td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border, #e4dfda);
+  vertical-align: middle;
+}
+
+.tablaRevisores tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.columnaDerecha {
+  text-align: right;
+}
+
+.celdaNombre strong {
+  color: var(--color-text, #1f1a1b);
+  font-weight: 700;
+}
+
+.celdaInstitucion {
+  color: var(--color-text, #1f1a1b);
+}
+
+.celdaLineas {
+  color: var(--color-text-muted, #6f6663);
+}
+
+.celdaNumero {
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-text, #1f1a1b);
+}
+
+.celdaEntregadas {
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-success, #1e7f4d);
+}
+
+.celdaVencidas {
+  text-align: right;
+  font-weight: 700;
+}
+
+.valorVencidasAlerta {
+  color: var(--color-danger, #b4322b);
+  font-weight: 700;
+}
+
+.valorCero {
+  color: var(--color-text, #1f1a1b);
+  font-weight: 600;
+}
+
+.filaPaginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+}
+
+.infoPaginacion {
+  font-size: 12px;
+  color: var(--color-text-muted, #6f6663);
+}
+
+.botonesPaginacion {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.botonPagina {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 2px);
+  font-size: 12px;
+  color: var(--color-text-muted, #6f6663);
+  cursor: pointer;
+}
+
+.botonPagina:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.botonNumeroPagina {
+  background-color: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e4dfda);
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm, 2px);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #1f1a1b);
+  cursor: pointer;
+}
+
+.paginaActiva {
+  background-color: var(--color-primary, #7a2231);
+  color: #ffffff;
+  border-color: var(--color-primary, #7a2231);
+}
+
+.formularioInvitacion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.etiquetaModal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted, #6f6663);
+  margin-bottom: 12px;
+}
+
+.campoModal {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #e4dfda);
+  border-radius: var(--radius-sm, 2px);
+  font-size: 13px;
+}
+
+.accionesModal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .filaEncabezado {
+    flex-direction: column;
+  }
+
+  .barraFiltros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contenedorBusqueda {
+    width: 100%;
+  }
+}
+
+.controlesFiltro {
+  min-width: 0;
+}
+.selectorFiltro {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 768px) {
+  .controlesFiltro {
+    align-items: stretch;
+  }
+  .selectorFiltro {
+    width: 100%;
+  }
+}

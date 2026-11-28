@@ -3,7 +3,7 @@ import styles from './KpiList.module.css'
 function KpiList({ indicadores }) {
   return (
     <ul className={styles.grid}>
-      {indicadores.map((indicador) => (
+      {indicadores.map(indicador => (
         <li
           className={`${styles.kpi} ${styles[indicador.tono] ?? ''}`}
           key={indicador.etiqueta}

@@ -1,7 +1,6 @@
 # Normas de desarrollo
 
-Estas normas aplican a todo el repositorio. Usa `src/ejemplo/` como referencia
-visual y de estructura, y sigue el patrón de composición de
+Estas normas aplican a todo el repositorio. Sigue el patrón de composición de
 `src/features/history-2/` para las nuevas historias.
 
 ## Principios
@@ -40,13 +39,19 @@ src/
 │   └── router.jsx                 # Configuración central de rutas
 ├── core/
 │   ├── styles/                    # Tokens y estilos globales
-│   └── ui/                        # Componentes compartidos entre historias
+│   ├── ui/                        # Componentes compartidos entre historias
+│   └── utils/                     # Cliente de la API (*Api.js), repositorios y hooks compartidos
 └── features/
     └── history-n/
         ├── pages/                 # Pantallas de la historia
-        └── components/            # Componentes propios de la historia
+        ├── components/            # Componentes propios de la historia
+        └── utils/                 # Lógica y hooks propios de la historia
 ```
 
+- Las llamadas al backend viven en `src/core/utils/` (`clienteApi.js` hace el
+  `fetch` y cada dominio tiene su `*Api.js`). Una historia no crea su propio
+  cliente HTTP ni una carpeta `api/`: importa las funciones de `core/utils` y,
+  si necesita adaptar los datos a su pantalla, lo hace en su `utils/`.
 - Mantén los componentes de uso transversal en `src/core/ui/`. Por ejemplo,
   antes de crear otro encabezado, pie de página, navegación, perfil o botón,
   comprueba los componentes existentes.
@@ -125,9 +130,10 @@ src/
 - Mantén el contrato asíncrono `get()`, `save(value)` y `remove()` para poder
   sustituir los repositorios locales por una API que acceda a SQL desde el
   backend, sin cambiar las llamadas de las pantallas.
-- Usa el adaptador común y la fábrica de repositorios para serialización JSON,
-  claves con prefijo `congress:`, versiones y validación. Un cambio de versión
-  requiere una migración explícita; no borres datos incompatibles automáticamente.
+- Usa `createStateRepository` para leer y escribir JSON, con claves de prefijo
+  `congress:` y validadores de cada estado. Conserva el formato existente
+  `{ version: 1, data }`; no borres datos incompatibles automáticamente ni
+  agregues capas de almacenamiento para necesidades hipotéticas.
 - Maneja carga y errores en la interfaz y confirma el guardado solo después
   de que termine `await save(...)`. No permitas cambios durante carga o guardado
   que puedan sobrescribirse.

@@ -1,27 +1,39 @@
 import { Link } from 'react-router'
 import styles from './HeroSection.module.css'
 
-function HeroSection() {
+const authorAction = { to: '/autor', label: 'Ir a mi área de autor' }
+
+const actionsByRole = {
+  committee: { to: '/configuracion', label: 'Ir a la configuración del congreso' },
+  reviewer: { to: '/mi-cuenta', label: 'Ir a mi cuenta' },
+  author: authorAction,
+  both: authorAction,
+  guest: { to: '/iniciar-sesion', label: 'Enviar mi trabajo' },
+}
+
+function HeroSection({ rol, edicion }) {
+  const action = actionsByRole[rol] ?? actionsByRole.guest
+
   return (
     <section className={styles.hero}>
       <div className={styles.content}>
         <div className={styles.text}>
           <p className={styles.eyebrow}>
-            CONVOCATORIA ABIERTA · LIMA, 12 Y 13 DE NOVIEMBRE DE 2026
+            CONGRESO ACADÉMICO · LIMA · EDICIÓN {edicion?.editionYear}
           </p>
-          <h1>VIII Congreso Académico Estudiantil</h1>
-          <p className={styles.description}>
-            Presenta tu investigación ante el comité y la comunidad universitaria.
-            Recibimos artículos completos, resúmenes extendidos, pósteres y casos
-            de estudio en seis ejes temáticos.
-          </p>
+          <h1>{edicion?.editionName ?? 'VIII Congreso Académico Estudiantil'}</h1>
+          <p className={styles.description}>{edicion?.editionDescription}</p>
         </div>
 
         <div className={styles.actions}>
-          <Link className={styles.primaryAction} to="/iniciar-sesion">
-            Enviar mi trabajo
+          <Link className={styles.primaryAction} to={action.to}>
+            {action.label}
           </Link>
-          <a className={styles.secondaryAction} href="#deadlines">
+          <a
+            className={styles.secondaryAction}
+            href="/Tema6_Mockups_f.pdf"
+            download="Tema6_Mockups_f.pdf"
+          >
             Descargar las bases
           </a>
         </div>

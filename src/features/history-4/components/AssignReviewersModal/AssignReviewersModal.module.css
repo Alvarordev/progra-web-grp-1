@@ -1,0 +1,306 @@
+.cuerpoModal {
+  margin: 0;
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  color: var(--color-text);
+}
+
+.referenciaTrabajo {
+  margin: calc(var(--space-2) * -1) calc(var(--space-5) * -1) 0;
+  padding: 0 var(--space-5) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+  color: var(--color-text-muted);
+}
+
+.mensajeError {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-small);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--font-size-help);
+}
+
+.alertaConflicto {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-small);
+  background: var(--color-danger-soft);
+}
+
+.iconoAlerta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  color: var(--color-surface);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.textoConflicto {
+  margin: 0;
+  font-size: var(--font-size-help);
+  line-height: var(--line-height-help);
+  color: var(--color-danger);
+}
+
+.filaBusqueda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.campoBusqueda {
+  flex: 1;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--font-size-help);
+  color: var(--color-text);
+}
+
+.campoBusqueda:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.avisoRegla {
+  font-size: var(--font-size-label);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.contenedorTabla {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-help);
+}
+
+.tabla thead th {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tabla tbody td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  line-height: 16px;
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.filaSeleccionada {
+  background: var(--color-primary-soft);
+}
+
+.filaCoautor {
+  background: var(--color-danger-soft);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.filaCoautor .celdaNombre,
+.filaCoautor .celdaCarga {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.filaInstitucion {
+  background: var(--color-warning-soft);
+}
+
+.casilla {
+  accent-color: var(--color-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.celdaNombre {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.celdaLineas {
+  color: var(--color-text-muted);
+}
+
+.celdaCarga {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.estadoSinConflicto {
+  color: var(--color-success);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estadoCoautor {
+  color: var(--color-danger);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estadoInstitucion {
+  color: var(--color-warning);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bloqueJustificacion {
+  padding-top: var(--space-1);
+}
+
+.etiquetaJustificacion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-warning);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bloqueFecha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.etiquetaFecha {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.contenedorCampoFecha {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 190px;
+}
+
+.campoFecha {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  padding-right: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: var(--font-size-help);
+  color: var(--color-text);
+}
+
+.campoFecha:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.iconoCalendario {
+  position: absolute;
+  right: 10px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.pieModal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.resumenSeleccion {
+  font-size: var(--font-size-help);
+}
+
+.avisoFaltante {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.conteoSeleccion {
+  color: var(--color-text-muted);
+}
+
+.accionesPie {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cuerpoModal {
+  min-width: 0;
+}
+.contenedorTabla {
+  max-height: 280px;
+  overflow: auto;
+}
+.campoBusqueda {
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .filaBusqueda,
+  .pieModal {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .accionesPie {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .tabla {
+    min-width: 720px;
+  }
+}

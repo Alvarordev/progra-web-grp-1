@@ -12,12 +12,10 @@ const tabs = [
 function ConfigurationTabs() {
   return (
     <nav aria-label="Configuración de la edición" className={styles.tabs}>
-      {tabs.map((tab) => (
+      {tabs.map(tab => (
         <NavLink
           aria-current={tab.end ? 'page' : undefined}
-          className={({ isActive }) =>
-            `${styles.tab} ${isActive ? styles.active : ''}`
-          }
+          className={({ isActive }) => `${styles.tab} ${isActive ? styles.active : ''}`}
           end={tab.end}
           key={tab.to}
           to={tab.to}

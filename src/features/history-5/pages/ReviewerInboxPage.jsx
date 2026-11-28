@@ -1,71 +1,17 @@
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import useConference from '../../../core/utils/useConference.js'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { reviewsRepository, sessionRepository } from '../../../core/utils/repositories.js'
-import { getReviewKey } from '../../../core/utils/states/reviewsState.js'
+import { consultarAsignaciones } from '../../../core/utils/usuariosApi.js'
+import { getReviewActivity } from '../../../core/utils/reviewerAssignments.js'
+import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
+import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import ReviewAssignmentCard from '../components/ReviewAssignmentCard/ReviewAssignmentCard.jsx'
 import styles from './ReviewerInboxPage.module.css'
-
-const initialAssignments = [
-  {
-    codigo: 'TRB-2026-042',
-    titulo: 'Predicción de deserción universitaria mediante aprendizaje supervisado',
-    eje: 'Inteligencia artificial y datos',
-    tipoTrabajo: 'Artículo completo',
-    estado: 'Revisión pendiente',
-    tipoEstado: 'pendiente',
-    fecha: 'Vence el 15/10/2026 · faltan 3 días',
-    accion: 'Evaluar',
-  },
-  {
-    codigo: 'TRB-2026-053',
-    titulo: 'Bienestar emocional y rendimiento académico en primeros ciclos',
-    eje: 'Salud y sociedad',
-    tipoTrabajo: 'Póster',
-    estado: 'Vencida',
-    tipoEstado: 'vencida',
-    fecha: 'Venció el 09/10/2026 · hace 3 días',
-    accion: 'Evaluar ahora',
-  },
-  {
-    codigo: 'TRB-2026-031',
-    titulo: 'Refactorización guiada por métricas de deuda técnica',
-    eje: 'Ingeniería de software',
-    tipoTrabajo: 'Artículo completo',
-    estado: 'Entregada',
-    tipoEstado: 'entregada',
-    fecha: 'Enviada el 06/10/2026 · aceptar con observaciones',
-  },
-  {
-    codigo: 'TRB-2026-051',
-    titulo: 'Evaluación del uso de agua reciclada en riego de áreas verdes del campus',
-    eje: 'Sostenibilidad y ciudad',
-    tipoTrabajo: 'Resumen extendido',
-    estado: 'Entregada',
-    tipoEstado: 'entregada',
-    fecha: 'Enviada el 04/10/2026 · aceptar',
-  },
-  {
-    codigo: 'TRB-2026-035',
-    titulo: 'Pruebas automatizadas en proyectos universitarios de software',
-    eje: 'Ingeniería de software',
-    tipoTrabajo: 'Resumen extendido',
-    estado: 'Entregada',
-    tipoEstado: 'entregada',
-    fecha: 'Enviada el 02/10/2026 · aceptar',
-  },
-  {
-    codigo: 'TRB-2026-045',
-    titulo: 'Detección de fraude en pagos móviles con modelos de árboles',
-    eje: 'Economía y mercados',
-    tipoTrabajo: 'Artículo completo',
-    estado: 'Entregada',
-    tipoEstado: 'entregada',
-    fecha: 'Enviada el 30/09/2026 · rechazar',
-  },
-]
 
 const filters = [
   { id: 'todas', label: 'Todas' },
@@ -74,49 +20,46 @@ const filters = [
   { id: 'vencidas', label: 'Vencidas', warning: true },
 ]
 
-const initialReviews = {}
-const recommendationLabels = {
-  aceptar: 'aceptar',
-  observaciones: 'aceptar con observaciones',
-  rechazar: 'rechazar',
-}
-
+const repositorioAsignaciones = { get: consultarAsignaciones }
 function matchesFilter(assignment, filterId) {
-  if (filterId === 'todas') return true
-  if (filterId === 'pendientes') return assignment.tipoEstado !== 'entregada'
-  if (filterId === 'entregadas') return assignment.tipoEstado === 'entregada'
+  if (filterId === 'todas') {
+    return true
+  }
+  if (filterId === 'pendientes') {
+    return assignment.tipoEstado !== 'entregada'
+  }
+  if (filterId === 'entregadas') {
+    return assignment.tipoEstado === 'entregada'
+  }
   return assignment.tipoEstado === 'vencida'
 }
 
 function ReviewerInboxPage() {
-  const reviewsState = useStoredState(reviewsRepository, initialReviews)
-  const sessionState = useStoredState(sessionRepository, null)
-  const reviewerId = sessionState.value?.userId ?? 'demo-reviewer'
-  const assignments = initialAssignments.map((item) => {
-    const review = reviewsState.value[getReviewKey(reviewerId, item.codigo)]
-    return review?.status === 'submitted'
-      ? { ...item, estado: 'Entregada', tipoEstado: 'entregada', accion: undefined, fecha: `Enviada el ${new Date(review.updatedAt).toLocaleDateString('es-PE')} · ${recommendationLabels[review.recommendation]}` }
-      : item
-  })
+  const reviewsState = useStoredState(repositorioAsignaciones, [])
+  const profileState = useReviewerProfile()
+  const conference = useConference()
+  const assignments = reviewsState.value
   const [selectedFilter, setSelectedFilter] = useState('todas')
-  const pendingCount = assignments.filter(
-    (assignment) => assignment.tipoEstado !== 'entregada',
-  ).length
-  const completedCount = assignments.filter(
-    (assignment) => assignment.tipoEstado === 'entregada',
-  ).length
-  const overdueCount = assignments.filter(
-    (assignment) => assignment.tipoEstado === 'vencida',
-  ).length
-  const visibleAssignments = assignments.filter((assignment) =>
-    matchesFilter(assignment, selectedFilter),
+  const {
+    pending: pendingCount,
+    completed: completedCount,
+    overdue: overdueCount,
+  } = getReviewActivity(assignments)
+  const visibleAssignments = assignments.filter(assignment =>
+    matchesFilter(assignment, selectedFilter)
   )
   const noHayAsignaciones = assignments.length === 0
 
   function getFilterCount(filterId) {
-    if (filterId === 'todas') return assignments.length
-    if (filterId === 'pendientes') return pendingCount
-    if (filterId === 'entregadas') return completedCount
+    if (filterId === 'todas') {
+      return assignments.length
+    }
+    if (filterId === 'pendientes') {
+      return pendingCount
+    }
+    if (filterId === 'entregadas') {
+      return completedCount
+    }
     return overdueCount
   }
 
@@ -125,17 +68,17 @@ function ReviewerInboxPage() {
       <Header estado="En revisión" />
       <ReviewerNavigation
         rutaActiva="/bandeja-revision"
-        usuario={{
-          iniciales: 'LR',
-          nombre: 'Mg. Luis Ramírez Cárdenas',
-          rol: 'Rol: Revisor',
-        }}
+        usuario={getReviewerUser(profileState.profile)}
       />
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {(reviewsState.loading || sessionState.loading) && <p role="status">Cargando revisiones…</p>}
-          {(reviewsState.error || sessionState.error) && <p role="alert">{reviewsState.error || sessionState.error}</p>}
+          {(reviewsState.loading || profileState.loading) && (
+            <p role="status">Cargando revisiones…</p>
+          )}
+          {(reviewsState.error || profileState.error) && (
+            <p role="alert">{reviewsState.error || profileState.error}</p>
+          )}
           {noHayAsignaciones ? (
             <>
               <div className={styles.emptyHeading}>
@@ -143,17 +86,24 @@ function ReviewerInboxPage() {
                 <p>Sin trabajos asignados por ahora</p>
               </div>
 
-              <section className={styles.emptyState} aria-label="Sin revisiones asignadas">
-                <div className={styles.emptyIcon} aria-hidden="true">✓</div>
+              <section
+                className={styles.emptyState}
+                aria-label="Sin revisiones asignadas"
+              >
+                <div className={styles.emptyIcon} aria-hidden="true">
+                  ✓
+                </div>
                 <h2>No tiene revisiones asignadas</h2>
                 <p>
-                  El comité asigna los trabajos cuando cierra la recepción, el 30/09/2026.
+                  El comité asigna los trabajos cuando cierra la recepción, el{' '}
+                  {formatScheduleDate(conference.schedule.reception ?? '')}.
                   <br />
-                  Mantenga sus líneas de interés actualizadas para recibir trabajos afines.
+                  Mantenga sus líneas de interés actualizadas para recibir trabajos
+                  afines.
                 </p>
-                <button className={styles.emptyAction} type="button">
+                <Link className={styles.emptyAction} to="/mi-cuenta">
                   Actualizar mis líneas de interés
-                </button>
+                </Link>
               </section>
             </>
           ) : (
@@ -162,7 +112,8 @@ function ReviewerInboxPage() {
                 <div>
                   <h1>Mi bandeja de revisión</h1>
                   <p>
-                    {assignments.length} trabajos asignados · la etapa de revisión cierra el 20/10/2026 a las 18:00
+                    {assignments.length} trabajos asignados · la etapa de revisión cierra
+                    el {formatScheduleDate(conference.schedule.review ?? '')}
                   </p>
                 </div>
 
@@ -179,14 +130,16 @@ function ReviewerInboxPage() {
               </div>
 
               <nav aria-label="Filtrar revisiones" className={styles.filters}>
-                {filters.map((filter) => (
+                {filters.map(filter => (
                   <button
                     aria-pressed={selectedFilter === filter.id}
                     className={[
                       styles.filter,
                       selectedFilter === filter.id && styles.filterActive,
                       filter.warning && styles.filterWarning,
-                    ].filter(Boolean).join(' ')}
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                     key={filter.id}
                     onClick={() => setSelectedFilter(filter.id)}
                     type="button"
@@ -197,9 +150,15 @@ function ReviewerInboxPage() {
               </nav>
 
               {visibleAssignments.length > 0 ? (
-                <section aria-label="Trabajos asignados" className={styles.assignmentGrid}>
-                  {visibleAssignments.map((assignment) => (
-                    <ReviewAssignmentCard asignacion={assignment} key={assignment.codigo} />
+                <section
+                  aria-label="Trabajos asignados"
+                  className={styles.assignmentGrid}
+                >
+                  {visibleAssignments.map(assignment => (
+                    <ReviewAssignmentCard
+                      asignacion={assignment}
+                      key={assignment.codigo}
+                    />
                   ))}
                 </section>
               ) : (

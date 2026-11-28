@@ -1,5 +1,5 @@
 .navigationBar {
-  min-height: 52px;
+  min-height: var(--navigation-height);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -7,7 +7,7 @@
 .navigationContent {
   display: flex;
   width: min(100% - var(--space-8), var(--content-width));
-  min-height: 52px;
+  min-height: var(--navigation-height);
   align-items: stretch;
   justify-content: space-between;
   gap: var(--space-5);
@@ -25,7 +25,7 @@
 
 .link {
   display: inline-flex;
-  min-height: 52px;
+  min-height: var(--navigation-height);
   flex: 0 0 auto;
   align-items: center;
   border-bottom: 3px solid transparent;

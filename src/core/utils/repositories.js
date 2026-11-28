@@ -1,72 +1,117 @@
-import { createLocalStorageAdapter } from './persistence/localStorageAdapter.js'
-import createStateRepository from './persistence/createStateRepository.js'
-import {
-  initialEdition,
-  initialEditionStatus,
-  validateEdition,
-  validateEditionStatus,
-} from './states/editionState.js'
-import { validateSession } from './states/sessionState.js'
-import { initialParticipant, validateParticipant } from './states/participantState.js'
-import { initialWorkTypes, validateWorkTypes } from './states/workTypesState.js'
-import { thematicAxes, validateThematicAxes } from './states/thematicAxesState.js'
-import { initialSchedule, validateSchedule } from './states/scheduleState.js'
-import { initialCriteria, validateCriteria } from './states/criteriaState.js'
-import { validateReviews } from './states/reviewsState.js'
+import { initialProgram, validateProgram } from './states/programState.js'
+import { validateDecisions } from './states/decisionsState.js'
 import { initialUsers, validateUsers } from './states/usersState.js'
+import {
+  initialWorks,
+  initialReviewers,
+  initialPendingReviews,
+  validateWorks,
+  validateReviewers,
+  validatePendingReviews,
+} from './states/worksAssignmentState.js'
+import createStateRepository from './persistence/createStateRepository.js'
+import { consultarSesion, cerrarSesion } from './usuariosApi.js'
+import {
+  initialSessionPreferences,
+  validateSessionPreferences,
+} from './states/sessionPreferencesState.js'
+import {
+  initialParticipant,
+  validateParticipant,
+  validateParticipants,
+} from './states/participantState.js'
+import { validateDemoCredentials } from './states/demoCredentialsState.js'
+import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
-
-const adapter = createLocalStorageAdapter()
-
-export const reviewsRepository = createStateRepository({
-  adapter, name: 'reviews', defaultValue: {}, validate: validateReviews,
+export const sessionPreferencesRepository = createStateRepository({
+  name: 'session-preferences',
+  defaultValue: initialSessionPreferences,
+  validate: validateSessionPreferences,
 })
 
-export const workTypesRepository = createStateRepository({
-  adapter, name: 'work-types', defaultValue: initialWorkTypes, validate: validateWorkTypes,
+export const participantsRepository = createStateRepository({
+  name: 'participants',
+  defaultValue: [],
+  validate: validateParticipants,
 })
 
-export const thematicAxesRepository = createStateRepository({
-  adapter, name: 'thematic-axes', defaultValue: thematicAxes, validate: validateThematicAxes,
+export const reviewerProfilesRepository = createStateRepository({
+  name: 'reviewer-profiles',
+  defaultValue: {},
+  validate: validateReviewerProfiles,
 })
 
-export const scheduleRepository = createStateRepository({
-  adapter, name: 'schedule', defaultValue: initialSchedule, validate: validateSchedule,
+export const demoCredentialsRepository = createStateRepository({
+  name: 'credentials',
+  defaultValue: [],
+  validate: validateDemoCredentials,
 })
 
-export const criteriaRepository = createStateRepository({
-  adapter, name: 'criteria', defaultValue: initialCriteria, validate: validateCriteria,
-})
+export { repositorioRevisiones as reviewsRepository } from './revisionesApi.js'
 
-// Punto de composición: aquí se sustituirán los repositorios por los de la API.
-export const editionRepository = createStateRepository({
-  adapter,
-  name: 'edition',
-  defaultValue: initialEdition,
-  validate: validateEdition,
-})
+export {
+  criteriaRepository,
+  editionRepository,
+  editionStatusRepository,
+  scheduleRepository,
+  thematicAxesRepository,
+  workTypesRepository,
+} from './editionRepositories.js'
 
-export const editionStatusRepository = createStateRepository({
-  adapter,
-  name: 'edition-status',
-  defaultValue: initialEditionStatus,
-  validate: validateEditionStatus,
-})
-
-export const sessionRepository = createStateRepository({
-  adapter,
-  name: 'session',
-  defaultValue: null,
-  validate: validateSession,
-})
+export const sessionRepository = { get: consultarSesion, remove: cerrarSesion }
 
 export const participantRepository = createStateRepository({
-  adapter,
   name: 'participant',
   defaultValue: initialParticipant,
   validate: validateParticipant,
 })
 
+export const worksRepository = createStateRepository({
+  name: 'works',
+  defaultValue: initialWorks,
+  validate: validateWorks,
+})
+
+export const reviewersRepository = createStateRepository({
+  name: 'reviewers',
+  defaultValue: initialReviewers,
+  validate: validateReviewers,
+})
+
+export const pendingReviewsRepository = createStateRepository({
+  name: 'pending-reviews',
+  defaultValue: initialPendingReviews,
+  validate: validatePendingReviews,
+})
+
 export const usersRepository = createStateRepository({
-  adapter, name: 'users', defaultValue: initialUsers, validate: validateUsers,
+  name: 'users',
+  defaultValue: initialUsers,
+  validate: validateUsers,
+})
+
+export const programRepository = createStateRepository({
+  name: 'program',
+  defaultValue: initialProgram,
+  validate: validateProgram,
+})
+
+export const decisionsRepository = createStateRepository({
+  name: 'decisions',
+  defaultValue: {},
+  validate: validateDecisions,
+})
+
+export const remindersRepository = createStateRepository({
+  name: 'reminders',
+  defaultValue: [],
+  validate: value =>
+    Array.isArray(value) &&
+    value.every(
+      item =>
+        typeof item.id === 'string' &&
+        typeof item.codigo === 'string' &&
+        typeof item.revisorId === 'string' &&
+        typeof item.createdAt === 'string'
+    ),
 })

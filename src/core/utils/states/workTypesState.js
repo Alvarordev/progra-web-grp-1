@@ -34,13 +34,25 @@ export const initialWorkTypes = [
 ]
 
 export function validateWorkTypes(value) {
-  return Array.isArray(value) && value.every((item) =>
-    item !== null && typeof item.id === 'string' &&
-    typeof item.nombre === 'string' && Boolean(item.nombre.trim()) &&
-    typeof item.extensionMaxima === 'string' &&
-    Number.parseFloat(item.extensionMaxima.replace(/\s/g, '').replace(',', '.')) > 0 &&
-    ['PDF', 'PDF · plantilla IEEE', 'PDF · orientación vertical'].includes(item.formatoEsperado) &&
-    typeof item.admiteCoautores === 'boolean' &&
-    (item.admiteCoautores ? Number.isInteger(item.maxCoautores) && item.maxCoautores > 0 : item.maxCoautores === null),
-  ) && new Set(value.map((item) => item.id)).size === value.length
+  return (
+    Array.isArray(value) &&
+    value.every(
+      item =>
+        item !== null &&
+        typeof item.id === 'string' &&
+        typeof item.nombre === 'string' &&
+        Boolean(item.nombre.trim()) &&
+        typeof item.extensionMaxima === 'string' &&
+        Number.parseFloat(item.extensionMaxima.replace(/\s/g, '').replace(',', '.')) >
+          0 &&
+        ['PDF', 'PDF · plantilla IEEE', 'PDF · orientación vertical'].includes(
+          item.formatoEsperado
+        ) &&
+        typeof item.admiteCoautores === 'boolean' &&
+        (item.admiteCoautores
+          ? Number.isInteger(item.maxCoautores) && item.maxCoautores > 0
+          : item.maxCoautores === null)
+    ) &&
+    new Set(value.map(item => item.id)).size === value.length
+  )
 }

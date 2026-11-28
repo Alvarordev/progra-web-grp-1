@@ -13,11 +13,11 @@ function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
         <nav aria-label="Navegación del revisor" className={styles.navigation}>
-          {navigationItems.map((elemento) => (
+          {navigationItems.map(elemento => (
             <NavLink
               aria-current={elemento.to === rutaActiva ? 'page' : undefined}
               className={({ isActive: estaActiva }) =>
-                `${styles.link} ${estaActiva ? styles.active : ''}`
+                `${styles.link} ${estaActiva || elemento.to === rutaActiva ? styles.active : ''}`
               }
               end
               key={elemento.to}
@@ -27,7 +27,7 @@ function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
             </NavLink>
           ))}
         </nav>
-        <UserProfile {...usuario} />
+        <UserProfile {...usuario} permitirCerrarSesion />
       </div>
     </div>
   )

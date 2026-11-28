@@ -6,24 +6,29 @@ import DonutChartCard from '../components/DonutChartCard/DonutChartCard.jsx'
 import KpiList from '../components/KpiList/KpiList.jsx'
 import MetricsTabs from '../components/MetricsTabs/MetricsTabs.jsx'
 import PageHeading from '../components/PageHeading/PageHeading.jsx'
-import {
-  metricIndicators,
-  worksByAxis,
-  worksByStatus,
-} from '../data/congressData.js'
+import { obtenerMetricas } from '../../../core/utils/metricasApi.js'
 import { exportMetricsPdf } from '../utils/exportMetricsPdf.js'
+import { toAxisData, toIndicators, toStatusData } from '../utils/metrics.js'
+import useRemoteData from '../utils/useRemoteData.js'
 import styles from './MetricsPage.module.css'
 
 const TITLE = 'Tablero de métricas'
-const DESCRIPTION = 'Edición 2026 · datos al 28/10/2026'
 const AXIS_TITLE = 'Trabajos por eje temático'
 const STATUS_TITLE = 'Trabajos por estado'
 const STATUS_NOTE =
   'Cada segmento indica también su valor numérico: el color nunca es el único portador de la información.'
 
 function MetricsPage() {
+  const { data, loading, error } = useRemoteData(obtenerMetricas)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
+
+  const description = data
+    ? `Edición ${data.edicion.anio} · datos al ${new Date(data.generadoEn).toLocaleDateString('es-PE')}`
+    : ''
+  const metricIndicators = data ? toIndicators(data.indicadores) : []
+  const worksByAxis = data ? toAxisData(data.trabajosPorEje) : []
+  const worksByStatus = data ? toStatusData(data.trabajosPorEstado) : []
 
   async function handleExport() {
     setExporting(true)
@@ -31,7 +36,7 @@ function MetricsPage() {
 
     try {
       await exportMetricsPdf({
-        descripcion: DESCRIPTION,
+        descripcion: description,
         indicadores: metricIndicators,
         notaEstados: STATUS_NOTE,
         titulo: TITLE,
@@ -52,7 +57,7 @@ function MetricsPage() {
       <PageHeading
         acciones={
           <Button
-            disabled={exporting}
+            disabled={exporting || !data}
             onClick={handleExport}
             type="button"
             variant="secondary"
@@ -60,7 +65,7 @@ function MetricsPage() {
             {exporting ? 'Generando PDF…' : 'Exportar reporte'}
           </Button>
         }
-        descripcion={DESCRIPTION}
+        descripcion={description}
         titulo={TITLE}
       />
       {exportError && (
@@ -68,16 +73,21 @@ function MetricsPage() {
           {exportError}
         </p>
       )}
+      {(loading || error) && <p role="status">{error || 'Cargando métricas…'}</p>}
       <MetricsTabs />
-      <KpiList indicadores={metricIndicators} />
-      <div className={styles.charts}>
-        <BarChartCard datos={worksByAxis} titulo={AXIS_TITLE} />
-        <DonutChartCard
-          datos={worksByStatus}
-          nota={STATUS_NOTE}
-          titulo={STATUS_TITLE}
-        />
-      </div>
+      {data && (
+        <>
+          <KpiList indicadores={metricIndicators} />
+          <div className={styles.charts}>
+            <BarChartCard datos={worksByAxis} titulo={AXIS_TITLE} />
+            <DonutChartCard
+              datos={worksByStatus}
+              nota={STATUS_NOTE}
+              titulo={STATUS_TITLE}
+            />
+          </div>
+        </>
+      )}
     </BoardPageLayout>
   )
 }

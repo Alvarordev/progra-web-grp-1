@@ -1,4 +1,12 @@
-.tableViewport { composes: tableViewport from '../WorkTypesTable/WorkTypesTable.module.css'; }
-.table { composes: table from '../WorkTypesTable/WorkTypesTable.module.css'; }
-.actions { composes: actions from '../WorkTypesTable/WorkTypesTable.module.css'; }
-.visuallyHidden { composes: visuallyHidden from '../WorkTypesTable/WorkTypesTable.module.css'; }
+.tableViewport {
+  composes: tableViewport from '../WorkTypesTable/WorkTypesTable.module.css';
+}
+.table {
+  composes: table from '../WorkTypesTable/WorkTypesTable.module.css';
+}
+.actions {
+  composes: actions from '../WorkTypesTable/WorkTypesTable.module.css';
+}
+.visuallyHidden {
+  composes: visuallyHidden from '../WorkTypesTable/WorkTypesTable.module.css';
+}

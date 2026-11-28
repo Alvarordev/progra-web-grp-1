@@ -4,40 +4,56 @@ import { workTypesRepository } from '../../../core/utils/repositories.js'
 import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
+import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import WorkTypeModal from '../components/WorkTypeModal/WorkTypeModal.jsx'
 import WorkTypesTable from '../components/WorkTypesTable/WorkTypesTable.jsx'
 import styles from './WorkTypesPage.module.css'
 
 function WorkTypesPage() {
-  const { value: tiposTrabajo, loading, saving, error, save } = useStoredState(workTypesRepository, initialWorkTypes)
+  const {
+    value: tiposTrabajo,
+    loading,
+    saving,
+    error,
+    save,
+  } = useStoredState(workTypesRepository, initialWorkTypes)
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
 
   function handleCreate() {
+    setFeedback('')
     setModal({ modo: 'create', tipoTrabajo: null })
   }
 
   function handleEdit(tipoTrabajo) {
+    setFeedback('')
     setModal({ modo: 'edit', tipoTrabajo })
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('¿Eliminar este tipo de trabajo?')) return
+    if (!window.confirm('¿Eliminar este tipo de trabajo?')) {
+      return
+    }
     try {
-      await save(tiposTrabajo.filter((item) => item.id !== id))
-      setFeedback('Tipo de trabajo eliminado.')
-    } catch { setFeedback('') }
+      await save(tiposTrabajo.filter(item => item.id !== id))
+      setFeedback('Tipo de trabajo eliminado correctamente.')
+    } catch {
+      setFeedback('')
+    }
   }
 
   async function handleSave(updatedWorkType) {
-    const nextTypes = modal.modo === 'edit'
-      ? tiposTrabajo.map((item) => item.id === modal.tipoTrabajo.id ? { ...item, ...updatedWorkType } : item)
-      : [...tiposTrabajo, { ...updatedWorkType, id: crypto.randomUUID() }]
+    const nextTypes =
+      modal.modo === 'edit'
+        ? tiposTrabajo.map(item =>
+            item.id === modal.tipoTrabajo.id ? { ...item, ...updatedWorkType } : item
+          )
+        : [...tiposTrabajo, { ...updatedWorkType, id: crypto.randomUUID() }]
     try {
       await save(nextTypes)
       setModal(null)
-      setFeedback('Tipo de trabajo guardado en este navegador.')
+      setFeedback('Tipo de trabajo guardado correctamente.')
     } catch {
       setFeedback('')
     }
@@ -51,15 +67,27 @@ function WorkTypesPage() {
             <h1>Tipos de trabajo</h1>
             <p>{tiposTrabajo.length} tipos habilitados para esta edición</p>
           </div>
-          <Button disabled={loading || saving} onClick={handleCreate} type="button" variant="primary">
+          <Button
+            disabled={loading || saving}
+            onClick={handleCreate}
+            type="button"
+            variant="primary"
+          >
             Nuevo tipo de trabajo
           </Button>
         </header>
 
         <ConfigurationTabs />
-        <p role="status">{loading ? 'Cargando tipos de trabajo…' : error || feedback}</p>
+        <ConfigurationFeedback
+          cargando={loading ? 'Cargando tipos de trabajo…' : ''}
+          error={modal ? '' : error}
+          mensaje={feedback}
+        />
 
-        <section aria-label="Tipos de trabajo de la edición" className={styles.tableSection}>
+        <section
+          aria-label="Tipos de trabajo de la edición"
+          className={styles.tableSection}
+        >
           <WorkTypesTable
             alEditar={handleEdit}
             alEliminar={handleDelete}
@@ -69,14 +97,18 @@ function WorkTypesPage() {
         </section>
 
         <p className={styles.notice}>
-          El alta y la edición de un tipo de trabajo se realizan en modal, con
-          los mismos campos de la tabla y validación de extensión mayor a cero.
+          Los requisitos de cada tipo se muestran al registrar un trabajo. Revise la
+          extensión y el máximo de coautores antes de guardar.
         </p>
       </div>
 
       {modal && (
         <WorkTypeModal
-          alCerrar={() => { if (!saving) setModal(null) }}
+          alCerrar={() => {
+            if (!saving) {
+              setModal(null)
+            }
+          }}
           alGuardar={handleSave}
           guardando={saving}
           errorGuardado={error}

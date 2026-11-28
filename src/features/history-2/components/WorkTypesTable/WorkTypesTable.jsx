@@ -23,7 +23,7 @@ function WorkTypesTable({ alEditar, alEliminar, tiposTrabajo, deshabilitado = fa
           </tr>
         </thead>
         <tbody>
-          {tiposTrabajo.map((tipoTrabajo) => (
+          {tiposTrabajo.map(tipoTrabajo => (
             <tr key={tipoTrabajo.id}>
               <th className={styles.typeName} scope="row">
                 {tipoTrabajo.nombre}

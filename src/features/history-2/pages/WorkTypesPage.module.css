@@ -14,8 +14,8 @@
 
 .pageHeading h1 {
   margin-bottom: var(--space-1);
-  font-size: var(--font-size-section-title);
-  line-height: var(--line-height-section-title);
+  font-size: var(--font-size-page-title);
+  line-height: var(--line-height-page-title);
 }
 
 .pageHeading p {

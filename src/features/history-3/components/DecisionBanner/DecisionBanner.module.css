@@ -1,0 +1,37 @@
+.banner {
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid;
+}
+
+.aceptado {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+  color: #1a6b41;
+}
+
+.rechazado {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-label);
+  letter-spacing: 0.12em;
+  line-height: var(--line-height-label);
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  color: inherit;
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.detail {
+  margin: 0;
+  font-size: var(--font-size-body);
+  line-height: 22px;
+}

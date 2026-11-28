@@ -1,136 +1,148 @@
-# Persistencia de estados
+# Persistencia e integración con la API
 
-Las pantallas consumen repositorios de `repositories.js`. No deben llamar a
-`localStorage` directamente. La primera entrega usa el almacenamiento del
-navegador; el contrato asíncrono permite sustituirlo por una API.
+Las pantallas consumen servicios y repositorios compartidos. Historia 1 utiliza
+la API del backend y cookies de sesión; los datos locales de otras historias
+mantienen sus repositorios de demostración.
 
-## Organización
+## Archivos
 
-- `persistence/localStorageAdapter.js`: acceso al navegador y serialización JSON.
-- `persistence/createStateRepository.js`: claves, versiones y validación.
-- `states/`: valores iniciales y validadores de cada estado persistente.
-- `repositories.js`: composición y exportación de los repositorios disponibles.
+- `clienteApi.js`: HTTP, cookies, JSON y errores de API.
+- `usuariosApi.js`: registro, sesiones, perfil, contraseña y recuperación.
+- `accounts.js`: coordinación de cuentas y aliases utilizados por otras pantallas.
+- `useReviewerProfile.js`: carga/guardado del perfil y actividad de PostgreSQL.
+- `revisionesApi.js`: lee `/revisiones`, adapta las evaluaciones al formato de las
+  pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
+- `gestionUsuariosApi.js` y `metricasApi.js`: gestión de usuarios (listar, invitar,
+  editar, bloquear, reactivar) y métricas del comité (Historia 7).
+- `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
+  `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
+- `asignacionesApi.js`: consume las rutas de trabajos recibidos, candidatos,
+  asignación individual/en lote, revisores, seguimiento y recordatorios (Historia 4).
+- `conferenceApi.js`: aliases para la integración existente de ediciones.
+- `editionRepositories.js`: edición, estado, fechas y catálogos mediante la API.
+- `repositories.js`: composición de repositorios remotos y locales.
+- `persistence/createStateRepository.js`: JSON local validado, usado por estados
+  que todavía pertenecen a la demostración local.
 
-## Contrato común
-
-Todos los métodos devuelven una promesa:
-
-| Método | Resultado |
-| --- | --- |
-| `get()` | Datos guardados o una copia del valor inicial si no existen. |
-| `save(value)` | Datos guardados después de validar y completar la escritura. |
-| `remove()` | Elimina únicamente los datos de ese repositorio. |
-
-Las operaciones fallidas rechazan la promesa. La pantalla debe mostrar el error
-y anunciar éxito únicamente después de `await save(...)`. Durante la carga o
-el guardado debe impedir cambios que puedan sobrescribirse. No persistir
-modales, mensajes, errores ni otros estados transitorios de la interfaz.
-
-`EditionSettingsPage` muestra una integración completa. Los datos generales se
-guardan con «Guardar cambios» y el estado con «Cambiar estado de la edición».
-Cambiar el estado no guarda las ediciones pendientes del formulario.
-
-La configuración cuenta con repositorios de ejes, tipos de trabajo, cronograma
-y criterios. Ejes y tipos se guardan al confirmar su modal. Fechas y criterios
-se guardan con su botón principal; las modificaciones pendientes de criterios
-no se guardan al cancelar un modal o abandonar la pantalla. Una lista guardada
-vacía se conserva como tal y no se reemplaza por los datos de ejemplo.
-
-`useStoredState` evita repetir la carga y el guardado en cada pantalla. Devuelve
-`value`, `loading`, `saving`, `error` y `save(value)`; no guarda automáticamente
-al escribir. Los formularios conservan su borrador local hasta guardar.
-
-El cronograma usa cadenas `AAAA-MM-DDTHH:mm` en horario de Lima y exige recepción
-anterior a revisión y revisión anterior a publicación. Los criterios pueden
-guardarse con una suma pendiente; cerrar la recepción y pasar a «En revisión»
-exige una suma de 100. El cierre requiere aceptar la casilla y escribir `CERRAR`.
-Por ahora se guarda el estado: los efectos sobre envíos se conectarán cuando
-exista esa historia.
-
-Las evaluaciones se guardan en `reviewsRepository`, identificadas por usuario
-y código de trabajo. Sin login se utiliza el revisor `demo-reviewer`. El borrador
-admite campos incompletos; el envío requiere puntajes enteros de 0 a 20,
-comentarios obligatorios, recomendación y pesos que sumen 100. Una evaluación
-enviada se recupera en modo lectura y actualiza la bandeja. Se conservan los
-ejemplos de revisiones entregadas del mockup para la demostración.
-Al recuperar un borrador se utilizan los criterios actuales, conservando los
-puntajes y comentarios de los identificadores que sigan presentes. Una
-evaluación enviada conserva su copia de los criterios y pesos usados al enviar.
-
-## Sesión de demostración
-
-El repositorio de sesión está preparado para el futuro formulario de login:
+## Cuentas y sesiones
 
 ```js
-import { sessionRepository } from './repositories.js'
+import {
+  obtenerCuentaActiva,
+  iniciarSesionCuenta,
+  cerrarSesionCuenta,
+} from './accounts.js'
 
-await sessionRepository.save({
-  userId: 'user-1',
-  name: 'Ana Salazar',
-  role: 'committee',
-})
-const session = await sessionRepository.get() // null si no hay sesión
-await sessionRepository.remove() // cierre de sesión
+const cuenta = await iniciarSesionCuenta(correo, contrasena, recordar)
+const activa = await obtenerCuentaActiva()
+await cerrarSesionCuenta()
 ```
 
-Esta identidad local sirve para la demostración y no autentica usuarios ni
-autoriza operaciones. El validador admite únicamente `userId`, `name` y `role`;
-no guardar contraseñas ni tokens en este estado. Cuando exista el backend,
-la autenticación y los permisos se comprobarán en el servidor.
+El backend determina la identidad, el bloqueo y el rol. El navegador envía la
+cookie HttpOnly con `credentials: 'include'`; no puede leerla con JavaScript.
+Cambiar una identidad antigua en localStorage no autentica ni concede permisos.
+`sessionRepository.get()` consulta la sesión remota y `remove()` la cierra. La
+identidad no se guarda mediante `save()` en el navegador.
 
-La ficha del participante se guarda separada de la sesión con
-`participantRepository`. Incluye `userId`, `names`, `surnames`, `name`, `email`,
-`institution` y `role`; tampoco contiene la contraseña. La pantalla debe
-guardar primero la ficha y la identidad, y navegar al área del participante
-solo después de que ambas operaciones terminen correctamente.
+`sessionPreferencesRepository` conserva únicamente `{ remember: boolean }` para
+precargar el checkbox. La cookie es temporal sin Recordarme y persistente durante
+7 días con esa opción. El store de sesión tiene una duración temporal de 8 horas
+de inactividad y se conserva entre reinicios del backend.
 
-## Agregar otro estado
+Los aliases `getActiveAccount`, `getAccountHome` y `endAccountSession` permiten
+mantener imports existentes. Las funciones nuevas se nombran en español.
 
-1. Definir su valor inicial y validador en `states/`, con nombres en inglés.
-2. Registrar un repositorio en `repositories.js` con un `name` único y estable.
-3. Importar ese repositorio en la feature y usar `await get/save/remove`.
-4. Manejar carga, errores y confirmación de guardado en la pantalla.
+## Registro
 
-Ejemplo de registro, reutilizando el adaptador común:
+RegistrationPage valida el formulario, envía `POST /api/usuarios` e inicia sesión
+después con `POST /api/usuarios/sesiones`. El servidor verifica dominio, rol,
+términos, campos académicos, confirmación y duplicados. Devuelve mensajes por
+campo en `errores` y nunca devuelve la contraseña ni su hash.
 
-```js
-export const preferencesRepository = createStateRepository({
-  adapter,
-  name: 'preferences',
-  defaultValue: { theme: 'light' },
-  validate: (value) => ['light', 'dark'].includes(value?.theme),
-})
-```
+Autor y Ambos van a `/autor`; Revisor a `/mi-cuenta`; Comité a `/configuracion`.
+El registro público no permite crear un comité. `RegistrationNotice` consume
+`accountCreated` del estado de navegación y muestra un aviso de cinco segundos.
 
-Solo se admiten datos serializables como JSON: objetos simples, arreglos,
-cadenas, números finitos, booleanos y `null`. Representar fechas como cadenas
-ISO; no guardar funciones, archivos, `Date`, `Map` ni referencias circulares.
-El validador de cada estado debe comprobar su estructura completa.
+## Perfil y actividad
 
-Las claves usan el prefijo `congress:` y guardan `{ version: 1, data: ... }`.
-No usar `localStorage.clear()`, porque eliminaría datos ajenos. Si el JSON es
-inválido, falla la validación, cambia la versión o el navegador bloquea el
-almacenamiento, se informa el error sin borrar automáticamente los datos. Un
-guardado explícito válido puede reemplazar datos incompatibles. Una nueva
-versión del formato requiere una migración explícita o un restablecimiento
-deliberado con `remove()`; cambiar el número por sí solo no migra los datos.
+`useReviewerProfile`, cuyo nombre de archivo se conserva por compatibilidad,
+utiliza `usePerfilUsuario` para consumir `/api/usuarios/perfil`. Sirve para autor,
+revisor y ambos. La edición usa un borrador local y se confirma solo tras esperar
+la respuesta del servidor. No escribe el perfil en los repositorios de ejemplo.
 
-## Migración a SQL mediante una API
+Los intereses guardan IDs de ejes vigentes. El backend modifica solo la cuenta de
+la sesión, conserva el correo y evita editar roles o bloqueos desde Mi cuenta.
+La actividad se deriva de asignaciones y evaluaciones: un borrador no es una
+entrega y las vencidas siguen pendientes. La bandeja consume esas asignaciones.
 
-SQL se accederá desde el backend. Implementar repositorios de API que expongan
-el mismo contrato `get()`, `save(value)` y `remove()`, conservando las estructuras
-de datos o mapeando las respuestas del servidor. Sustituir las exportaciones
-en `repositories.js`; las pantallas seguirán esperando promesas y manejando
-sus errores. La API no necesita conocer las claves ni el envoltorio de
-localStorage. La importación de datos locales al servidor, si se necesita,
-será un proceso separado; no ocurre automáticamente al cambiar repositorios.
+`revisionesApi` consulta las evaluaciones autorizadas de PostgreSQL y traduce su
+estado, criterios y comentarios. Guarda una evaluación por operación y conserva
+la protección de lectura de las ya enviadas. Los criterios del borrador provienen
+de la edición del trabajo, no de una edición arbitraria del navegador.
 
-Esta primera versión guarda datos solo en el navegador y origen actuales.
-No sincroniza dispositivos ni pestañas; entre escrituras prevalece la última.
+## Contraseñas y recuperación
+
+El backend usa bcrypt para las cuentas nuevas y acepta las credenciales scrypt
+preexistentes, actualizándolas al autenticar. Las contraseñas de Historia 1 no se
+escriben en `congress:credentials` ni en el estado persistente del navegador.
+
+La recuperación solicita un código al servidor. En desarrollo los correos se
+consultan en Mailpit, puerto 8025. Verificar el código devuelve una prueba que
+permanece solo en memoria React hasta guardar la nueva contraseña. El servidor
+comprueba vencimiento y uso único también al guardar e invalida las sesiones.
+
+El cambio desde Mi cuenta exige la contraseña actual. Conserva la sesión actual
+con una cookie nueva e invalida las otras. Registro, login, cambio y recuperación
+utilizan la misma cuenta en PostgreSQL.
+
+## Rutas y acceso
+
+Los loaders consultan la sesión remota. Sin sesión redirigen al login; un rol
+incompatible muestra 403. Evaluación comprueba una asignación real y los detalles
+de autor comprueban propiedad del trabajo. Esas pantallas no sustituyen los
+middlewares de autenticación/autorización de cada operación del backend.
+
+404 corresponde al comodín de URL. Los fallos de lectura/conexión tienen su
+mensaje separado. Volver al inicio o ver un 403 no borra una sesión válida.
+
+## Ediciones y bases
+
+Los repositorios de edición, cronograma, ejes, tipos y criterios consumen
+`/api/ediciones`. Sus `get/save/remove` son asíncronos y los catálogos traducen
+un cambio de la pantalla a POST/PUT/DELETE del elemento correspondiente.
+La publicación pública de bases utiliza esas lecturas sin modificar datos.
+
+El cronograma se representa como `AAAA-MM-DDTHH:mm` en Lima. `reception.js`
+combina estado y plazo para indicar si la recepción está abierta. Las fechas
+viajan a la API con zona horaria. Guardar borradores de configuración no publica
+automáticamente cambios de etapa o programación.
+
+## Revisión y dictamen (Historia 5)
+
+El consolidado del comité y la pantalla de evaluación leen `/revisiones` y
+`/trabajos` mediante `revisionesApi` y `decisionesApi`. El dictamen se guarda o
+publica con `PUT /api/decisiones/:trabajoId` y ya no usa localStorage. Los hooks
+`useConsolidado` y `useTrabajoEvaluacion` y los adaptadores que dependen de la
+pantalla están en `features/history-5/utils/`; no contienen llamadas HTTP.
+
+## Estados locales de otras historias
+
+`createStateRepository` mantiene `{ version: 1, data }` y claves `congress:*`.
+`get/save/remove` devuelven promesas y `subscribe` permite refrescar consumidores
+del mismo repositorio. Se conserva una colección guardada vacía y los datos
+incompatibles producen un error sin borrado automático.
+
+`worksRepository`, los datos de directorio, decisiones, recordatorios y programa
+mantienen los adaptadores que utiliza su historia. Editar un directorio local no
+modifica la identidad, credenciales o permisos reales del backend. Importar esos
+datos a SQL requiere la integración explícita de la historia correspondiente.
+
+Los formularios conservan borradores locales hasta guardar. Los mensajes,
+modales, errores y flags de carga no se persisten como datos de negocio.
 
 ## Verificación
 
-Ejecutar `npm run lint`, `npm run build` y `git diff --check`.
-Verificar de forma puntual el guardado, la recuperación después de recargar y
-la eliminación de datos. No conservar archivos de tests ni infraestructura
-de pruebas en el repositorio.
+Ejecutar `npm run lint`, `npm run format:check`, `npm run build` y
+`git diff --check`. Comprobar registro, sesión al recargar, cierre, permisos,
+perfil e intereses, cambio de contraseña y recuperación por correo. Las pruebas
+puntuales no agregan infraestructura de tests al repositorio.
