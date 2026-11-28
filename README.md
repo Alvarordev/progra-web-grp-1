@@ -83,9 +83,9 @@ ediciones se guardan en PostgreSQL mediante la API. La cookie HttpOnly
 `congreso.sid` representa la sesión de cualquier rol. Sin Recordarme es temporal;
 con Recordarme dura 7 días. La sesión del servidor también comprueba bloqueo y rol.
 
-Limpiar localStorage no borra usuarios de PostgreSQL ni cambia sus permisos.
-Solo la preferencia de Recordarme se conserva localmente para Historia 1.
-Los registros locales de otras historias mantienen su alcance de demostración.
+Todos los datos de las historias vienen de la API. El navegador solo conserva la
+preferencia de Recordarme; limpiar localStorage no borra usuarios de PostgreSQL ni
+cambia sus permisos.
 
 ## Despliegue (Vercel + Dokploy)
 

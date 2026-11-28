@@ -1,8 +1,8 @@
 # Persistencia e integración con la API
 
-Las pantallas consumen servicios y repositorios compartidos. Historia 1 utiliza
-la API del backend y cookies de sesión; los datos locales de otras historias
-mantienen sus repositorios de demostración.
+Las pantallas consumen servicios y repositorios compartidos que leen la API del
+backend con la cookie de sesión. El navegador solo guarda la preferencia de
+Recordarme.
 
 ## Archivos
 
@@ -19,16 +19,18 @@ mantienen sus repositorios de demostración.
 - `programaApi.js`: programa del congreso (Historia 6): versión pública, borrador del
   comité, sesiones, asignación de trabajos, publicación y "Mi presentación".
 - `useRemoteData.js`: carga y recarga los datos de un endpoint para las pantallas.
-- `useUsuarioComite.js`: datos de la cuenta de comité para la navegación.
+- `cacheRemota.js`: caché en memoria compartida por las pantallas, con
+  vigencia, deduplicación de peticiones y el hook `useCacheRemota`.
+- `useUsuarioSesion.js`: nombre, iniciales y rol de la sesión para la navegación.
 - `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
   `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
 - `asignacionesApi.js`: consume las rutas de trabajos recibidos, candidatos,
   asignación individual/en lote, revisores, seguimiento y recordatorios (Historia 4).
-- `conferenceApi.js`: aliases para la integración existente de ediciones.
-- `editionRepositories.js`: edición, estado, fechas y catálogos mediante la API.
+- `editionRepositories.js`: edición vigente (`edicionActual`, `useEdicionActual`),
+  estado, fechas y catálogos mediante la API.
 - `repositories.js`: composición de repositorios remotos y locales.
-- `persistence/createStateRepository.js`: JSON local validado, usado por estados
-  que todavía pertenecen a la demostración local.
+- `persistence/createStateRepository.js`: JSON local validado para la preferencia
+  de Recordarme.
 
 ## Cuentas y sesiones
 
@@ -151,23 +153,16 @@ que no se solapen la sala ni la persona moderadora, que el horario aloje a los
 trabajos asignados (20 minutos cada uno) y que solo se programen trabajos aceptados.
 Eliminar una sesión no borra sus trabajos: quedan sin sesión. La moderación se elige
 entre cuentas de comité y revisores activos. Las llamadas usan la edición de
-`VITE_EDICION_ID` o la de mayor año; los datos de ejemplo del programa están en la
-edición 2026, así que para verlos defina `VITE_EDICION_ID=1` en `.env.local`.
+`VITE_EDICION_ID` o la de mayor año.
 
-## Estados locales de otras historias
+## Caché y carga entre pantallas
 
-`createStateRepository` mantiene `{ version: 1, data }` y claves `congress:*`.
-`get/save/remove` devuelven promesas y `subscribe` permite refrescar consumidores
-del mismo repositorio. Se conserva una colección guardada vacía y los datos
-incompatibles producen un error sin borrado automático.
-
-`worksRepository`, los datos de directorio, decisiones, recordatorios y programa
-mantienen los adaptadores que utiliza su historia. Editar un directorio local no
-modifica la identidad, credenciales o permisos reales del backend. Importar esos
-datos a SQL requiere la integración explícita de la historia correspondiente.
-
-Los formularios conservan borradores locales hasta guardar. Los mensajes,
-modales, errores y flags de carga no se persisten como datos de negocio.
+La sesión (`sesionActual`, 60 s) y la edición vigente con sus catálogos (5 min)
+se guardan en memoria con `crearCacheRemota`. Varias lecturas simultáneas
+comparten una sola petición y las pantallas que se montan después reciben el
+valor sin esperar. Iniciar o cerrar sesión, guardar el perfil, recuperar la
+contraseña y guardar la edición o un catálogo actualizan la caché. El backend
+sigue validando la sesión y el rol en cada operación.
 
 ## Verificación
 

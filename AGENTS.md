@@ -137,9 +137,11 @@ src/
 - Maneja carga y errores en la interfaz y confirma el guardado solo después
   de que termine `await save(...)`. No permitas cambios durante carga o guardado
   que puedan sobrescribirse.
-- Persiste datos de negocio o preferencias, no modales, mensajes ni errores
-  de interfaz. La sesión local es una identidad de demostración: no guardes
-  contraseñas ni tokens y no la uses como autorización real.
+- Los datos de negocio viven en el backend: no los escribas en el código ni en
+  el navegador, ni siquiera como valor inicial mientras carga la pantalla. En el
+  navegador guarda solo preferencias, nunca contraseñas ni tokens.
+- Reutiliza la caché compartida (`useActiveAccount`, `useEdicionActual`,
+  `useConference`) en lugar de volver a pedir la sesión o la edición.
 - Elimina únicamente el estado correspondiente con `remove()`; no uses
   `localStorage.clear()`.
 
