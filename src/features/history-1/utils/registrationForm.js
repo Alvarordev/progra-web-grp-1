@@ -5,15 +5,15 @@ import {
 import { getPasswordRequirements } from '../../../core/utils/passwords.js'
 
 export const initialRegistrationForm = {
-  names: 'Rosa María',
-  surnames: 'Quispe Ttito',
-  email: 'rosa.quispe@aloe.ulima.edu.pe',
+  names: '',
+  surnames: '',
+  email: '',
   institution: 'Universidad de Lima',
-  password: 'Segura2026',
-  confirmPassword: 'Segura2026',
+  password: '',
+  confirmPassword: '',
   role: 'author',
-  degree: 'Ingeniería de Sistemas',
-  studentCode: '20211547',
+  degree: '',
+  studentCode: '',
   acceptedTerms: false,
 }
 

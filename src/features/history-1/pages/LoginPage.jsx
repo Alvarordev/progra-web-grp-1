@@ -81,9 +81,7 @@ function LoginPage() {
               aria-describedby={error ? 'login-email-error' : undefined}
               aria-invalid={error || undefined}
               autoComplete="username"
-              defaultValue={
-                location.state?.recoveryEmail || 'rosa.quispe@aloe.ulima.edu.pe'
-              }
+              defaultValue={location.state?.recoveryEmail ?? ''}
               disabled={busy}
               id="email"
               name="email"
