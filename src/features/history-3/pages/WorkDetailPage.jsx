@@ -14,6 +14,9 @@ import WorkDataPanel from '../components/WorkDataPanel/WorkDataPanel.jsx'
 import WorkHeading from '../components/WorkHeading/WorkHeading.jsx'
 import useConference from '../../../core/utils/useConference.js'
 import { aTrabajoLocal } from '../utils/adaptadores.js'
+import { guardarVersionFinal } from '../../../core/utils/trabajosApi.js'
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
+import useMisDecisiones from '../utils/useMisDecisiones.js'
 import useTrabajoAutor from '../utils/useTrabajoAutor.js'
 import styles from './WorkDetailPage.module.css'
 
@@ -21,29 +24,32 @@ function WorkDetailPage() {
   const { codigo } = useParams()
   const conference = useConference()
   const detalle = useTrabajoAutor(codigo)
+  const misDecisiones = useMisDecisiones()
   const trabajo = detalle.trabajo
-    ? aTrabajoLocal(detalle.trabajo, conference.decisions[codigo])
+    ? aTrabajoLocal(detalle.trabajo, misDecisiones.decisiones[codigo])
     : null
 
   const [finalModal, setFinalModal] = useState(false)
   const [finalNotice, setFinalNotice] = useState('')
+  const [finalSaving, setFinalSaving] = useState(false)
+  const [finalError, setFinalError] = useState('')
   async function saveFinal(url) {
+    setFinalSaving(true)
+    setFinalError('')
     try {
-      await conference.save(
-        'works',
-        conference.works.map(work =>
-          work.codigo === codigo ? { ...work, finalDocumentUrl: url } : work
-        )
-      )
+      await guardarVersionFinal(detalle.trabajo.id, url)
+      detalle.recargar()
       setFinalModal(false)
       setFinalNotice('Versión final guardada.')
-    } catch {
-      /* el error se muestra en el modal */
+    } catch (cause) {
+      setFinalError(cause.message)
+    } finally {
+      setFinalSaving(false)
     }
   }
 
-  const errorCarga = conference.error || detalle.error
-  if (conference.loading || detalle.cargando || errorCarga) {
+  const errorCarga = conference.error || detalle.error || misDecisiones.error
+  if (conference.loading || detalle.cargando || misDecisiones.cargando || errorCarga) {
     return (
       <AuthorPageLayout>
         <p role="status">{errorCarga || 'Cargando trabajo…'}</p>
@@ -73,14 +79,28 @@ function WorkDetailPage() {
 
   const { dictamen } = trabajo
   const verDocumento = (
-    <a
-      className={styles.secondaryLink}
-      href={trabajo.enlace}
-      rel="noreferrer"
-      target="_blank"
-    >
-      Ver documento
-    </a>
+    <>
+      {trabajo.enlace && (
+        <a
+          className={styles.secondaryLink}
+          href={trabajo.enlace}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver documento
+        </a>
+      )}
+      {trabajo.enlaceFinal && (
+        <a
+          className={styles.secondaryLink}
+          href={trabajo.enlaceFinal}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Ver versión final
+        </a>
+      )}
+    </>
   )
 
   if (!dictamen) {
@@ -107,7 +127,10 @@ function WorkDetailPage() {
               <h3 className={styles.pendingTitle}>En revisión</h3>
               <p>
                 La retroalimentación se mostrará aquí cuando el comité publique la
-                decisión, el 28/10/2026 a las 12:00.
+                decisión
+                {conference.schedule.publication &&
+                  `, el ${formatScheduleDate(conference.schedule.publication)} a las ${conference.schedule.publication.slice(11, 16)}`}
+                .
               </p>
             </InfoPanel>
             {trabajo.seguimiento && <TrackingPanel pasos={trabajo.seguimiento} />}
@@ -147,10 +170,7 @@ function WorkDetailPage() {
           <ScorePanel dictamen={dictamen} />
           {aceptado ? (
             <InfoPanel etiqueta="Siguiente paso">
-              <p>
-                Envíe la versión final con las observaciones atendidas hasta el
-                05/11/2026.
-              </p>
+              <p>Envíe la versión final con las observaciones atendidas.</p>
               <Button
                 className={styles.fullButton}
                 variant="primary"
@@ -180,13 +200,13 @@ function WorkDetailPage() {
       {finalModal && (
         <FinalVersionModal
           alCerrar={() => {
-            if (!conference.saving) {
+            if (!finalSaving) {
               setFinalModal(false)
             }
           }}
           alGuardar={saveFinal}
-          guardando={conference.saving}
-          error={conference.error}
+          guardando={finalSaving}
+          error={finalError}
         />
       )}
     </AuthorPageLayout>

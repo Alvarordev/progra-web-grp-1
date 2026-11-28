@@ -12,6 +12,13 @@ export const obtenerTrabajo = trabajoId => solicitarApi(`/trabajos/${trabajoId}`
 export const crearTrabajo = datos =>
   solicitarApi('/trabajos', { method: 'POST', body: datos })
 
+// PUT /api/trabajos/:trabajoId/version_final --> enlace de la versión final de un trabajo aceptado
+export const guardarVersionFinal = (trabajoId, enlace) =>
+  solicitarApi(`/trabajos/${trabajoId}/version_final`, {
+    method: 'PUT',
+    body: { enlace },
+  })
+
 // PUT /api/trabajos/:trabajoId --> edita un borrador (datos, coautores) o lo envía al comité
 export const actualizarTrabajo = (trabajoId, datos) =>
   solicitarApi(`/trabajos/${trabajoId}`, { method: 'PUT', body: datos })

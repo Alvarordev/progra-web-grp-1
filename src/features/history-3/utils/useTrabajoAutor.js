@@ -1,32 +1,29 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { obtenerMisTrabajos, obtenerTrabajo } from '../../../core/utils/trabajosApi.js'
 
-// Carga el detalle de un trabajo del autor a partir del codigo de la URL
-// 1) Busca el id en GET /api/trabajos/mios 
-//  2) Pide el detalle a GET /api/trabajos/:id
+// Carga el detalle de un trabajo del autor a partir del código de la URL:
+// 1) busca el id en GET /api/trabajos/mios
+// 2) pide el detalle a GET /api/trabajos/:id
 export default function useTrabajoAutor(codigo) {
-  const [trabajo, setTrabajo] = useState(null)
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState('')
+  const [estado, setEstado] = useState({ trabajo: null, cargando: true, error: '' })
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let activo = true
+
     async function cargar() {
+      setEstado(actual => ({ ...actual, cargando: true, error: '' }))
       try {
         const encontrado = (await obtenerMisTrabajos()).find(
           item => item.codigo === codigo
         )
         const detalle = encontrado ? await obtenerTrabajo(encontrado.id) : null
         if (activo) {
-          setTrabajo(detalle)
+          setEstado({ trabajo: detalle, cargando: false, error: '' })
         }
       } catch (causa) {
         if (activo) {
-          setError(causa.message)
-        }
-      } finally {
-        if (activo) {
-          setCargando(false)
+          setEstado({ trabajo: null, cargando: false, error: causa.message })
         }
       }
     }
@@ -34,7 +31,9 @@ export default function useTrabajoAutor(codigo) {
     return () => {
       activo = false
     }
-  }, [codigo])
+  }, [codigo, version])
 
-  return { trabajo, cargando, error }
+  const recargar = useCallback(() => setVersion(actual => actual + 1), [])
+
+  return { ...estado, recargar }
 }

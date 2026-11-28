@@ -14,6 +14,8 @@ mantienen sus repositorios de demostración.
   pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
 - `gestionUsuariosApi.js` y `metricasApi.js`: gestión de usuarios (listar, invitar,
   editar, bloquear, reactivar) y métricas del comité (Historia 7).
+- `trabajosApi.js`: trabajos del autor (Historia 3): lista, detalle, crear, editar,
+  enviar y versión final. `correos.js`: regla del correo institucional.
 - `programaApi.js`: programa del congreso (Historia 6): versión pública, borrador del
   comité, sesiones, asignación de trabajos, publicación y "Mi presentación".
 - `useRemoteData.js`: carga y recarga los datos de un endpoint para las pantallas.
@@ -128,6 +130,15 @@ El consolidado del comité y la pantalla de evaluación leen `/revisiones` y
 publica con `PUT /api/decisiones/:trabajoId` y ya no usa localStorage. Los hooks
 `useConsolidado` y `useTrabajoEvaluacion` y los adaptadores que dependen de la
 pantalla están en `features/history-5/utils/`; no contienen llamadas HTTP.
+
+## Trabajos del autor (Historia 3)
+
+Las pantallas del autor consumen `/api/trabajos/mios`, `/api/trabajos/:id` y `PUT` para
+guardar el borrador, los coautores y el envío. Los dictámenes publicados, con promedio,
+puntaje por criterio y comentarios, vienen de `GET /api/decisiones`; la versión final
+se guarda con `PUT /api/trabajos/:id/version_final`. Un trabajo enviado solo se abre en
+modo lectura. Los coautores deben tener correo institucional y el borrador necesita
+al menos título, tipo y eje, igual que en el servidor.
 
 ## Programa (Historia 6)
 

@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useSearchParams } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
 import useConference from '../../../core/utils/useConference.js'
+import { esCorreoInstitucional } from '../../../core/utils/correos.js'
 import { receptionIsOpen } from '../../../core/utils/submissions.js'
 import { actualizarTrabajo } from '../../../core/utils/trabajosApi.js'
 import { aCuerpoTrabajo, aTrabajoLocal } from '../utils/adaptadores.js'
@@ -88,6 +89,8 @@ function CoauthorsPage() {
     }
     if (!/^\S+@\S+\.\S+$/.test(correo)) {
       errors.correo = 'Ingrese un correo válido.'
+    } else if (!esCorreoInstitucional(correo)) {
+      errors.correo = 'Use un correo institucional (@ulima.edu.pe o @aloe.ulima.edu.pe).'
     } else if (autores.some(author => author.correo?.toLowerCase() === correo)) {
       errors.correo = 'Este correo ya figura entre los coautores del trabajo.'
     }
@@ -134,6 +137,10 @@ function CoauthorsPage() {
         <p role="status">Cargando coautores…</p>
       </AuthorPageLayout>
     )
+  }
+
+  if (raw && raw.estado !== 'Borrador') {
+    return <Navigate replace to={`/autor/trabajos/${raw.codigo}/lectura`} />
   }
   if (!trabajo) {
     return (

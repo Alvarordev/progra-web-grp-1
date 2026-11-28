@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import Button from '../../../core/ui/Button/Button.jsx'
 import AuthorPageLayout from '../components/AuthorPageLayout/AuthorPageLayout.jsx'
 import DeadlineNotice from '../components/DeadlineNotice/DeadlineNotice.jsx'
 import FormField from '../components/FormField/FormField.jsx'
 import WorkStatusBadge from '../components/WorkStatusBadge/WorkStatusBadge.jsx'
-import { sampleWork } from '../../../core/utils/states/submissionState.js'
 import useConference from '../../../core/utils/useConference.js'
 import { emptySubmission, receptionIsOpen } from '../../../core/utils/submissions.js'
 import { actualizarTrabajo, crearTrabajo } from '../../../core/utils/trabajosApi.js'
@@ -65,9 +64,6 @@ function NewWorkPage() {
     if (stored) {
       return aTrabajoLocal(stored)
     }
-    if (conference.account?.email === 'rosa.quispe@aloe.ulima.edu.pe') {
-      return sampleWork
-    }
     return { ...emptySubmission, tipo: conference.types[0]?.nombre ?? '' }
   }
 
@@ -81,7 +77,7 @@ function NewWorkPage() {
   const thematicAxes = conference.axes.map(axis => axis.nombre)
   const [nuevaPalabra, setNuevaPalabra] = useState('')
   const [errores, setErrores] = useState({})
-  const [borradorGuardado, setBorradorGuardado] = useState(false)
+  const [borradorGuardado, setBorradorGuardado] = useState(null)
 
   const tipoElegido = workTypes.find(tipo => tipo.nombre === trabajo.tipo)
   const cantidadErrores = Object.keys(errores).length
@@ -119,13 +115,21 @@ function NewWorkPage() {
     if (busy) {
       return
     }
+    // El servidor pide título, tipo y eje incluso para un borrador
+    const faltantes = {}
     if (!trabajo.titulo.trim()) {
-      setErrores({ titulo: 'Ingrese al menos el título para guardar el borrador.' })
+      faltantes.titulo = 'Ingrese al menos el título para guardar el borrador.'
+    }
+    if (!trabajo.eje) {
+      faltantes.eje = 'Elija el eje temático para guardar el borrador.'
+    }
+    if (Object.keys(faltantes).length) {
+      setErrores(faltantes)
       return
     }
     setSaving(true)
     setSaveError('')
-     try {
+    try {
       // Se guarda siempre como borrador, el envio al comité se hace en Coautores
       const cuerpo = aCuerpoTrabajo({
         trabajo,
@@ -144,7 +148,7 @@ function NewWorkPage() {
         navigate(`/autor/nuevo-trabajo/coautores?borrador=${savedCode}`)
       } else {
         setErrores({})
-        setBorradorGuardado(true)
+        setBorradorGuardado(new Date(guardado.actualizadoEn))
       }
     } catch (cause) {
       setSaveError(cause.message)
@@ -166,7 +170,6 @@ function NewWorkPage() {
     }
   }
 
-
   if (conference.loading || misTrabajos.cargando) {
     return (
       <AuthorPageLayout>
@@ -175,11 +178,21 @@ function NewWorkPage() {
     )
   }
 
+  if (stored && stored.estado !== 'Borrador') {
+    return <Navigate replace to={`/autor/trabajos/${stored.codigo}/lectura`} />
+  }
+
   if (borradorGuardado) {
     return (
       <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
         <p className={styles.success} role="status">
-          ✓ Borrador guardado el 18/09/2026 a las 19:42. Aún no ha sido enviado al comité.{' '}
+          ✓ Borrador guardado el {borradorGuardado.toLocaleDateString('es-PE')} a las{' '}
+          {borradorGuardado.toLocaleTimeString('es-PE', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          })}
+          . Aún no ha sido enviado al comité.{' '}
           <Link to="/autor/trabajos">Ir a mis trabajos</Link>
         </p>
         <DeadlineNotice
@@ -201,7 +214,7 @@ function NewWorkPage() {
             <h1>{trabajo.titulo}</h1>
           </div>
           <div className={styles.actions}>
-            <Button onClick={() => setBorradorGuardado(false)} variant="secondary">
+            <Button onClick={() => setBorradorGuardado(null)} variant="secondary">
               Seguir editando
             </Button>
             <Button onClick={() => persist(true)} variant="primary">
@@ -302,7 +315,6 @@ function NewWorkPage() {
           </ul>
         </section>
       )}
-
 
       {(conference.error || misTrabajos.error || saveError) && (
         <p role="alert">{conference.error || misTrabajos.error || saveError}</p>

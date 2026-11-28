@@ -10,6 +10,7 @@ import WorkCard from '../components/WorkCard/WorkCard.jsx'
 import useConference from '../../../core/utils/useConference.js'
 import { receptionIsOpen } from '../../../core/utils/submissions.js'
 import { aTrabajoLocal } from '../utils/adaptadores.js'
+import useMisDecisiones from '../utils/useMisDecisiones.js'
 import useMisTrabajos from '../utils/useMisTrabajos.js'
 import styles from './MyWorksPage.module.css'
 
@@ -26,6 +27,7 @@ function MyWorksPage() {
   const navigate = useNavigate()
   const conference = useConference()
   const misTrabajos = useMisTrabajos()
+  const misDecisiones = useMisDecisiones()
   const open = receptionIsOpen(conference.status, conference.schedule)
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -37,7 +39,7 @@ function MyWorksPage() {
     searchParams.get('vista') === 'vacia'
       ? []
       : misTrabajos.trabajos.map(trabajo =>
-          aTrabajoLocal(trabajo, conference.decisions[trabajo.codigo])
+          aTrabajoLocal(trabajo, misDecisiones.decisiones[trabajo.codigo])
         )
   const codigoEnviado = location.state?.enviado
 
@@ -69,9 +71,13 @@ function MyWorksPage() {
     }))
     .filter(filtro => filtro.estado === 'todos' || filtro.cantidad > 0)
 
- 
-  const errorCarga = conference.error || misTrabajos.error
-  if (conference.loading || misTrabajos.cargando || errorCarga) {
+  const errorCarga = conference.error || misTrabajos.error || misDecisiones.error
+  if (
+    conference.loading ||
+    misTrabajos.cargando ||
+    misDecisiones.cargando ||
+    errorCarga
+  ) {
     return (
       <AuthorPageLayout>
         <p role="status">{errorCarga || 'Cargando trabajos…'}</p>

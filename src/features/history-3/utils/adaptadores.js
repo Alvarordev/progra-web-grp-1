@@ -45,7 +45,15 @@ export function aTrabajoLocal(trabajo, decision) {
   )
 
   // Se guarda el id de forma numérica porque el backend lo pide para editar (PUT)
-  return { ...local, id: trabajo.id, editable: trabajo.editable }
+  return {
+    ...local,
+    // Un borrador sin enlace no debe mostrar el documento de ejemplo de las maquetas
+    enlace: trabajo.enlace ?? '',
+    enlaceFinal: trabajo.enlaceFinal ?? '',
+    actualizadoEn: trabajo.actualizadoEn,
+    id: trabajo.id,
+    editable: trabajo.editable,
+  }
 }
 
 // Arma el cuerpo que esperan POST y PUT /api/trabajos a partir del formulario.

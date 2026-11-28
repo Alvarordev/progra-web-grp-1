@@ -7,6 +7,7 @@ import { receptionIsOpen } from '../../../core/utils/submissions.js'
 import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import useConference from '../../../core/utils/useConference.js'
 import { aTrabajoLocal } from '../utils/adaptadores.js'
+import useMisDecisiones from '../utils/useMisDecisiones.js'
 import useTrabajoAutor from '../utils/useTrabajoAutor.js'
 import styles from './WorkDetailPage.module.css'
 
@@ -22,12 +23,13 @@ function ReadOnlyWorkPage() {
   const { codigo } = useParams()
   const conference = useConference()
   const detalle = useTrabajoAutor(codigo)
+  const misDecisiones = useMisDecisiones()
   const trabajo = detalle.trabajo
-    ? aTrabajoLocal(detalle.trabajo, conference.decisions[codigo])
+    ? aTrabajoLocal(detalle.trabajo, misDecisiones.decisiones[codigo])
     : null
 
-  const errorCarga = conference.error || detalle.error
-  if (conference.loading || detalle.cargando || errorCarga) {
+  const errorCarga = conference.error || detalle.error || misDecisiones.error
+  if (conference.loading || detalle.cargando || misDecisiones.cargando || errorCarga) {
     return (
       <AuthorPageLayout>
         <p role="status">{errorCarga || 'Cargando trabajo…'}</p>
@@ -63,14 +65,16 @@ function ReadOnlyWorkPage() {
       <WorkHeading
         acciones={
           <>
-            <a
-              className={styles.secondaryLink}
-              href={trabajo.enlace}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Ver documento
-            </a>
+            {trabajo.enlace && (
+              <a
+                className={styles.secondaryLink}
+                href={trabajo.enlace}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Ver documento
+              </a>
+            )}
             <button className={styles.disabledButton} disabled type="button">
               Editar (no disponible)
             </button>
@@ -87,14 +91,18 @@ function ReadOnlyWorkPage() {
           <p className={styles.fieldValue}>{getAuthorsLine(trabajo.autores)}</p>
           <h3 className={styles.fieldLabel}>Enlace al documento</h3>
           <p className={styles.fieldValue}>
-            <a
-              className={styles.documentLink}
-              href={trabajo.enlace}
-              rel="noreferrer"
-              target="_blank"
-            >
-              {trabajo.enlace}
-            </a>
+            {trabajo.enlace ? (
+              <a
+                className={styles.documentLink}
+                href={trabajo.enlace}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {trabajo.enlace}
+              </a>
+            ) : (
+              'Aún no se registró el enlace.'
+            )}
           </p>
         </WorkDataPanel>
         <aside className={styles.sideColumn}>
