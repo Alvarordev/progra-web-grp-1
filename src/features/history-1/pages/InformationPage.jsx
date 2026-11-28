@@ -23,13 +23,13 @@ const sections = {
   },
   terminos: {
     title: 'Términos de uso',
-    text: 'Esta aplicación es una demostración académica del proceso del congreso. Los registros y cambios se conservan en el navegador del equipo actual. Las comunicaciones por correo se presentan como registros locales; no se envían mensajes a servicios externos.',
+    text: 'Esta aplicación gestiona el proceso académico del congreso: registro de cuentas, envío de trabajos, revisión, dictamen y programa. Los datos se guardan en el servidor del congreso y los avisos, como la recuperación de contraseña, se envían por correo.',
     to: '/bases',
     action: 'Ver bases del congreso',
   },
   privacidad: {
     title: 'Política de privacidad',
-    text: 'Los datos de cuentas, trabajos y evaluaciones de esta demostración se guardan en el almacenamiento local de este navegador. No se sincronizan entre equipos. La sesión no contiene contraseñas; las credenciales locales utilizan una derivación. No ingrese datos personales sensibles.',
+    text: 'Los datos de cuentas, trabajos y evaluaciones se guardan en el servidor del congreso y solo se usan para el proceso académico. Las contraseñas se almacenan cifradas y la sesión se mantiene con una cookie segura que no es accesible desde el navegador. No ingrese datos personales sensibles.',
     to: '/',
     action: 'Volver al inicio',
   },

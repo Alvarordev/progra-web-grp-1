@@ -57,7 +57,10 @@ function Footer() {
         </div>
 
         <div className={styles.legal}>
-          <span>© 2026 Universidad de Lima. Todos los derechos reservados.</span>
+          <span>
+            © {new Date().getFullYear()} Universidad de Lima. Todos los derechos
+            reservados.
+          </span>
           <div>
             <Link to="/terminos">Términos de uso</Link>
             <Link to="/privacidad">Política de privacidad</Link>
