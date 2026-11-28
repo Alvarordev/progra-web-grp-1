@@ -80,6 +80,27 @@ Limpiar localStorage no borra usuarios de PostgreSQL ni cambia sus permisos.
 Solo la preferencia de Recordarme se conserva localmente para Historia 1.
 Los registros locales de otras historias mantienen su alcance de demostración.
 
+## Despliegue (Vercel + Dokploy)
+
+El frontend se publica en Vercel y la API en Dokploy (ver el README del backend). `vercel.json`
+hace dos cosas:
+
+- **Reenvía `/api/*` al backend** con un `rewrite`. Así el navegador solo habla con el dominio de
+  Vercel, la cookie de sesión (`HttpOnly`, `Secure`, `SameSite=Lax`) es de primer orden y no hay
+  problemas de CORS ni de cookies de terceros. No se define `VITE_API_URL`. Si cambia el dominio
+  del backend, edite el `destination` de `vercel.json`.
+- **Devuelve `index.html` en cualquier otra ruta**, para que las rutas de React Router
+  (`/programa`, `/autor/trabajos/...`) funcionen al recargar o abrirse desde un enlace.
+
+Variables de entorno de Vercel (Project Settings → Environment Variables), todas opcionales:
+
+| Variable          | Uso                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| `VITE_EDICION_ID` | ID de la edición con la que trabaja la aplicación. Sin ella se usa la de mayor año. |
+
+En el backend, `FRONTEND_ORIGINS` debe incluir el dominio de Vercel; de lo contrario la API
+responde `403 Origen no permitido` a los envíos de formularios.
+
 ## Verificación
 
 ```bash
