@@ -36,8 +36,9 @@ e inicia sesión en `/iniciar-sesion`. Mailpit queda en `http://127.0.0.1:8025`.
 
 ### Cuentas del backend
 
-Con el backend levantado y los datos de ejemplo cargados, entra con la
-contraseña `DEMO_PASSWORD` que configuraste al cargarlos.
+En el despliegue (https://progra-web-grp-1.vercel.app) todas las cuentas de
+ejemplo usan la contraseña **`Democongreso2026`**. En local, la contraseña es el
+`DEMO_PASSWORD` que configuraste al cargar los datos de ejemplo.
 Registro, login, perfil, intereses y contraseñas se guardan en PostgreSQL.
 
 Vite envía `/api` al backend en `http://127.0.0.1:3000` durante desarrollo y
@@ -51,6 +52,12 @@ debe servir `/api` desde el mismo origen que el frontend.
 | `rosa.quispe@aloe.ulima.edu.pe` | Autor   |
 | `luis.ramirez@ulima.edu.pe`     | Revisor |
 | `ana.salazar@ulima.edu.pe`      | Comité  |
+
+Otras cuentas de ejemplo con la misma contraseña: autores
+`diego.chavez@aloe.ulima.edu.pe`, `carlos.alarcon@aloe.ulima.edu.pe`,
+`lucia.vargas@aloe.ulima.edu.pe` y `camila.ramos@aloe.ulima.edu.pe`; revisores
+`carmen.effio@ulima.edu.pe`, `jorge.palomino@ulima.edu.pe`,
+`milagros.yupanqui@ulima.edu.pe` y `patricia.zegarra@ulima.edu.pe`.
 
 También puedes crear una cuenta nueva desde `/registro` como autor, revisor o
 ambos. La contraseña necesita 8 caracteres, una mayúscula y un número, hasta
