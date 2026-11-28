@@ -50,6 +50,12 @@
   margin: 0;
 }
 
+.year {
+  display: inline-block;
+  min-width: 4ch;
+  font-variant-numeric: tabular-nums;
+}
+
 .rightSide {
   display: flex;
   align-items: center;
@@ -73,6 +79,7 @@
   line-height: var(--line-height-label);
   gap: var(--space-2);
   padding: 6px 8px;
+  min-width: 150px;
   border-radius: var(--radius-small);
   font-weight: 600;
 }

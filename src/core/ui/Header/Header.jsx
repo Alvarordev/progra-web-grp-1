@@ -1,23 +1,14 @@
-import useStoredState from '../../utils/useStoredState.js'
-import {
-  editionRepository,
-  editionStatusRepository,
-  scheduleRepository,
-} from '../../utils/repositories.js'
-import { initialEdition, initialEditionStatus } from '../../utils/states/editionState.js'
-import { initialSchedule } from '../../utils/states/scheduleState.js'
+import { useEdicionActual } from '../../utils/editionRepositories.js'
 import { getEditionStatusLabel } from '../../utils/reception.js'
 import styles from './Header.module.css'
 
 function Header() {
-  const edition = useStoredState(editionRepository, initialEdition)
-  const status = useStoredState(editionStatusRepository, initialEditionStatus)
-  const schedule = useStoredState(scheduleRepository, initialSchedule)
-  let stateLabel = getEditionStatusLabel(status.value, schedule.value)
-  if (status.loading || schedule.loading) {
-    stateLabel = 'Cargando estado…'
-  } else if (status.error || schedule.error) {
-    stateLabel = 'Estado no disponible'
+  const { edition, status, schedule, loading, error } = useEdicionActual()
+  let stateLabel = getEditionStatusLabel(status, schedule)
+  if (loading) {
+    stateLabel = 'Cargando…'
+  } else if (error) {
+    stateLabel = 'No disponible'
   }
 
   return (
@@ -30,13 +21,14 @@ function Header() {
           <div className={styles.leftSideText}>
             <p className={styles.title}>Congreso Académico Estudiantil</p>
             <p className={styles.description}>
-              Universidad de Lima - Edición {edition.value.editionYear}
+              Universidad de Lima - Edición{' '}
+              <span className={styles.year}>{edition?.editionYear}</span>
             </p>
           </div>
         </div>
         <div className={styles.rightSide}>
           <p>Estado de la edición</p>
-          <div className={styles.state}>
+          <div className={styles.state} aria-busy={loading}>
             <div aria-hidden="true" />
             <span>{stateLabel}</span>
           </div>

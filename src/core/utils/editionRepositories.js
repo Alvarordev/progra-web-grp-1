@@ -1,6 +1,7 @@
-import { requestConference } from './conferenceApi.js'
+import { crearCacheRemota, useCacheRemota } from './cacheRemota.js'
+import { solicitarApi } from './clienteApi.js'
 
-const editionReads = new Set()
+const vigenciaEdicion = 5 * 60_000
 const limaTime = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Lima',
   year: 'numeric',
@@ -11,30 +12,31 @@ const limaTime = new Intl.DateTimeFormat('en-CA', {
   hourCycle: 'h23',
 })
 
-let editionIdRequest
-
-/* ID de la edición con la que trabaja la aplicación: VITE_EDICION_ID o la de mayor año. */
-export async function obtenerEdicionId() {
+function leerEdicionConfigurada() {
   const configured = import.meta.env.VITE_EDICION_ID?.trim()
-  if (configured) {
-    if (!/^[1-9]\d*$/.test(configured)) {
-      throw new Error('VITE_EDICION_ID debe ser un ID de edición válido.')
-    }
-    return Number(configured)
+  if (!configured) {
+    return null
   }
+  if (!/^[1-9]\d*$/.test(configured)) {
+    throw new Error('VITE_EDICION_ID debe ser un ID de edición válido.')
+  }
+  return Number(configured)
+}
 
-  editionIdRequest ??= requestConference('/ediciones')
-    .then(editions => {
-      if (!editions.length) {
-        throw new Error('Configure una edición del congreso en el backend.')
-      }
-      return editions[0].id
-    })
-    .catch(cause => {
-      editionIdRequest = undefined
-      throw cause
-    })
-  return editionIdRequest
+export const edicionActual = crearCacheRemota(async () => {
+  const configurada = leerEdicionConfigurada()
+  if (configurada) {
+    return solicitarApi(`/ediciones/${configurada}`)
+  }
+  const [vigente] = await solicitarApi('/ediciones')
+  if (!vigente) {
+    throw new Error('Configure una edición del congreso en el backend.')
+  }
+  return vigente
+}, vigenciaEdicion)
+
+export async function obtenerEdicionId() {
+  return leerEdicionConfigurada() ?? (await edicionActual.leer()).id
 }
 
 async function getEditionPath() {
@@ -48,22 +50,31 @@ function formatLocalTime(value) {
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`
 }
 
+const selectEdition = ({ nombre, anio, sede, descripcion }) => ({
+  editionName: nombre,
+  editionYear: String(anio),
+  editionVenue: sede,
+  editionDescription: descripcion,
+})
+const selectStatus = ({ estado }) => estado
+const selectSchedule = ({ cierreRecepcion, cierreRevision, publicacion }) => ({
+  reception: formatLocalTime(cierreRecepcion),
+  review: formatLocalTime(cierreRevision),
+  publication: formatLocalTime(publicacion),
+})
+
 function mapEdition(select, toPatch) {
   return {
-    subscribe(listener) {
-      editionReads.add(listener)
-      return () => editionReads.delete(listener)
-    },
+    subscribe: edicionActual.suscribir,
     async get() {
-      return select(await requestConference(await getEditionPath()))
+      return select(await edicionActual.leer())
     },
     async save(value) {
-      const updated = await requestConference(await getEditionPath(), {
+      const updated = await solicitarApi(await getEditionPath(), {
         method: 'PATCH',
         body: toPatch(value),
       })
-      editionReads.forEach(listener => listener())
-      return select(updated)
+      return select(edicionActual.fijar(updated))
     },
     async remove() {
       throw new Error('La edición se administra desde el backend.')
@@ -72,23 +83,20 @@ function mapEdition(select, toPatch) {
 }
 
 function mapCatalog(resource, fields) {
-  const listeners = new Set()
   const endpoint = async () => `${await getEditionPath()}/${resource}`
   const payload = item => Object.fromEntries(fields.map(field => [field, item[field]]))
   const read = async () =>
-    (await requestConference(await endpoint())).map(item => ({
+    (await solicitarApi(await endpoint())).map(item => ({
       ...item,
       id: String(item.id),
     }))
+  const cache = crearCacheRemota(read, vigenciaEdicion)
 
   return {
-    get: read,
-    subscribe(listener) {
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    },
+    get: cache.leer,
+    subscribe: cache.suscribir,
     async save(value, previous) {
-      const before = new Map((previous ?? (await read())).map(item => [item.id, item]))
+      const before = new Map((previous ?? (await cache.leer())).map(item => [item.id, item]))
       const after = new Map(value.map(item => [item.id, item]))
       const changes = []
       for (const [id, item] of after) {
@@ -108,16 +116,16 @@ function mapCatalog(resource, fields) {
       if (changes.length > 1) {
         throw new Error('Guarde un cambio del catálogo a la vez.')
       }
-      if (changes.length) {
-        const { id, method, body } = changes[0]
-        const path = await endpoint()
-        await requestConference(id ? `${path}/${encodeURIComponent(id)}` : path, {
-          method,
-          body,
-        })
-        listeners.forEach(listener => listener())
+      if (!changes.length) {
+        return cache.leer()
       }
-      return read()
+      const { id, method, body } = changes[0]
+      const path = await endpoint()
+      await solicitarApi(id ? `${path}/${encodeURIComponent(id)}` : path, {
+        method,
+        body,
+      })
+      return cache.fijar(await read())
     },
     async remove() {
       throw new Error('Elimine cada elemento del catálogo desde su pantalla.')
@@ -125,13 +133,19 @@ function mapCatalog(resource, fields) {
   }
 }
 
+export function useEdicionActual() {
+  const { valor, cargando, error } = useCacheRemota(edicionActual)
+  return {
+    edition: valor ? selectEdition(valor) : null,
+    status: valor ? selectStatus(valor) : '',
+    schedule: valor ? selectSchedule(valor) : {},
+    loading: cargando,
+    error,
+  }
+}
+
 export const editionRepository = mapEdition(
-  ({ nombre, anio, sede, descripcion }) => ({
-    editionName: nombre,
-    editionYear: String(anio),
-    editionVenue: sede,
-    editionDescription: descripcion,
-  }),
+  selectEdition,
   ({ editionName, editionYear, editionVenue, editionDescription }) => ({
     nombre: editionName,
     anio: Number(editionYear),
@@ -140,17 +154,10 @@ export const editionRepository = mapEdition(
   })
 )
 
-export const editionStatusRepository = mapEdition(
-  ({ estado }) => estado,
-  estado => ({ estado })
-)
+export const editionStatusRepository = mapEdition(selectStatus, estado => ({ estado }))
 
 export const scheduleRepository = mapEdition(
-  ({ cierreRecepcion, cierreRevision, publicacion }) => ({
-    reception: formatLocalTime(cierreRecepcion),
-    review: formatLocalTime(cierreRevision),
-    publication: formatLocalTime(publicacion),
-  }),
+  selectSchedule,
   ({ reception, review, publication }) => ({
     cierreRecepcion: `${reception}:00-05:00`,
     cierreRevision: `${review}:00-05:00`,
