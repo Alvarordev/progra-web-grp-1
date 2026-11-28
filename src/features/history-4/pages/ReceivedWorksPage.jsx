@@ -18,7 +18,6 @@ import {
   asignarRevisoresTrabajo,
   obtenerTrabajosRecibidos,
 } from '../../../core/utils/asignacionesApi.js'
-import useUsuarioComite from '../../../core/utils/useUsuarioComite.js'
 import estilos from './ReceivedWorksPage.module.css'
 
 const ejesBase = [
@@ -51,7 +50,6 @@ function esTrabajoAsignable(trabajo) {
 export default function PaginaTrabajosRecibidos() {
   const navegar = useNavigate()
   const [parametrosBusqueda] = useSearchParams()
-  const usuarioComite = useUsuarioComite()
   const cronograma = useStoredState(scheduleRepository, initialSchedule)
 
   const [datos, setDatos] = useState({ resumen: resumenVacio, trabajos: [] })
@@ -291,7 +289,7 @@ export default function PaginaTrabajosRecibidos() {
   return (
     <div className={estilos.pagina}>
       <Encabezado />
-      <NavegacionComite rutaActiva="/trabajos-recibidos" usuario={usuarioComite} />
+      <NavegacionComite rutaActiva="/trabajos-recibidos" />
 
       <main className={estilos.principal}>
         <fieldset className={estilos.contenedorCampos} disabled={ocupado}>

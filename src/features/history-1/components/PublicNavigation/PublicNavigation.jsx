@@ -6,16 +6,8 @@ import CommitteeNavigation from '../../../../core/ui/CommitteeNavigation/Committ
 import ReviewerNavigation from '../../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
 import styles from './PublicNavigation.module.css'
 
-const roleLabels = {
-  committee: 'Rol: Comité organizador',
-  both: 'Rol: Autor y revisor',
-  reviewer: 'Rol: Revisor',
-  author: 'Rol: Autor',
-}
-
 function PublicNavigation({
   children,
-  estado,
   rutaBase = '/',
   participante = null,
   cargando = false,
@@ -24,14 +16,6 @@ function PublicNavigation({
 }) {
   const isCommittee = participante?.role === 'committee'
   const isReviewer = participante?.role === 'reviewer'
-  const user = participante
-    ? {
-        nombre: participante.name,
-        iniciales:
-          `${participante.names.trim()[0]}${participante.surnames.trim()[0]}`.toUpperCase(),
-        rol: roleLabels[participante.role] ?? roleLabels.author,
-      }
-    : null
 
   function renderPublicNavigation() {
     return (
@@ -85,17 +69,17 @@ function PublicNavigation({
       return renderPublicNavigation()
     }
     if (isCommittee) {
-      return <CommitteeNavigation rutaActiva={rutaActiva} usuario={user} />
+      return <CommitteeNavigation rutaActiva={rutaActiva} />
     }
     if (isReviewer) {
-      return <ReviewerNavigation rutaActiva={rutaActiva} usuario={user} />
+      return <ReviewerNavigation rutaActiva={rutaActiva} />
     }
-    return <AuthorNavigation rutaActiva={rutaActiva} rutaInicio="/" usuario={user} />
+    return <AuthorNavigation rutaActiva={rutaActiva} rutaInicio="/" />
   }
 
   return (
     <div className={styles.page}>
-      <Header estado={estado ?? (isReviewer ? 'En revisión' : 'Recepción abierta')} />
+      <Header />
       {renderNavigation()}
       {children}
       <Footer />

@@ -5,8 +5,6 @@ import { Link } from 'react-router'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { consultarAsignaciones } from '../../../core/utils/usuariosApi.js'
 import { getReviewActivity } from '../../../core/utils/reviewerAssignments.js'
-import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
-import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import Header from '../../../core/ui/Header/Header.jsx'
 import Footer from '../../../core/ui/Footer/Footer.jsx'
 import ReviewerNavigation from '../../../core/ui/ReviewerNavigation/ReviewerNavigation.jsx'
@@ -36,7 +34,6 @@ function matchesFilter(assignment, filterId) {
 
 function ReviewerInboxPage() {
   const reviewsState = useStoredState(repositorioAsignaciones, [])
-  const profileState = useReviewerProfile()
   const conference = useConference()
   const assignments = reviewsState.value
   const [selectedFilter, setSelectedFilter] = useState('todas')
@@ -65,19 +62,16 @@ function ReviewerInboxPage() {
 
   return (
     <div className={styles.page}>
-      <Header estado="En revisión" />
-      <ReviewerNavigation
-        rutaActiva="/bandeja-revision"
-        usuario={getReviewerUser(profileState.profile)}
-      />
+      <Header />
+      <ReviewerNavigation rutaActiva="/bandeja-revision" />
 
       <main className={styles.main}>
         <div className={styles.content}>
-          {(reviewsState.loading || profileState.loading) && (
+          {reviewsState.loading && (
             <p role="status">Cargando revisiones…</p>
           )}
-          {(reviewsState.error || profileState.error) && (
-            <p role="alert">{reviewsState.error || profileState.error}</p>
+          {reviewsState.error && (
+            <p role="alert">{reviewsState.error}</p>
           )}
           {noHayAsignaciones ? (
             <>

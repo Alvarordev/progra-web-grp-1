@@ -13,7 +13,6 @@ import {
   reasignarRevision,
   retirarRevision,
 } from '../../../core/utils/asignacionesApi.js'
-import useUsuarioComite from '../../../core/utils/useUsuarioComite.js'
 import estilos from './ReviewsTrackingPage.module.css'
 
 const estadoInicial = {
@@ -29,7 +28,6 @@ const estadoInicial = {
 }
 
 export default function PaginaSeguimientoRevisiones() {
-  const usuarioComite = useUsuarioComite()
 
   const [datos, setDatos] = useState(estadoInicial)
   const [cargando, setCargando] = useState(true)
@@ -213,7 +211,7 @@ export default function PaginaSeguimientoRevisiones() {
   return (
     <div className={estilos.pagina}>
       <Encabezado />
-      <NavegacionComite rutaActiva="/seguimiento" usuario={usuarioComite} />
+      <NavegacionComite rutaActiva="/seguimiento" />
 
       <main className={estilos.contenidoPrincipal}>
         {errorCarga ? <p role="alert">{errorCarga}</p> : null}

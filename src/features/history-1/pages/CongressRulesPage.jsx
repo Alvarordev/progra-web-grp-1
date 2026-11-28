@@ -77,7 +77,6 @@ function CongressRulesPage() {
     <PublicNavigation
       cargando={account.loading}
       error={account.error}
-      estado={rules?.status}
       participante={account.participant}
       rutaActiva="/bases"
     >

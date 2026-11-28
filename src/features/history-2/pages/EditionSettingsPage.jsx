@@ -207,7 +207,7 @@ function EditionSettingsPage() {
   }
 
   return (
-    <ConfigurationPageLayout estado={estado}>
+    <ConfigurationPageLayout>
       <div className={styles.content}>
         <div className={styles.pageHeading}>
           <div>

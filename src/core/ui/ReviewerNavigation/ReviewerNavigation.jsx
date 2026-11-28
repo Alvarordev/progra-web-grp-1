@@ -8,7 +8,7 @@ const navigationItems = [
   { label: 'Mi cuenta', to: '/mi-cuenta' },
 ]
 
-function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
+function ReviewerNavigation({ rutaActiva = '/bandeja-revision' }) {
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
@@ -27,7 +27,7 @@ function ReviewerNavigation({ rutaActiva = '/bandeja-revision', usuario }) {
             </NavLink>
           ))}
         </nav>
-        <UserProfile {...usuario} permitirCerrarSesion />
+        <UserProfile />
       </div>
     </div>
   )

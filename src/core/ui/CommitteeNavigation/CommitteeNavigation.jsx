@@ -12,7 +12,7 @@ const navigationItems = [
   { label: 'Usuarios', to: '/usuarios' },
 ]
 
-function CommitteeNavigation({ rutaActiva = '/configuracion', usuario }) {
+function CommitteeNavigation({ rutaActiva = '/configuracion' }) {
   return (
     <div className={styles.navigationBar}>
       <div className={styles.navigationContent}>
@@ -36,7 +36,7 @@ function CommitteeNavigation({ rutaActiva = '/configuracion', usuario }) {
             )
           })}
         </nav>
-        <UserProfile {...usuario} permitirCerrarSesion={Boolean(usuario)} />
+        <UserProfile />
       </div>
     </div>
   )

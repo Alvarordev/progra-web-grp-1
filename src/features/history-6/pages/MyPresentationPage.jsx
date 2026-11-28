@@ -5,7 +5,6 @@ import Footer from '../../../core/ui/Footer/Footer.jsx'
 import Header from '../../../core/ui/Header/Header.jsx'
 import { downloadCalendar } from '../../../core/utils/downloads.js'
 import { obtenerMiPresentacion } from '../../../core/utils/programaApi.js'
-import useActiveAccount from '../../../core/utils/useActiveAccount.js'
 import useRemoteData from '../../../core/utils/useRemoteData.js'
 import AuthorPageLayout from '../../history-3/components/AuthorPageLayout/AuthorPageLayout.jsx'
 import { WORK_MINUTES, formatDate, formatWeekday } from '../utils/sessionSchedule.js'
@@ -20,7 +19,6 @@ const speakerGuidelines = [
 
 function MyPresentationPage() {
   const { data, loading, error } = useRemoteData(obtenerMiPresentacion)
-  const { participant } = useActiveAccount()
   const [params, setParams] = useSearchParams()
   const presentaciones = data?.presentaciones ?? []
   const presentacion =
@@ -43,12 +41,6 @@ function MyPresentationPage() {
   }
 
   const { trabajo, sesion, horario, orden, totalTrabajos } = presentacion
-  const authorUser = {
-    nombre: participant?.name ?? '',
-    iniciales: `${participant?.names?.[0] ?? ''}${participant?.surnames?.[0] ?? ''}`,
-    rol: 'Rol: Autor',
-  }
-
   const presentationDetails = [
     {
       etiqueta: 'Fecha',
@@ -75,7 +67,7 @@ function MyPresentationPage() {
   return (
     <div className={styles.page}>
       <Header />
-      <AuthorNavigation rutaActiva="/autor/presentacion" usuario={authorUser} />
+      <AuthorNavigation rutaActiva="/autor/presentacion" />
 
       <main className={styles.main}>
         <div className={styles.content}>

@@ -16,8 +16,6 @@ import {
   recommendationOptions,
 } from '../utils/recommendations.js'
 import styles from './EvaluationPage.module.css'
-import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
-import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import useTrabajoEvaluacion from '../utils/useTrabajoEvaluacion.js'
 
 function formatSentAt(sentAt) {
@@ -44,7 +42,6 @@ function buildSentNotice(sentAt) {
 }
 
 function EvaluationScreen({ codigo }) {
-  const profileState = useReviewerProfile()
   const { trabajo, error: trabajoError } = useTrabajoEvaluacion(codigo)
   const [criteria, setCriteria] = useState([])
   const [recommendation, setRecommendation] = useState(() => '')
@@ -226,11 +223,8 @@ function EvaluationScreen({ codigo }) {
 
   return (
     <div className={styles.page}>
-      <Header estado="En revisión" />
-      <ReviewerNavigation
-        rutaActiva="/bandeja-revision"
-        usuario={getReviewerUser(profileState.profile)}
-      />
+      <Header />
+      <ReviewerNavigation rutaActiva="/bandeja-revision" />
 
       <main className={styles.main}>
         <div className={styles.content}>

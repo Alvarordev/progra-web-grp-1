@@ -46,7 +46,7 @@ function ReadOnlyWorkPage() {
     : 'No enviado'
 
   return (
-    <AuthorPageLayout estado="Recepción cerrada" rutaActiva="/autor/trabajos">
+    <AuthorPageLayout rutaActiva="/autor/trabajos">
       <section className={styles.closedNotice} role="status">
         <span aria-hidden="true" className={styles.closedIcon}>
           !

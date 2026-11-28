@@ -8,22 +8,11 @@ import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import useReviewerProfile from '../../../core/utils/useReviewerProfile.js'
 import { thematicAxesRepository } from '../../../core/utils/repositories.js'
-import { getReviewerUser } from '../../../core/utils/states/reviewerProfilesState.js'
 import AccountSettings from '../components/AccountSettings/AccountSettings.jsx'
 import ReviewerActivity from '../components/ReviewerActivity/ReviewerActivity.jsx'
 import ChangePasswordPanel from '../components/ChangePasswordPanel/ChangePasswordPanel.jsx'
 import RegistrationNotice from '../components/RegistrationNotice/RegistrationNotice.jsx'
 import styles from './AccountPage.module.css'
-
-function getRoleLabel(role) {
-  if (role === 'both') {
-    return 'Rol: Autor y revisor'
-  }
-  if (role === 'reviewer') {
-    return 'Rol: Revisor'
-  }
-  return 'Rol: Autor'
-}
 
 function AccountPage() {
   const participant = useOutletContext()
@@ -36,10 +25,6 @@ function AccountPage() {
   const loading = profileState.loading || (isReviewer && axesState.loading)
   const loadError = profileState.error || (isReviewer ? axesState.error : '')
   const blocked = loading || Boolean(loadError) || profileState.saving || passwordSaving
-  const user = {
-    ...getReviewerUser(profileState.loading ? participant : profileState.profile),
-    rol: getRoleLabel(participant.role),
-  }
 
   async function guardarCuenta(profile) {
     if (blocked) {
@@ -65,11 +50,11 @@ function AccountPage() {
 
   return (
     <div className={styles.page}>
-      <Header estado={isReviewer ? 'En revisión' : 'Recepción abierta'} />
+      <Header />
       {isReviewer ? (
-        <ReviewerNavigation rutaActiva="/mi-cuenta" usuario={user} />
+        <ReviewerNavigation rutaActiva="/mi-cuenta" />
       ) : (
-        <AuthorNavigation rutaActiva="/autor/cuenta" usuario={user} />
+        <AuthorNavigation rutaActiva="/autor/cuenta" />
       )}
       <main className={styles.main}>
         <div className={styles.heading}>

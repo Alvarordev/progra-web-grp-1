@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import Button from '../Button/Button.jsx'
 import { endAccountSession } from '../../utils/accounts.js'
+import useUsuarioSesion from '../../utils/useUsuarioSesion.js'
 import styles from './UserProfile.module.css'
 
-function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
+function UserProfile() {
+  const usuario = useUsuarioSesion()
   const navigate = useNavigate()
   const [closing, setClosing] = useState(false)
   const [error, setError] = useState('')
@@ -27,24 +29,22 @@ function UserProfile({ iniciales, nombre, rol, permitirCerrarSesion = false }) {
   return (
     <div className={styles.profile}>
       <div className={styles.identity}>
-        <span className={styles.name}>{nombre}</span>
-        <span className={styles.role}>{rol}</span>
+        <span className={styles.name}>{usuario?.nombre}</span>
+        <span className={styles.role}>{usuario?.rol}</span>
       </div>
       <span aria-hidden="true" className={styles.initials}>
-        {iniciales}
+        {usuario?.iniciales}
       </span>
-      {permitirCerrarSesion && (
-        <Button
-          disabled={closing}
-          loading={closing}
-          onClick={handleLogout}
-          size="small"
-          type="button"
-          variant="tertiary"
-        >
-          Cerrar sesión
-        </Button>
-      )}
+      <Button
+        disabled={closing || !usuario}
+        loading={closing}
+        onClick={handleLogout}
+        size="small"
+        type="button"
+        variant="tertiary"
+      >
+        Cerrar sesión
+      </Button>
       {error && (
         <span className={styles.error} role="alert">
           {error}

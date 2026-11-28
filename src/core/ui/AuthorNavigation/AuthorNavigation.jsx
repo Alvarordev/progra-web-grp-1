@@ -10,7 +10,7 @@ const navigationItems = [
   { label: 'Mi cuenta', to: '/autor/cuenta' },
 ]
 
-function AuthorNavigation({ rutaActiva = '/autor', rutaInicio = '/autor', usuario }) {
+function AuthorNavigation({ rutaActiva = '/autor', rutaInicio = '/autor' }) {
   const items = navigationItems.map(item =>
     item.to === '/autor' ? { ...item, to: rutaInicio } : item
   )
@@ -33,7 +33,7 @@ function AuthorNavigation({ rutaActiva = '/autor', rutaInicio = '/autor', usuari
             </NavLink>
           ))}
         </nav>
-        <UserProfile {...usuario} permitirCerrarSesion />
+        <UserProfile />
       </div>
     </div>
   )

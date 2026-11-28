@@ -16,6 +16,7 @@
 .identity {
   display: flex;
   min-width: 0;
+  min-height: calc(var(--line-height-help) + var(--line-height-label));
   flex-direction: column;
   text-align: right;
 }

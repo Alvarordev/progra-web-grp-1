@@ -21,7 +21,7 @@ function AccessDeniedPage({ participante, motivo }) {
   ]
 
   return (
-    <PublicNavigation estado="En revisión" participante={participante} rutaActiva="">
+    <PublicNavigation participante={participante} rutaActiva="">
       <AccessMessage
         acciones={actions}
         codigo={403}

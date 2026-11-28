@@ -59,7 +59,7 @@ function WorkDetailPage() {
 
   if (!trabajo) {
     return (
-      <AuthorPageLayout estado="En revisión" rutaActiva="/autor/trabajos">
+      <AuthorPageLayout rutaActiva="/autor/trabajos">
         <EmptyState
           accion={
             <Link className={styles.secondaryLink} to="/autor/trabajos">
@@ -105,7 +105,7 @@ function WorkDetailPage() {
 
   if (!dictamen) {
     return (
-      <AuthorPageLayout estado="En revisión" rutaActiva="/autor/trabajos">
+      <AuthorPageLayout rutaActiva="/autor/trabajos">
         <WorkHeading
           acciones={verDocumento}
           estados={[trabajo.estado]}
@@ -143,7 +143,7 @@ function WorkDetailPage() {
   const aceptado = dictamen.resultado === 'aceptado'
 
   return (
-    <AuthorPageLayout estado="Resultados publicados" rutaActiva="/autor/trabajos">
+    <AuthorPageLayout rutaActiva="/autor/trabajos">
       <WorkHeading
         acciones={
           <>

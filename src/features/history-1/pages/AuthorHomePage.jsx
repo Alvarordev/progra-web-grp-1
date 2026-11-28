@@ -34,10 +34,6 @@ function getRoleCopy(role) {
   return { label: 'Autor', title: 'autor' }
 }
 
-function getInitials(participant) {
-  return `${participant.names.trim()[0]}${participant.surnames.trim()[0]}`.toUpperCase()
-}
-
 function AuthorHomePage() {
   const navigate = useNavigate()
   const conference = useConference()
@@ -88,7 +84,7 @@ function AuthorHomePage() {
   if (loading || conference.loading) {
     return (
       <div className={styles.page}>
-        <Header estado="Recepción abierta" />
+        <Header />
         <main className={styles.statusMain}>
           <p>Cargando su cuenta…</p>
         </main>
@@ -100,7 +96,7 @@ function AuthorHomePage() {
   if (error || conference.error) {
     return (
       <div className={styles.page}>
-        <Header estado="Recepción abierta" />
+        <Header />
         <main className={styles.statusMain}>
           <p role="alert">No se pudo cargar su cuenta: {error || conference.error}</p>
         </main>
@@ -110,16 +106,11 @@ function AuthorHomePage() {
   }
 
   const roleCopy = getRoleCopy(participant.role)
-  const usuario = {
-    iniciales: getInitials(participant),
-    nombre: participant.name,
-    rol: `Rol: ${roleCopy.label}`,
-  }
 
   return (
     <div className={styles.page}>
-      <Header estado="Recepción abierta" />
-      <AuthorNavigation rutaActiva="/autor" usuario={usuario} />
+      <Header />
+      <AuthorNavigation rutaActiva="/autor" />
       <main className={styles.main}>
         <div className={styles.content}>
           <RegistrationNotice />

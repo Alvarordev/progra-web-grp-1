@@ -134,7 +134,7 @@ function MyWorksPage() {
   }
 
   return (
-    <AuthorPageLayout estado="En revisión" rutaActiva="/autor/trabajos">
+    <AuthorPageLayout rutaActiva="/autor/trabajos">
       {codigoEnviado && (
         <p className={styles.success} role="status">
           ✓ Trabajo {codigoEnviado} enviado al comité. Ya aparece en su lista de trabajos.

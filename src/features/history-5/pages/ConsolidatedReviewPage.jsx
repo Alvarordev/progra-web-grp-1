@@ -14,12 +14,6 @@ import useConsolidado from '../utils/useConsolidado.js'
 import { aCuerpoDecision, guardarDecision } from '../../../core/utils/decisionesApi.js'
 import styles from './ConsolidatedReviewPage.module.css'
 
-const committeeUser = {
-  iniciales: 'AS',
-  nombre: 'Dra. Ana Salazar Bermúdez',
-  rol: 'Rol: Comité organizador',
-}
-
 function ConsolidatedReviewPage({ mostrarDecision = false }) {
   const { codigo } = useParams()
   const [decisionAbierta, setDecisionAbierta] = useState(mostrarDecision)
@@ -51,8 +45,8 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
 
   return (
     <div className={styles.page}>
-      <Header estado="En revisión" />
-      <CommitteeNavigation rutaActiva="/trabajos-recibidos" usuario={committeeUser} />
+      <Header />
+      <CommitteeNavigation rutaActiva="/trabajos-recibidos" />
 
       <main className={styles.main}>
         <div className={styles.content}>
