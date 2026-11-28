@@ -54,7 +54,7 @@ function EvaluationScreen({ codigo }) {
   const [attempted, setAttempted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [reviewerId, setReviewerId] = useState('demo-reviewer')
+  const [reviewerId, setReviewerId] = useState('')
   const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
@@ -69,7 +69,7 @@ function EvaluationScreen({ codigo }) {
         if (!active) {
           return
         }
-        const userId = session?.userId ?? 'demo-reviewer'
+        const userId = session?.userId ?? ''
         const saved = reviews[getReviewKey(userId, codigo)]
         const review = saved
         const currentCriteria = (saved?.criteria ?? configuredCriteria).map(item => {
