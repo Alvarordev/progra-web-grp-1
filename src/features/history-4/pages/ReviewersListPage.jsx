@@ -5,7 +5,7 @@ import NavegacionComite from '../../../core/ui/CommitteeNavigation/CommitteeNavi
 import PiePagina from '../../../core/ui/Footer/Footer.jsx'
 import Boton from '../../../core/ui/Button/Button.jsx'
 import { obtenerRevisores } from '../../../core/utils/asignacionesApi.js'
-import useUsuarioComite from '../utils/useUsuarioComite.js'
+import useUsuarioComite from '../../../core/utils/useUsuarioComite.js'
 import estilos from './ReviewersListPage.module.css'
 
 const lineasBase = [

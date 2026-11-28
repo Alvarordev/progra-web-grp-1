@@ -14,6 +14,10 @@ mantienen sus repositorios de demostración.
   pantallas (`aRevisionLocal`) y guarda una evaluación por operación.
 - `gestionUsuariosApi.js` y `metricasApi.js`: gestión de usuarios (listar, invitar,
   editar, bloquear, reactivar) y métricas del comité (Historia 7).
+- `programaApi.js`: programa del congreso (Historia 6): versión pública, borrador del
+  comité, sesiones, asignación de trabajos, publicación y "Mi presentación".
+- `useRemoteData.js`: carga y recarga los datos de un endpoint para las pantallas.
+- `useUsuarioComite.js`: datos de la cuenta de comité para la navegación.
 - `decisionesApi.js`: lee `/trabajos` y guarda el dictamen con
   `PUT /decisiones/:trabajoId` (`guardarDecision`, `aCuerpoDecision`, `aDecisionLocal`).
 - `asignacionesApi.js`: consume las rutas de trabajos recibidos, candidatos,
@@ -124,6 +128,19 @@ El consolidado del comité y la pantalla de evaluación leen `/revisiones` y
 publica con `PUT /api/decisiones/:trabajoId` y ya no usa localStorage. Los hooks
 `useConsolidado` y `useTrabajoEvaluacion` y los adaptadores que dependen de la
 pantalla están en `features/history-5/utils/`; no contienen llamadas HTTP.
+
+## Programa (Historia 6)
+
+Las cuatro pantallas del programa consumen `/api/programa`. El comité edita un borrador
+(`/programa/gestion`, sesiones y trabajos por sesión) y lo publica con
+`POST /programa/publicacion`: el público (`/programa`) y los autores
+(`/programa/mi_presentacion`) ven solo la última versión publicada. El servidor valida
+que no se solapen la sala ni la persona moderadora, que el horario aloje a los
+trabajos asignados (20 minutos cada uno) y que solo se programen trabajos aceptados.
+Eliminar una sesión no borra sus trabajos: quedan sin sesión. La moderación se elige
+entre cuentas de comité y revisores activos. Las llamadas usan la edición de
+`VITE_EDICION_ID` o la de mayor año; los datos de ejemplo del programa están en la
+edición 2026, así que para verlos defina `VITE_EDICION_ID=1` en `.env.local`.
 
 ## Estados locales de otras historias
 

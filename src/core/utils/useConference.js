@@ -5,7 +5,6 @@ import {
   decisionsRepository,
   editionRepository,
   editionStatusRepository,
-  programRepository,
   reviewersRepository,
   reviewsRepository,
   scheduleRepository,
@@ -20,7 +19,6 @@ const repositories = {
   reviewers: reviewersRepository,
   reviews: reviewsRepository,
   decisions: decisionsRepository,
-  program: programRepository,
   criteria: criteriaRepository,
   status: editionStatusRepository,
   schedule: scheduleRepository,
@@ -33,7 +31,6 @@ const initialData = {
   reviewers: [],
   reviews: {},
   decisions: {},
-  program: { sessions: [], assignments: [], published: false },
   criteria: [],
   status: '',
   schedule: {},
@@ -91,15 +88,6 @@ export default function useConference() {
     setSaving(true)
     setError('')
     try {
-      if (key === 'program' && data.program.published && !value.publishedSnapshot) {
-        value = {
-          ...value,
-          publishedSnapshot: structuredClone({
-            sessions: data.program.sessions,
-            assignments: data.program.assignments,
-          }),
-        }
-      }
       const result = await repositories[key].save(value, data[key])
       await refresh()
       return result

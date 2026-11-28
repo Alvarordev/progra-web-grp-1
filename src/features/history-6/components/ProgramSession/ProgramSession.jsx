@@ -12,9 +12,7 @@ function ProgramSession({ sesion, trabajos }) {
           <h2 className={styles.title} id={titleId}>
             {sesion.nombre}
           </h2>
-          <p className={styles.moderator}>
-            Moderación: {sesion.moderadorCompleto ?? sesion.moderador}
-          </p>
+          <p className={styles.moderator}>Moderación: {sesion.moderador}</p>
         </div>
         <div className={styles.badges}>
           <span className={styles.time}>

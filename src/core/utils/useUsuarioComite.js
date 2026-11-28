@@ -1,4 +1,4 @@
-import useActiveAccount from '../../../core/utils/useActiveAccount.js'
+import useActiveAccount from './useActiveAccount.js'
 
 const usuarioPorDefecto = {
   iniciales: 'CO',

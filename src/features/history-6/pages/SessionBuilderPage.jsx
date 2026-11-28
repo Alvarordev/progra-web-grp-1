@@ -1,74 +1,118 @@
-import useConference from '../../../core/utils/useConference.js'
-import { getProgramWorks } from '../../../core/utils/program.js'
 import { useState } from 'react'
 import Button from '../../../core/ui/Button/Button.jsx'
+import Modal from '../../../core/ui/Modal/Modal.jsx'
+import {
+  actualizarSesion,
+  crearSesion,
+  eliminarSesion,
+  obtenerGestionPrograma,
+  publicarPrograma,
+} from '../../../core/utils/programaApi.js'
+import useRemoteData from '../../../core/utils/useRemoteData.js'
 import CommitteeProgramLayout from '../components/CommitteeProgramLayout/CommitteeProgramLayout.jsx'
 import ProgramSummary from '../components/ProgramSummary/ProgramSummary.jsx'
 import RoomOccupancy from '../components/RoomOccupancy/RoomOccupancy.jsx'
 import SessionModal from '../components/SessionModal/SessionModal.jsx'
 import SessionsTable from '../components/SessionsTable/SessionsTable.jsx'
-import { rooms } from '../data/program.js'
-import { findOverlaps, formatDate, getOverlapRange } from '../utils/sessionSchedule.js'
+import { formatDate, formatDateRange } from '../utils/sessionSchedule.js'
 import styles from './SessionBuilderPage.module.css'
 
-const OCCUPANCY_DATE = '2026-11-12'
-const SAVED_MESSAGE = 'Sesión guardada en este navegador.'
+const conflictLabels = {
+  sala: 'Solapamiento de sala',
+  moderador: 'Solapamiento de moderación',
+}
+
+function formatPublishedAt(valor) {
+  return new Date(valor).toLocaleString('es-PE', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
 
 function SessionBuilderPage() {
-  const conference = useConference()
-  const sesiones = conference.program.sessions
-  const acceptedWorks = getProgramWorks(conference.works, conference.program)
+  const { data, loading, error, recargar } = useRemoteData(obtenerGestionPrograma)
   const [modal, setModal] = useState(null)
+  const [toDelete, setToDelete] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState({ mensaje: '', campos: {} })
   const [feedback, setFeedback] = useState({ mensaje: '', esError: false })
+  const [selectedDay, setSelectedDay] = useState('')
 
-  const conflictos = findOverlaps(sesiones)
-  const idsEnConflicto = new Set(
-    conflictos.flatMap(pareja => pareja.map(sesion => sesion.id))
-  )
-  const asignados = acceptedWorks.filter(trabajo => trabajo.sesionId).length
+  const sesiones = data?.sesiones ?? []
+  const conflictos = data?.conflictos ?? []
+  const aceptados = data?.trabajosAceptados ?? []
+  const asignados = aceptados.filter(trabajo => trabajo.sesionId).length
+  const idsEnConflicto = new Set(conflictos.flatMap(conflicto => conflicto.sesionIds))
+  const days = [...new Set(sesiones.map(sesion => sesion.fecha))].sort()
+  const occupancyDay = days.includes(selectedDay) ? selectedDay : days[0]
+  const busy = loading || saving
 
-  function handleCreate() {
-    setModal({ modo: 'create', sesion: null })
+  function openModal(nuevo) {
+    setFormError({ mensaje: '', campos: {} })
+    setModal(nuevo)
   }
 
-  function handleEdit(sesion) {
-    setModal({ modo: 'edit', sesion })
-  }
-
-  async function handleSave(updated) {
-    if (conference.busy) {
-      return
-    }
-    const sessions =
-      modal.modo === 'edit'
-        ? sesiones.map(session =>
-            session.id === modal.sesion.id
-              ? { ...session, ...updated, moderadorCompleto: updated.moderador }
-              : session
-          )
-        : [...sesiones, { ...updated, id: crypto.randomUUID() }]
-    if (
-      findOverlaps(sessions).some(pair =>
-        pair.some(session => session.id === (modal.sesion?.id ?? sessions.at(-1).id))
-      )
-    ) {
-      setFeedback({
-        mensaje: 'La sala y la hora se superponen con otra sesión.',
-        esError: true,
-      })
-      return
-    }
+  /* Ejecuta una operación del servidor y vuelve a leer el programa si salió bien. */
+  async function run(operation, onError) {
+    setSaving(true)
+    setFeedback({ mensaje: '', esError: false })
     try {
-      await conference.save('program', { ...conference.program, sessions })
+      const result = await operation()
+      recargar()
+      return result
+    } catch (cause) {
+      onError(cause)
+      return undefined
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSave(valores) {
+    if (busy) {
+      return
+    }
+    const editing = modal.modo === 'edit'
+    const result = await run(
+      () => (editing ? actualizarSesion(modal.sesion.id, valores) : crearSesion(valores)),
+      cause => {
+        const campos = cause.errores ?? {}
+
+        /* Si el servidor señala el campo, el mensaje general sería repetido. */
+        setFormError({ mensaje: Object.keys(campos).length ? '' : cause.message, campos })
+      }
+    )
+    if (result) {
       setModal(null)
-      setFeedback({ mensaje: SAVED_MESSAGE, esError: false })
-    } catch {
-      /* el error permanece visible */
+      setFeedback({
+        mensaje: editing ? 'Sesión actualizada.' : 'Sesión creada.',
+        esError: false,
+      })
+    }
+  }
+
+  async function handleDelete() {
+    if (busy) {
+      return
+    }
+    const sesion = toDelete
+    const result = await run(
+      () => eliminarSesion(sesion.id),
+      cause => setFeedback({ mensaje: cause.message, esError: true })
+    )
+    setToDelete(null)
+    if (result) {
+      setFeedback({
+        mensaje: result.trabajosLiberados
+          ? `Sesión eliminada. ${result.trabajosLiberados} ${result.trabajosLiberados === 1 ? 'trabajo quedó' : 'trabajos quedaron'} sin sesión.`
+          : 'Sesión eliminada.',
+        esError: false,
+      })
     }
   }
 
   async function handlePublish() {
-    if (conference.busy) {
+    if (busy) {
       return
     }
     if (conflictos.length) {
@@ -78,47 +122,49 @@ function SessionBuilderPage() {
       })
       return
     }
-    try {
-      await conference.save('program', {
-        ...conference.program,
-        published: true,
-        publishedSnapshot: {
-          sessions: sesiones,
-          assignments: conference.program.assignments,
-        },
-      })
+    const result = await run(publicarPrograma, cause =>
+      setFeedback({ mensaje: cause.message, esError: true })
+    )
+    if (result) {
       setFeedback({
         mensaje: 'Programa publicado. La versión pública ya está disponible.',
         esError: false,
       })
-    } catch {
-      /* el error permanece visible */
     }
   }
 
+  const upToDate = data?.publicado && !data.cambiosSinPublicar
+  let publication = 'Aún no se ha publicado el programa.'
+  if (data?.publicado) {
+    publication = data.cambiosSinPublicar
+      ? `Publicado el ${formatPublishedAt(data.publicadoEn)}. Hay cambios sin publicar: el público sigue viendo la versión anterior.`
+      : `Publicado el ${formatPublishedAt(data.publicadoEn)}. El público ve la versión actual.`
+  }
+
   return (
-    <CommitteeProgramLayout estado="Resultados publicados">
+    <CommitteeProgramLayout>
       <div className={styles.content}>
         <header className={styles.pageHeading}>
           <div>
             <h1>Sesiones del congreso</h1>
             <p>
-              {sesiones.length} sesiones · 12 y 13 de noviembre de 2026 · Universidad de
-              Lima
+              {sesiones.length} {sesiones.length === 1 ? 'sesión' : 'sesiones'}
+              {days.length > 0 && ` · ${formatDateRange(days)}`}
+              {data && ` · ${data.edicion.sede}`}
             </p>
           </div>
           <div className={styles.actions}>
             <Button
-              disabled={conference.busy}
+              disabled={busy || !data || upToDate || !sesiones.length}
               onClick={handlePublish}
               type="button"
               variant="secondary"
             >
-              Publicar programa
+              {upToDate ? 'Programa publicado' : 'Publicar programa'}
             </Button>
             <Button
-              disabled={conference.busy}
-              onClick={handleCreate}
+              disabled={busy || !data}
+              onClick={() => openModal({ modo: 'create', sesion: null })}
               type="button"
               variant="primary"
             >
@@ -129,12 +175,11 @@ function SessionBuilderPage() {
 
         <p
           aria-live="polite"
-          className={feedback.esError ? styles.feedbackError : styles.feedback}
+          className={feedback.esError || error ? styles.feedbackError : styles.feedback}
         >
-          {conference.loading
-            ? 'Cargando programa…'
-            : conference.error || feedback.mensaje}
+          {loading && !data ? 'Cargando programa…' : error || feedback.mensaje}
         </p>
+        {data && <p className={styles.feedback}>{publication}</p>}
 
         {conflictos.length > 0 && (
           <div className={styles.alert} role="status">
@@ -142,55 +187,116 @@ function SessionBuilderPage() {
               !
             </span>
             <div>
-              {conflictos.map(([primera, segunda]) => {
-                const rango = getOverlapRange(primera, segunda)
-
-                return (
-                  <p key={`${primera.id}-${segunda.id}`}>
-                    <strong>Solapamiento de sala:</strong> «{primera.nombre}» y «
-                    {segunda.nombre}» usan la Sala {primera.sala} el{' '}
-                    {formatDate(primera.fecha)} entre las {rango.horaInicio} y las{' '}
-                    {rango.horaFin}. Ajuste la hora o la sala antes de publicar.
-                  </p>
-                )
-              })}
+              {conflictos.map(conflicto => (
+                <p key={`${conflicto.tipo}-${conflicto.sesionIds.join('-')}`}>
+                  <strong>{conflictLabels[conflicto.tipo]}:</strong> {conflicto.mensaje}{' '}
+                  Ajuste la hora o{' '}
+                  {conflicto.tipo === 'sala' ? 'la sala' : 'la moderación'} antes de
+                  publicar.
+                </p>
+              ))}
             </div>
           </div>
         )}
 
         <section aria-label="Sesiones del congreso" className={styles.tableSection}>
           <SessionsTable
-            alEditar={handleEdit}
+            alEditar={sesion => openModal({ modo: 'edit', sesion })}
+            alEliminar={setToDelete}
+            deshabilitado={busy}
             idsEnConflicto={idsEnConflicto}
             sesiones={sesiones}
           />
         </section>
 
-        <div className={styles.panels}>
-          <RoomOccupancy fecha={OCCUPANCY_DATE} salas={rooms} sesiones={sesiones} />
-          <ProgramSummary
-            asignados={asignados}
-            sinSesion={acceptedWorks.length - asignados}
-            total={acceptedWorks.length}
-          />
-        </div>
+        {data && (
+          <div className={styles.panels}>
+            {occupancyDay && (
+              <div>
+                {days.length > 1 && (
+                  <select
+                    aria-label="Día de la ocupación de salas"
+                    className={styles.daySelect}
+                    onChange={event => setSelectedDay(event.target.value)}
+                    value={occupancyDay}
+                  >
+                    {days.map(day => (
+                      <option key={day} value={day}>
+                        {formatDate(day)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <RoomOccupancy
+                  fecha={occupancyDay}
+                  salas={data.salas}
+                  sesiones={sesiones}
+                />
+              </div>
+            )}
+            <ProgramSummary
+              asignados={asignados}
+              sinSesion={aceptados.length - asignados}
+              total={aceptados.length}
+            />
+          </div>
+        )}
       </div>
 
       {modal && (
         <SessionModal
           alCerrar={() => {
-            if (!conference.saving) {
+            if (!saving) {
               setModal(null)
             }
           }}
-          guardando={conference.saving}
-          ejes={conference.axes.map(axis => axis.nombre)}
           alGuardar={handleSave}
+          ejes={data.ejes}
+          errorGuardado={formError.mensaje}
+          erroresServidor={formError.campos}
+          guardando={saving}
           key={`${modal.modo}-${modal.sesion?.id ?? 'new'}`}
+          moderadores={data.moderadores}
           modo={modal.modo}
+          salas={data.salas}
           sesion={modal.sesion}
-          sesiones={sesiones}
         />
+      )}
+
+      {toDelete && (
+        <Modal
+          alCerrar={() => {
+            if (!saving) {
+              setToDelete(null)
+            }
+          }}
+          titulo="Eliminar sesión"
+        >
+          <p>
+            ¿Eliminar «{toDelete.nombre}»?{' '}
+            {toDelete.trabajos.length > 0
+              ? `Sus ${toDelete.trabajos.length} trabajos no se borran: quedarán sin sesión para asignarlos de nuevo.`
+              : 'La sesión no tiene trabajos asignados.'}
+          </p>
+          <div className={styles.confirmActions}>
+            <Button
+              disabled={saving}
+              onClick={() => setToDelete(null)}
+              type="button"
+              variant="secondary"
+            >
+              Cancelar
+            </Button>
+            <Button
+              loading={saving}
+              onClick={handleDelete}
+              type="button"
+              variant="primary"
+            >
+              Eliminar sesión
+            </Button>
+          </div>
+        </Modal>
       )}
     </CommitteeProgramLayout>
   )

@@ -1,31 +1,31 @@
 import { useState } from 'react'
 import Button from '../../../../core/ui/Button/Button.jsx'
 import Modal from '../../../../core/ui/Modal/Modal.jsx'
-import { rooms } from '../../data/program.js'
-import { sessionsOverlap, toMinutes } from '../../utils/sessionSchedule.js'
+import { toMinutes } from '../../utils/sessionSchedule.js'
 import styles from './SessionModal.module.css'
 
 function createFormValues(sesion) {
   return {
     nombre: sesion?.nombre ?? '',
-    eje: sesion?.eje ?? '',
+    ejeId: sesion ? String(sesion.ejeId) : '',
     fecha: sesion?.fecha ?? '',
     horaInicio: sesion?.horaInicio ?? '',
     horaFin: sesion?.horaFin ?? '',
-    sala: sesion?.sala ?? '',
-    moderador: sesion?.moderador ?? '',
+    salaId: sesion ? String(sesion.salaId) : '',
+    moderadorId: sesion?.moderadorId ?? '',
   }
 }
 
-function validate(valores, sesiones, idActual) {
+/* El solapamiento de sala y de moderación lo valida el servidor. */
+function validate(valores) {
   const errores = {}
 
   if (!valores.nombre.trim()) {
     errores.nombre = 'Ingrese el nombre de la sesión.'
   }
 
-  if (!valores.eje) {
-    errores.eje = 'Seleccione el eje temático.'
+  if (!valores.ejeId) {
+    errores.ejeId = 'Seleccione el eje temático.'
   }
 
   if (!valores.fecha) {
@@ -40,12 +40,12 @@ function validate(valores, sesiones, idActual) {
     errores.horaFin = 'Ingrese la hora de fin.'
   }
 
-  if (!valores.sala) {
-    errores.sala = 'Seleccione la sala.'
+  if (!valores.salaId) {
+    errores.salaId = 'Seleccione la sala.'
   }
 
-  if (!valores.moderador.trim()) {
-    errores.moderador = 'Ingrese el nombre de la persona moderadora.'
+  if (!valores.moderadorId) {
+    errores.moderadorId = 'Seleccione a la persona moderadora.'
   }
 
   if (
@@ -56,16 +56,6 @@ function validate(valores, sesiones, idActual) {
     errores.horaFin = 'La hora de fin debe ser posterior a la de inicio.'
   }
 
-  if (Object.keys(errores).length === 0) {
-    const conflicto = sesiones.find(
-      otra => otra.id !== idActual && sessionsOverlap(valores, otra)
-    )
-
-    if (conflicto) {
-      errores.sala = `La sala ${valores.sala} ya está ocupada por «${conflicto.nombre}» en ese horario.`
-    }
-  }
-
   return errores
 }
 
@@ -73,13 +63,17 @@ function SessionModal({
   guardando = false,
   alCerrar,
   alGuardar,
+  errorGuardado = '',
+  erroresServidor = {},
   modo,
   sesion,
-  sesiones,
   ejes,
+  salas,
+  moderadores,
 }) {
   const [valores, setValores] = useState(() => createFormValues(sesion))
-  const [errores, setErrores] = useState({})
+  const [erroresLocales, setErrores] = useState({})
+  const errores = { ...erroresServidor, ...erroresLocales }
   const titulo = modo === 'edit' ? 'Editar sesión' : 'Nueva sesión'
 
   function handleChange(event) {
@@ -95,17 +89,19 @@ function SessionModal({
       return
     }
 
-    const erroresFormulario = validate(valores, sesiones, sesion?.id)
+    const erroresFormulario = validate(valores)
 
     if (Object.keys(erroresFormulario).length > 0) {
       setErrores(erroresFormulario)
       return
     }
 
+    setErrores({})
     alGuardar({
       ...valores,
       nombre: valores.nombre.trim(),
-      moderador: valores.moderador.trim(),
+      ejeId: Number(valores.ejeId),
+      salaId: Number(valores.salaId),
     })
   }
 
@@ -148,18 +144,18 @@ function SessionModal({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="session-eje">Eje temático *</label>
-          <select {...fieldProps('eje')} required>
+          <label htmlFor="session-ejeId">Eje temático *</label>
+          <select {...fieldProps('ejeId')} required>
             <option disabled value="">
               Seleccione un eje
             </option>
             {ejes.map(eje => (
-              <option key={eje} value={eje}>
-                {eje}
+              <option key={eje.id} value={eje.id}>
+                {eje.nombre}
               </option>
             ))}
           </select>
-          {renderError('eje')}
+          {renderError('ejeId')}
         </div>
 
         <div className={styles.fieldGrid}>
@@ -169,18 +165,18 @@ function SessionModal({
             {renderError('fecha')}
           </div>
           <div className={styles.field}>
-            <label htmlFor="session-sala">Sala *</label>
-            <select {...fieldProps('sala')} required>
+            <label htmlFor="session-salaId">Sala *</label>
+            <select {...fieldProps('salaId')} required>
               <option disabled value="">
                 Seleccione una sala
               </option>
-              {rooms.map(sala => (
-                <option key={sala.codigo} value={sala.codigo}>
+              {salas.map(sala => (
+                <option key={sala.id} value={sala.id}>
                   {sala.codigo}
                 </option>
               ))}
             </select>
-            {renderError('sala')}
+            {renderError('salaId')}
           </div>
         </div>
 
@@ -198,10 +194,25 @@ function SessionModal({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="session-moderador">Moderación *</label>
-          <input {...fieldProps('moderador')} autoComplete="off" required />
-          {renderError('moderador')}
+          <label htmlFor="session-moderadorId">Moderación *</label>
+          <select {...fieldProps('moderadorId')} required>
+            <option disabled value="">
+              Seleccione a la persona moderadora
+            </option>
+            {moderadores.map(persona => (
+              <option key={persona.id} value={persona.id}>
+                {persona.nombre}
+              </option>
+            ))}
+          </select>
+          {renderError('moderadorId')}
         </div>
+
+        {errorGuardado && (
+          <p className={styles.error} role="alert">
+            {errorGuardado}
+          </p>
+        )}
 
         <footer className={styles.footer}>
           <Button

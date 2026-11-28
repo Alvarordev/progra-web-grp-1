@@ -18,7 +18,7 @@ import {
   asignarRevisoresTrabajo,
   obtenerTrabajosRecibidos,
 } from '../../../core/utils/asignacionesApi.js'
-import useUsuarioComite from '../utils/useUsuarioComite.js'
+import useUsuarioComite from '../../../core/utils/useUsuarioComite.js'
 import estilos from './ReceivedWorksPage.module.css'
 
 const ejesBase = [

@@ -27,50 +27,47 @@ export function formatWeekday(fecha) {
   return dia.charAt(0).toUpperCase() + dia.slice(1)
 }
 
-export function sessionsOverlap(primera, segunda) {
-  return (
-    primera.fecha === segunda.fecha &&
-    primera.sala === segunda.sala &&
-    toMinutes(primera.horaInicio) < toMinutes(segunda.horaFin) &&
-    toMinutes(segunda.horaInicio) < toMinutes(primera.horaFin)
-  )
-}
-
-export function findOverlaps(sesiones) {
-  const conflictos = []
-
-  sesiones.forEach((sesion, indice) => {
-    sesiones.slice(indice + 1).forEach(otra => {
-      if (sessionsOverlap(sesion, otra)) {
-        conflictos.push([sesion, otra])
-      }
-    })
-  })
-
-  return conflictos
-}
-
-export function getOverlapRange(primera, segunda) {
-  const inicio = Math.max(toMinutes(primera.horaInicio), toMinutes(segunda.horaInicio))
-  const fin = Math.min(toMinutes(primera.horaFin), toMinutes(segunda.horaFin))
-
-  return { horaInicio: toTime(inicio), horaFin: toTime(fin) }
-}
-
 export function getSessionCapacity(sesion) {
   const duracion = toMinutes(sesion.horaFin) - toMinutes(sesion.horaInicio)
 
   return Math.floor(duracion / WORK_MINUTES)
 }
 
-export function getSessionWorks(trabajos, sesionId) {
-  return trabajos
-    .filter(trabajo => trabajo.sesionId === sesionId)
-    .sort((primero, segundo) => primero.orden - segundo.orden)
-}
-
 export function getWorkTimes(sesion, indice) {
   const inicio = toMinutes(sesion.horaInicio) + indice * WORK_MINUTES
 
   return { horaInicio: toTime(inicio), horaFin: toTime(inicio + WORK_MINUTES) }
+}
+
+const longDate = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+/* «10 y 11 de marzo de 2027»; entre meses distintos, «10 de marzo de 2027 al 2 de abril de 2027». */
+export function formatDateRange(fechas) {
+  const dias = [...new Set(fechas)].sort()
+
+  if (dias.length === 0) {
+    return ''
+  }
+
+  const fecha = dia => new Date(`${dia}T00:00:00Z`)
+
+  if (new Set(dias.map(dia => dia.slice(0, 7))).size > 1) {
+    return `${longDate.format(fecha(dias[0]))} al ${longDate.format(fecha(dias.at(-1)))}`
+  }
+
+  const partes = longDate.formatToParts(fecha(dias[0]))
+  const mes = partes.find(parte => parte.type === 'month').value
+  const año = partes.find(parte => parte.type === 'year').value
+  const numeros = dias.map(dia => String(Number(dia.slice(8))))
+  const lista =
+    numeros.length === 1
+      ? numeros[0]
+      : `${numeros.slice(0, -1).join(', ')} y ${numeros.at(-1)}`
+
+  return `${lista} de ${mes} de ${año}`
 }

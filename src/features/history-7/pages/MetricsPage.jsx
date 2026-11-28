@@ -9,7 +9,7 @@ import PageHeading from '../components/PageHeading/PageHeading.jsx'
 import { obtenerMetricas } from '../../../core/utils/metricasApi.js'
 import { exportMetricsPdf } from '../utils/exportMetricsPdf.js'
 import { toAxisData, toIndicators, toStatusData } from '../utils/metrics.js'
-import useRemoteData from '../utils/useRemoteData.js'
+import useRemoteData from '../../../core/utils/useRemoteData.js'
 import styles from './MetricsPage.module.css'
 
 const TITLE = 'Tablero de métricas'
