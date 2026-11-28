@@ -57,7 +57,7 @@ function drawCard(doc, x, y, width, height) {
   doc.rect(x, y, width, height, 'FD')
 }
 
-function drawHeader(doc) {
+function drawHeader(doc, anio) {
   setFill(doc, COLORS.primary)
   doc.rect(0, 0, PAGE.width, 62, 'F')
 
@@ -73,7 +73,7 @@ function drawHeader(doc) {
   doc.text('Congreso Académico Estudiantil', PAGE.margin + 42, 28)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
-  doc.text('UNIVERSIDAD DE LIMA · EDICIÓN 2026', PAGE.margin + 42, 41)
+  doc.text(`UNIVERSIDAD DE LIMA · EDICIÓN ${anio}`, PAGE.margin + 42, 41)
 }
 
 function drawKpis(doc, indicadores, y) {
@@ -264,6 +264,7 @@ function drawFooter(doc) {
 }
 
 export async function exportMetricsPdf({
+  anio,
   titulo,
   descripcion,
   indicadores,
@@ -278,7 +279,7 @@ export async function exportMetricsPdf({
 
   setFill(doc, COLORS.bg)
   doc.rect(0, 0, PAGE.width, PAGE.height, 'F')
-  drawHeader(doc)
+  drawHeader(doc, anio)
 
   doc.setFont('times', 'bold')
   doc.setFontSize(22)
@@ -294,6 +295,6 @@ export async function exportMetricsPdf({
   drawDonutChart(doc, tituloEstados, trabajosPorEstado, notaEstados, y + 16)
   drawFooter(doc)
 
-  doc.setProperties({ title: `${titulo} · Edición 2026` })
-  doc.save('tablero-de-metricas-2026.pdf')
+  doc.setProperties({ title: `${titulo} · Edición ${anio}` })
+  doc.save(`tablero-de-metricas-${anio}.pdf`)
 }

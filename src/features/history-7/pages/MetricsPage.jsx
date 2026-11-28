@@ -36,6 +36,7 @@ function MetricsPage() {
 
     try {
       await exportMetricsPdf({
+        anio: data.edicion.anio,
         descripcion: description,
         indicadores: metricIndicators,
         notaEstados: STATUS_NOTE,
