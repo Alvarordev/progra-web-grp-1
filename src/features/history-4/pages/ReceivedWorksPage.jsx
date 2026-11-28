@@ -9,10 +9,7 @@ import ModalAsignarRevisores from '../components/AssignReviewersModal/AssignRevi
 import { downloadFile } from '../../../core/utils/downloads.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { scheduleRepository } from '../../../core/utils/repositories.js'
-import {
-  formatScheduleDate,
-  initialSchedule,
-} from '../../../core/utils/states/scheduleState.js'
+import { formatScheduleDate } from '../../../core/utils/states/scheduleState.js'
 import {
   asignarRevisoresLote,
   asignarRevisoresTrabajo,
@@ -50,7 +47,7 @@ function esTrabajoAsignable(trabajo) {
 export default function PaginaTrabajosRecibidos() {
   const navegar = useNavigate()
   const [parametrosBusqueda] = useSearchParams()
-  const cronograma = useStoredState(scheduleRepository, initialSchedule)
+  const cronograma = useStoredState(scheduleRepository, {})
 
   const [datos, setDatos] = useState({ resumen: resumenVacio, trabajos: [] })
   const [cargando, setCargando] = useState(true)
@@ -275,8 +272,7 @@ export default function PaginaTrabajosRecibidos() {
     Boolean(consultaBusqueda.trim())
 
   const fechaCierreRevision = formatScheduleDate(cronograma.value?.review ?? '')
-  const fechaSugeridaRevision =
-    fechaCierreRevision !== '—' ? fechaCierreRevision : '20/10/2026'
+  const fechaSugeridaRevision = fechaCierreRevision !== '—' ? fechaCierreRevision : ''
   const fechaCierreRecepcion = formatScheduleDate(cronograma.value?.reception ?? '')
 
   let subtituloPagina = `${resumen.total} trabajos · ${resumen.enviados} enviados · ${resumen.borradores} borradores fuera de proceso`

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { thematicAxesRepository } from '../../../core/utils/repositories.js'
-import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import EmptyState from '../../../core/ui/EmptyState/EmptyState.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
@@ -18,7 +17,7 @@ function ThematicAxesPage() {
     saving,
     error,
     save,
-  } = useStoredState(thematicAxesRepository, thematicAxes)
+  } = useStoredState(thematicAxesRepository, [])
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState(null)
   const hasAxes = ejes.length > 0

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { workTypesRepository } from '../../../core/utils/repositories.js'
-import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
@@ -17,7 +16,7 @@ function WorkTypesPage() {
     saving,
     error,
     save,
-  } = useStoredState(workTypesRepository, initialWorkTypes)
+  } = useStoredState(workTypesRepository, [])
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
 

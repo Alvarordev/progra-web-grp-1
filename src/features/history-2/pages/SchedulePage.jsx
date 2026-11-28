@@ -3,7 +3,6 @@ import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { scheduleRepository } from '../../../core/utils/repositories.js'
 import {
-  initialSchedule,
   getScheduleErrors,
   formatScheduleDate,
 } from '../../../core/utils/states/scheduleState.js'
@@ -11,6 +10,8 @@ import ConfigurationPageLayout from '../components/ConfigurationPageLayout/Confi
 import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
 import styles from './SchedulePage.module.css'
+
+const emptySchedule = { reception: '', review: '', publication: '' }
 
 const scheduleFields = [
   { name: 'reception', label: 'Cierre de recepción de trabajos', preview: 'Recepción' },
@@ -21,7 +22,7 @@ const scheduleFields = [
 function SchedulePage() {
   const { value, loading, saving, error, save } = useStoredState(
     scheduleRepository,
-    initialSchedule
+    emptySchedule
   )
   const [draft, setDraft] = useState(null)
   const [feedback, setFeedback] = useState('')

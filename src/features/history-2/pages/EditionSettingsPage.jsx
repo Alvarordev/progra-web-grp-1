@@ -1,4 +1,5 @@
-import useConference from '../../../core/utils/useConference.js'
+import useRemoteData from '../../../core/utils/useRemoteData.js'
+import { obtenerMetricas } from '../../../core/utils/metricasApi.js'
 import {
   getEditionStatusLabel,
   getReceptionNotice,
@@ -12,15 +13,7 @@ import {
   scheduleRepository,
   criteriaRepository,
 } from '../../../core/utils/repositories.js'
-import {
-  initialEdition,
-  initialEditionStatus,
-} from '../../../core/utils/states/editionState.js'
 import useStoredState from '../../../core/utils/useStoredState.js'
-import { thematicAxes } from '../../../core/utils/states/thematicAxesState.js'
-import { initialWorkTypes } from '../../../core/utils/states/workTypesState.js'
-import { initialSchedule } from '../../../core/utils/states/scheduleState.js'
-import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import Button from '../../../core/ui/Button/Button.jsx'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
@@ -28,24 +21,31 @@ import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs
 import CloseReceptionModal from '../components/CloseReceptionModal/CloseReceptionModal.jsx'
 import styles from './EditionSettingsPage.module.css'
 
+const emptyEdition = {
+  editionName: '',
+  editionYear: '',
+  editionVenue: '',
+  editionDescription: '',
+}
+
 const statusButtonLabels = {
   'En preparación': 'Abrir recepción',
   'En revisión': 'Recepción cerrada',
 }
 
 function EditionSettingsPage() {
-  const conference = useConference()
-  const [edition, setEdition] = useState(initialEdition)
-  const [estado, setEstado] = useState(initialEditionStatus)
+  const metricas = useRemoteData(obtenerMetricas)
+  const [edition, setEdition] = useState(emptyEdition)
+  const [estado, setEstado] = useState('')
   const [feedback, setFeedback] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [closeModal, setCloseModal] = useState(false)
   const [closeError, setCloseError] = useState('')
-  const axesState = useStoredState(thematicAxesRepository, thematicAxes)
-  const typesState = useStoredState(workTypesRepository, initialWorkTypes)
-  const scheduleState = useStoredState(scheduleRepository, initialSchedule)
-  const criteriaState = useStoredState(criteriaRepository, initialCriteria)
+  const axesState = useStoredState(thematicAxesRepository, [])
+  const typesState = useStoredState(workTypesRepository, [])
+  const scheduleState = useStoredState(scheduleRepository, {})
+  const criteriaState = useStoredState(criteriaRepository, [])
   const totalWeight = criteriaState.value.reduce((sum, item) => sum + item.peso, 0)
   const configurationLoading = [axesState, typesState, scheduleState, criteriaState].some(
     item => item.loading
@@ -360,11 +360,11 @@ function EditionSettingsPage() {
               <dl className={styles.activityList}>
                 <div>
                   <dt>Trabajos recibidos</dt>
-                  <dd>{conference.works.length}</dd>
+                  <dd>{metricas.data?.indicadores.enviados ?? '—'}</dd>
                 </div>
                 <div>
-                  <dt>Revisores de demostración</dt>
-                  <dd>{conference.reviewers.length}</dd>
+                  <dt>Revisiones pendientes</dt>
+                  <dd>{metricas.data?.indicadores.revisionesPendientes ?? '—'}</dd>
                 </div>
               </dl>
             </section>

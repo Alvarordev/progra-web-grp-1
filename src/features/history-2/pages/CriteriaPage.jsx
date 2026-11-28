@@ -2,7 +2,6 @@ import { useState } from 'react'
 import Button from '../../../core/ui/Button/Button.jsx'
 import useStoredState from '../../../core/utils/useStoredState.js'
 import { criteriaRepository } from '../../../core/utils/repositories.js'
-import { initialCriteria } from '../../../core/utils/states/criteriaState.js'
 import ConfigurationPageLayout from '../components/ConfigurationPageLayout/ConfigurationPageLayout.jsx'
 import ConfigurationFeedback from '../components/ConfigurationFeedback/ConfigurationFeedback.jsx'
 import ConfigurationTabs from '../components/ConfigurationTabs/ConfigurationTabs.jsx'
@@ -11,10 +10,7 @@ import CriterionModal from '../components/CriterionModal/CriterionModal.jsx'
 import styles from './CriteriaPage.module.css'
 
 function CriteriaPage() {
-  const { value, loading, saving, error, save } = useStoredState(
-    criteriaRepository,
-    initialCriteria
-  )
+  const { value, loading, saving, error, save } = useStoredState(criteriaRepository, [])
   const [modal, setModal] = useState(null)
   const [feedback, setFeedback] = useState('')
   const criteria = value

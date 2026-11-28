@@ -10,7 +10,7 @@ export default function ModalAsignarRevisores({
   abierto = false,
   alCerrar,
   trabajosObjetivo = [],
-  fechaLimiteInicial = '20/10/2026',
+  fechaLimiteInicial = '',
   alConfirmarAsignacion,
 }) {
   const [terminoBusqueda, cambiarTerminoBusqueda] = useState('')

@@ -1,12 +1,8 @@
-export const initialSchedule = {
-  reception: '2026-12-15T23:59',
-  review: '2026-12-20T18:00',
-  publication: '2026-12-28T12:00',
-}
+const scheduleFields = ['reception', 'review', 'publication']
 
 export function getScheduleErrors(value) {
   const errors = {}
-  for (const field of Object.keys(initialSchedule)) {
+  for (const field of scheduleFields) {
     const parsed = new Date(value[field])
     const parts =
       typeof value[field] === 'string' ? value[field].split(/[-T:]/).map(Number) : []
@@ -36,15 +32,10 @@ export function getScheduleErrors(value) {
   return errors
 }
 
-export function validateSchedule(value) {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    Object.keys(getScheduleErrors(value)).length === 0
-  )
-}
-
 export function formatScheduleDate(value) {
+  if (!value) {
+    return '—'
+  }
   const [year, month, day] = value.slice(0, 10).split('-')
   return `${day}/${month}/${year}`
 }
