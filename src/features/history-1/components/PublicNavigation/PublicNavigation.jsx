@@ -53,9 +53,11 @@ function PublicNavigation({
   function renderNavigation() {
     if (cargando) {
       return (
-        <p className={styles.sessionStatus} role="status">
-          Cargando su sesión…
-        </p>
+        <div className={styles.navigation}>
+          <p className={styles.sessionStatus} role="status">
+            Cargando su sesión…
+          </p>
+        </div>
       )
     }
     if (error) {

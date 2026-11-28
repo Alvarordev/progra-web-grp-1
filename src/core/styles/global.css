@@ -23,6 +23,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+main {
+  flex: 1 0 auto;
+  min-height: calc(100vh - var(--layout-chrome-height));
+}
+
 button,
 input,
 select,

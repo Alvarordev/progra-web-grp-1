@@ -50,12 +50,7 @@ function History1Page() {
       rutaBase="/history-1"
     >
       <main>
-        {!accountState.loading && (
-          <HeroSection
-            edicion={conference.edition}
-            rol={accountState.participant?.role}
-          />
-        )}
+        <HeroSection edicion={conference.edition} rol={accountState.participant?.role} />
         <TopicsSection ejes={conference.axes} />
         <div className={styles.infoGrid}>
           <InfoSection
