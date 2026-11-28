@@ -79,14 +79,20 @@ function ConsolidatedReviewPage({ mostrarDecision = false }) {
                 </div>
 
                 <div className={styles.actions}>
-                  <a
-                    className={styles.documentLink}
-                    href={work.documentUrl ?? '/Tema6_Mockups_f.pdf'}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Ver documento
-                  </a>
+                  {work.documentUrl ? (
+                    <a
+                      className={styles.documentLink}
+                      href={work.documentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ver documento
+                    </a>
+                  ) : (
+                    <span className={styles.documentLink} aria-disabled="true">
+                      Sin documento
+                    </span>
+                  )}
                   <Button
                     variant="primary"
                     type="button"

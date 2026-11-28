@@ -9,16 +9,3 @@ export function getPasswordRequirements(password) {
     },
   ]
 }
-
-export function createPasswordCredential(email, password) {
-  if (!getPasswordRequirements(password).every(requirement => requirement.valid)) {
-    throw new Error(
-      'La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.'
-    )
-  }
-  return { email: email.trim().toLowerCase(), password }
-}
-
-export function verifyPasswordCredential(password, credential) {
-  return password === credential.password
-}

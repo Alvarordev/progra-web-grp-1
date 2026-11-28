@@ -283,15 +283,12 @@ function EvaluationScreen({ codigo }) {
               <Button
                 variant="secondary"
                 type="button"
+                disabled={!trabajo.documentUrl}
                 onClick={() =>
-                  window.open(
-                    trabajo.documentUrl ?? '/Tema6_Mockups_f.pdf',
-                    '_blank',
-                    'noopener,noreferrer'
-                  )
+                  window.open(trabajo.documentUrl, '_blank', 'noopener,noreferrer')
                 }
               >
-                Abrir documento
+                {trabajo.documentUrl ? 'Abrir documento' : 'Sin documento'}
               </Button>
               <p>Vence el {trabajo.fechaLimite ?? '—'}</p>
             </div>

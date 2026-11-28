@@ -21,7 +21,7 @@ function HeroSection({ rol, edicion }) {
           <p className={styles.eyebrow}>
             CONGRESO ACADÉMICO · LIMA · EDICIÓN {edicion?.editionYear}
           </p>
-          <h1>{edicion?.editionName ?? 'VIII Congreso Académico Estudiantil'}</h1>
+          <h1>{edicion?.editionName}</h1>
           <p className={styles.description}>{edicion?.editionDescription}</p>
         </div>
 
@@ -29,13 +29,9 @@ function HeroSection({ rol, edicion }) {
           <Link className={styles.primaryAction} to={action.to}>
             {action.label}
           </Link>
-          <a
-            className={styles.secondaryAction}
-            href="/Tema6_Mockups_f.pdf"
-            download="Tema6_Mockups_f.pdf"
-          >
-            Descargar las bases
-          </a>
+          <Link className={styles.secondaryAction} to="/bases">
+            Consultar las bases
+          </Link>
         </div>
       </div>
     </section>

@@ -1,49 +1,14 @@
-import { validateDecisions } from './states/decisionsState.js'
-import { initialUsers, validateUsers } from './states/usersState.js'
-import {
-  initialWorks,
-  initialReviewers,
-  initialPendingReviews,
-  validateWorks,
-  validateReviewers,
-  validatePendingReviews,
-} from './states/worksAssignmentState.js'
 import createStateRepository from './persistence/createStateRepository.js'
 import { consultarSesion, cerrarSesion } from './usuariosApi.js'
 import {
   initialSessionPreferences,
   validateSessionPreferences,
 } from './states/sessionPreferencesState.js'
-import {
-  initialParticipant,
-  validateParticipant,
-  validateParticipants,
-} from './states/participantState.js'
-import { validateDemoCredentials } from './states/demoCredentialsState.js'
-import { validateReviewerProfiles } from './states/reviewerProfilesState.js'
 
 export const sessionPreferencesRepository = createStateRepository({
   name: 'session-preferences',
   defaultValue: initialSessionPreferences,
   validate: validateSessionPreferences,
-})
-
-export const participantsRepository = createStateRepository({
-  name: 'participants',
-  defaultValue: [],
-  validate: validateParticipants,
-})
-
-export const reviewerProfilesRepository = createStateRepository({
-  name: 'reviewer-profiles',
-  defaultValue: {},
-  validate: validateReviewerProfiles,
-})
-
-export const demoCredentialsRepository = createStateRepository({
-  name: 'credentials',
-  defaultValue: [],
-  validate: validateDemoCredentials,
 })
 
 export { repositorioRevisiones as reviewsRepository } from './revisionesApi.js'
@@ -58,53 +23,3 @@ export {
 } from './editionRepositories.js'
 
 export const sessionRepository = { get: consultarSesion, remove: cerrarSesion }
-
-export const participantRepository = createStateRepository({
-  name: 'participant',
-  defaultValue: initialParticipant,
-  validate: validateParticipant,
-})
-
-export const worksRepository = createStateRepository({
-  name: 'works',
-  defaultValue: initialWorks,
-  validate: validateWorks,
-})
-
-export const reviewersRepository = createStateRepository({
-  name: 'reviewers',
-  defaultValue: initialReviewers,
-  validate: validateReviewers,
-})
-
-export const pendingReviewsRepository = createStateRepository({
-  name: 'pending-reviews',
-  defaultValue: initialPendingReviews,
-  validate: validatePendingReviews,
-})
-
-export const usersRepository = createStateRepository({
-  name: 'users',
-  defaultValue: initialUsers,
-  validate: validateUsers,
-})
-
-export const decisionsRepository = createStateRepository({
-  name: 'decisions',
-  defaultValue: {},
-  validate: validateDecisions,
-})
-
-export const remindersRepository = createStateRepository({
-  name: 'reminders',
-  defaultValue: [],
-  validate: value =>
-    Array.isArray(value) &&
-    value.every(
-      item =>
-        typeof item.id === 'string' &&
-        typeof item.codigo === 'string' &&
-        typeof item.revisorId === 'string' &&
-        typeof item.createdAt === 'string'
-    ),
-})

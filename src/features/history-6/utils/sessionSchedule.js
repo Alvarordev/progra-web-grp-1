@@ -27,12 +27,6 @@ export function formatWeekday(fecha) {
   return dia.charAt(0).toUpperCase() + dia.slice(1)
 }
 
-export function getSessionCapacity(sesion) {
-  const duracion = toMinutes(sesion.horaFin) - toMinutes(sesion.horaInicio)
-
-  return Math.floor(duracion / WORK_MINUTES)
-}
-
 export function getWorkTimes(sesion, indice) {
   const inicio = toMinutes(sesion.horaInicio) + indice * WORK_MINUTES
 
