@@ -133,7 +133,6 @@ function UsersPage() {
     setFieldErrors({})
   }
 
-  /* Ejecuta una operación contra la API y controla el estado de guardado y de error. */
   async function runSave(operation) {
     setSaving(true)
     clearErrors()

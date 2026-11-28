@@ -52,7 +52,6 @@ function CoauthorsPage() {
     setSaving(true)
     setErrorEnvio('')
     try {
-      // PUT /api/trabajos/:id con la lista de coautores; si send es true, se envía al comité
       const cuerpo = aCuerpoTrabajo({
         trabajo: {
           ...trabajo,

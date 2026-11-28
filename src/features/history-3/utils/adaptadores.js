@@ -1,7 +1,5 @@
 import { toSubmission } from '../../../core/utils/submissions.js'
 
-// Pasa un trabajo que llega del backend al formato que ya usan las pantallas
-// de la Historia 3  // Asi las tarjetas, el detalle y el modo lectura no cambian.
 export function aTrabajoLocal(trabajo, decision) {
   const fechaEnvio = trabajo.fechaEnvio ? new Date(trabajo.fechaEnvio) : null
   const enviado = fechaEnvio ? fechaEnvio.toLocaleDateString('es-PE') : ''
@@ -44,21 +42,17 @@ export function aTrabajoLocal(trabajo, decision) {
     decision
   )
 
-  // Se guarda el id de forma numérica porque el backend lo pide para editar (PUT)
   return {
     ...local,
-    // Un borrador sin enlace no debe mostrar el documento de ejemplo de las maquetas
     enlace: trabajo.enlace ?? '',
     enlaceFinal: trabajo.enlaceFinal ?? '',
     actualizadoEn: trabajo.actualizadoEn,
     id: trabajo.id,
-    // Solo quien registró el trabajo lo edita o sube su versión final; los coautores lo consultan
     titular: trabajo.titular,
     editable: trabajo.editable,
   }
 }
 
-// Arma el cuerpo que esperan POST y PUT /api/trabajos a partir del formulario.
 // El backend pide el id del tipo y del eje, asi que se buscan por su nombre.
 export function aCuerpoTrabajo({ trabajo, tipos, ejes, correoAutor, enviar = false }) {
   const tipo = tipos.find(item => item.nombre === trabajo.tipo)

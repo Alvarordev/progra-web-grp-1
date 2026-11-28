@@ -12,7 +12,6 @@ const cargar = async () =>
     ])
   )
 
-/* Dictámenes publicados de los trabajos del autor, indexados por código de trabajo. */
 export default function useMisDecisiones() {
   const { data, loading, error } = useRemoteData(cargar)
 

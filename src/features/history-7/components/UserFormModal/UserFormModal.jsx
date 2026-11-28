@@ -5,7 +5,6 @@ import styles from './UserFormModal.module.css'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-/* Formulario único para invitar (usuario = null) y para editar (usuario existente). */
 function UserFormModal({
   guardando = false,
   errorGuardado = '',

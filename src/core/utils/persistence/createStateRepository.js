@@ -1,4 +1,3 @@
-// Cada repositorio guarda un estado bajo una clave propia del navegador.
 export default function createStateRepository({
   name,
   defaultValue,
@@ -38,7 +37,6 @@ export default function createStateRepository({
         })
       }
 
-      // Conservamos el formato existente para recuperar los datos ya guardados.
       if (stored?.version !== 1) {
         throw new Error('La versión de los datos guardados no es compatible.')
       }

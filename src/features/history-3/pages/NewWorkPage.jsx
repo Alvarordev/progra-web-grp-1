@@ -52,7 +52,6 @@ function NewWorkPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const code = searchParams.get('borrador')
   const misTrabajos = useMisTrabajos()
-  // Si la URL trae ?borrador=TRB-..., se busca ese trabajo entre los del backend
   const stored = misTrabajos.trabajos.find(work => work.codigo === code)
   const [draft, setDraft] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -137,7 +136,6 @@ function NewWorkPage() {
         ejes: conference.axes,
         correoAutor: conference.account?.email,
       })
-      // Si el trabajo ya existe se edita (PUT); si no, se crea (POST)
       const guardado = stored
         ? await actualizarTrabajo(stored.id, cuerpo)
         : await crearTrabajo(cuerpo)

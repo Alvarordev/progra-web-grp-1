@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import styles from './Toast.module.css'
 
-/* Mensaje breve que se cierra solo. role="status" lo anuncia a lectores de pantalla. */
 function Toast({ alCerrar, duracion = 3500, mensaje }) {
   /* Se guarda alCerrar en una ref para que el temporizador no se reinicie en cada render. */
   const closeRef = useRef(alCerrar)

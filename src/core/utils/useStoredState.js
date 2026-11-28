@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-// Carga una vez por repositorio; solo persiste cuando se llama a save.
 export default function useStoredState(repository, initialValue, enabled = true) {
   const [value, setValue] = useState(initialValue)
   const [loading, setLoading] = useState(true)

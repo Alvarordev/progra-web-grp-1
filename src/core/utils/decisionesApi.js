@@ -2,7 +2,6 @@ import { solicitarApi } from './clienteApi.js'
 
 export const obtenerTrabajos = () => solicitarApi('/trabajos')
 
-/* Dictámenes publicados de los trabajos del autor, con puntaje y comentarios. */
 export const obtenerMisDecisiones = () => solicitarApi('/decisiones')
 
 export const guardarDecision = (trabajoId, datos) =>
@@ -21,7 +20,6 @@ export const aCuerpoDecision = (resultado, retroalimentacion, publicar) => ({
   estado: publicar ? 'publicada' : 'borrador',
 })
 
-/* Dictamen publicado de un autor en el formato de las pantallas de la Historia 3. */
 export const aDecisionAutor = decision => ({
   resultado: decision.resultado,
   retroalimentacion: decision.retroalimentacion,

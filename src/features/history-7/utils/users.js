@@ -1,5 +1,3 @@
-/* Traduce entre las filas de /api/gestion_usuarios y los datos que muestra la pantalla. */
-
 export const roleLabels = {
   author: 'Autor',
   reviewer: 'Revisor',

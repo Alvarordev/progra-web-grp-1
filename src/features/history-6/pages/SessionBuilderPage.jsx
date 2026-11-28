@@ -52,7 +52,6 @@ function SessionBuilderPage() {
     setModal(nuevo)
   }
 
-  /* Ejecuta una operación del servidor y vuelve a leer el programa si salió bien. */
   async function run(operation, onError) {
     setSaving(true)
     setFeedback({ mensaje: '', esError: false })

@@ -1,9 +1,3 @@
-/* Genera y descarga el PDF del tablero de métricas.
-   Dibuja el reporte directamente con jsPDF (texto y formas vectoriales), de modo
-   que el resultado es nítido y no depende de las variables CSS ni del tamaño de pantalla.
-   jsPDF se carga bajo demanda: solo se descarga cuando se pulsa "Exportar reporte".
-   Requiere:  npm install jspdf */
-
 const COLORS = {
   primary: [122, 34, 49],
   primarySoft: [246, 233, 236],
@@ -18,7 +12,6 @@ const COLORS = {
   info: [38, 99, 160],
 }
 
-/* Color del texto del valor de cada indicador, según su "tono" (ver utils/metrics.js). */
 const TONE_COLORS = {
   info: COLORS.text,
   success: COLORS.success,
@@ -213,7 +206,6 @@ function drawDonutChart(doc, titulo, datos, nota, y) {
   setText(doc, COLORS.muted)
   doc.text('trabajos', cx, cy + 14, { align: 'center' })
 
-  /* Leyenda: el valor siempre va escrito, el color no es el único portador. */
   const legendX = x + 230
   datos.forEach((item, index) => {
     const rowY = y + 62 + index * 24

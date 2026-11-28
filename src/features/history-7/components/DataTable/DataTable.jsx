@@ -1,7 +1,5 @@
 import styles from './DataTable.module.css'
 
-/* Tabla accesible con scroll horizontal en pantallas pequeñas.
-   Alinea celdas con data-align="right". */
 function DataTable({ caption, children }) {
   return (
     <div className={styles.wrapper}>

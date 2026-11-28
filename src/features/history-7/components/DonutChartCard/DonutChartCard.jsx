@@ -1,6 +1,5 @@
 import styles from './DonutChartCard.module.css'
 
-/* Dona hecha con conic-gradient. La leyenda repite cada valor en texto. */
 function DonutChartCard({ datos, nota, titulo }) {
   const total = datos.reduce((suma, dato) => suma + dato.value, 0)
   const tramos = datos.map((dato, indice) => {

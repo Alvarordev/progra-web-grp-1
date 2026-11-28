@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { obtenerMisTrabajos, obtenerTrabajo } from '../../../core/utils/trabajosApi.js'
 
-// Carga el detalle de un trabajo del autor a partir del código de la URL:
-// 1) busca el id en GET /api/trabajos/mios
-// 2) pide el detalle a GET /api/trabajos/:id
 export default function useTrabajoAutor(codigo) {
   const [estado, setEstado] = useState({ trabajo: null, cargando: true, error: '' })
   const [version, setVersion] = useState(0)

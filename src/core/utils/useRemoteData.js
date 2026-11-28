@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-/* Carga los datos de un endpoint y permite volver a pedirlos con `recargar`.
-   `cargar` debe ser una función estable (por ejemplo, una importada de
-   core/utils/*Api.js). Mientras se recarga se conservan los datos anteriores. */
+// `cargar` debe ser estable entre renders: cada referencia nueva repite la petición.
 export default function useRemoteData(cargar) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

@@ -1,6 +1,5 @@
 import styles from './BarChartCard.module.css'
 
-/* Barras horizontales hechas con CSS: no requiere librerías. */
 function BarChartCard({ datos, titulo }) {
   const max = Math.max(...datos.map(dato => dato.value), 1)
 

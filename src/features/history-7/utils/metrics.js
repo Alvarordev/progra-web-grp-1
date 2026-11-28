@@ -1,5 +1,3 @@
-/* Adapta las respuestas de /api/metricas a lo que muestran las tarjetas y el PDF. */
-
 const STATUS_COLORS = {
   Aceptado: 'var(--color-success)',
   Rechazado: 'var(--color-danger)',
