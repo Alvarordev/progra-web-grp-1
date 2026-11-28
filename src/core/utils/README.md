@@ -136,8 +136,9 @@ pantalla están en `features/history-5/utils/`; no contienen llamadas HTTP.
 Las pantallas del autor consumen `/api/trabajos/mios`, `/api/trabajos/:id` y `PUT` para
 guardar el borrador, los coautores y el envío. Los dictámenes publicados, con promedio,
 puntaje por criterio y comentarios, vienen de `GET /api/decisiones`; la versión final
-se guarda con `PUT /api/trabajos/:id/version_final`. Un trabajo enviado solo se abre en
-modo lectura. Los coautores deben tener correo institucional y el borrador necesita
+se guarda con `PUT /api/trabajos/:id/version_final` y puede reemplazarse. Quien figura
+como coautora ve el trabajo y su dictamen una vez enviado, pero no lo edita ni sube la
+versión final (`titular`). Un trabajo enviado solo se abre en modo lectura. Los coautores deben tener correo institucional y el borrador necesita
 al menos título, tipo y eje, igual que en el servidor.
 
 ## Programa (Historia 6)

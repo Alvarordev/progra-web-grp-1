@@ -139,7 +139,7 @@ function CoauthorsPage() {
     )
   }
 
-  if (raw && raw.estado !== 'Borrador') {
+  if (raw && (raw.estado !== 'Borrador' || !raw.titular)) {
     return <Navigate replace to={`/autor/trabajos/${raw.codigo}/lectura`} />
   }
   if (!trabajo) {

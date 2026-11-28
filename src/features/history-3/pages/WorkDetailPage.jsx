@@ -169,16 +169,41 @@ function WorkDetailPage() {
         <aside className={styles.sideColumn}>
           <ScorePanel dictamen={dictamen} />
           {aceptado ? (
-            <InfoPanel etiqueta="Siguiente paso">
-              <p>Envíe la versión final con las observaciones atendidas.</p>
-              <Button
-                className={styles.fullButton}
-                variant="primary"
-                type="button"
-                onClick={() => setFinalModal(true)}
-              >
-                Subir versión final
-              </Button>
+            <InfoPanel etiqueta="Versión final">
+              {!trabajo.titular && (
+                <p>La versión final la sube la persona que registró el trabajo.</p>
+              )}
+              {trabajo.titular && !trabajo.enlaceFinal && (
+                <p>Envíe la versión final con las observaciones atendidas.</p>
+              )}
+              {trabajo.titular && trabajo.enlaceFinal && (
+                <p>
+                  Ya envió su versión final. Si la corrige, puede reemplazarla con un
+                  nuevo enlace.
+                </p>
+              )}
+              {trabajo.enlaceFinal && (
+                <a
+                  className={`${styles.secondaryLink} ${styles.fullButton}`}
+                  href={trabajo.enlaceFinal}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Ver versión final
+                </a>
+              )}
+              {trabajo.titular && (
+                <Button
+                  className={styles.fullButton}
+                  variant={trabajo.enlaceFinal ? 'secondary' : 'primary'}
+                  type="button"
+                  onClick={() => setFinalModal(true)}
+                >
+                  {trabajo.enlaceFinal
+                    ? 'Reemplazar versión final'
+                    : 'Subir versión final'}
+                </Button>
+              )}
             </InfoPanel>
           ) : (
             <InfoPanel etiqueta="¿Tiene dudas?">

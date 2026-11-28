@@ -52,6 +52,8 @@ export function aTrabajoLocal(trabajo, decision) {
     enlaceFinal: trabajo.enlaceFinal ?? '',
     actualizadoEn: trabajo.actualizadoEn,
     id: trabajo.id,
+    // Solo quien registró el trabajo lo edita o sube su versión final; los coautores lo consultan
+    titular: trabajo.titular,
     editable: trabajo.editable,
   }
 }

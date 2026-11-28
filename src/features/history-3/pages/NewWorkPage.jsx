@@ -178,7 +178,7 @@ function NewWorkPage() {
     )
   }
 
-  if (stored && stored.estado !== 'Borrador') {
+  if (stored && (stored.estado !== 'Borrador' || !stored.titular)) {
     return <Navigate replace to={`/autor/trabajos/${stored.codigo}/lectura`} />
   }
 
