@@ -7,6 +7,7 @@ import FormField from '../components/FormField/FormField.jsx'
 import useConference from '../../../core/utils/useConference.js'
 import { esCorreoInstitucional } from '../../../core/utils/correos.js'
 import { receptionIsOpen } from '../../../core/utils/submissions.js'
+import { getReceptionNotice } from '../../../core/utils/reception.js'
 import { actualizarTrabajo } from '../../../core/utils/trabajosApi.js'
 import { aCuerpoTrabajo, aTrabajoLocal } from '../utils/adaptadores.js'
 import useMisTrabajos from '../utils/useMisTrabajos.js'
@@ -156,7 +157,7 @@ function CoauthorsPage() {
   return (
     <AuthorPageLayout rutaActiva="/autor/nuevo-trabajo">
       <DeadlineNotice titulo={open ? 'Recepción abierta.' : 'Recepción cerrada.'}>
-        Consulte las fechas vigentes en las bases del congreso.
+        {getReceptionNotice(conference.status, conference.schedule)}
       </DeadlineNotice>
 
       <div className={styles.pageHeading}>
